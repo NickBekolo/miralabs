@@ -27,7 +27,7 @@ export default function HomePage() {
         <div style={{ maxWidth:1060, margin:'0 auto' }}>
 
           {/* Salutation */}
-          <GreetingSection name="Dr Mandeng" nbCours={5} nbTaches={5} />
+          <GreetingSection name="Mme Mandeng" nbCours={5} nbTaches={5} />
 
           {/* Ligne 1 : graphique + actualités | EDT */}
           <div style={{ display:'grid', gridTemplateColumns:'1fr 290px', gap:16, marginBottom:16 }}>

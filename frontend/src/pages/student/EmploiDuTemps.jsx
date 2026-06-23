@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useThemeStore } from './ThemeStore'
-import Course from './Course'
+import { useThemeStore } from '../../store/ThemeStore'
+import Course from '../../components/student/Course'
 
 const JOURS = [
   { id:'lundi',    label:'lun.', date:25, hasClass:true,  isWeekend:false },

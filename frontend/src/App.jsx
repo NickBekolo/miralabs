@@ -10,6 +10,9 @@ import SuperAdminDashboard from './pages/superadmin/Dashboard'
 import StudentDashboard from './pages/student/StudentDashboard'
 import ParentDashboard from './pages/parent/ParentDashboard'
 import EnseignantHome from './pages/enseignant/HomePage'
+// En haut avec les autres imports
+import Notes from './pages/student/Notes'
+
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -49,6 +52,8 @@ function App() {
           <Route path="/student/dashboard" element={<StudentDashboard />} />
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
           <Route path="/enseignant/home" element={<EnseignantHome />} />
+          <Route path="/notes" element={<Notes />} />
+
         </Routes>
       </BrowserRouter>
     </AuthProvider>

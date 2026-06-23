@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useThemeStore, FONTS, } from './ThemeStore'
+import { useThemeStore, FONTS, } from '../../store/ThemeStore'
 
 const PALETTE = [
   '#1a1a1a','#374151','#6b7280','#dc2626','#ea580c','#d97706',

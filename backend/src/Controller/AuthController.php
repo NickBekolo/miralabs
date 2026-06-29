@@ -28,8 +28,8 @@ class AuthController extends AbstractController
     #[Route('/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $email = $data['email'] ?? null;
+        $data     = json_decode($request->getContent(), true);
+        $email    = $data['email'] ?? null;
         $password = $data['password'] ?? null;
 
         if (!$email || !$password) {
@@ -50,20 +50,20 @@ class AuthController extends AbstractController
 
         return $this->json([
             'token' => $token,
-            'user' => [
-                'id' => $user->getId(),
-                'email' => $user->getEmail(),
+            'user'  => [
+                'id'        => $user->getId(),
+                'email'     => $user->getEmail(),
                 'firstName' => $user->getFirstName(),
-                'lastName' => $user->getLastName(),
-                'roles' => $user->getRoles(),
-            ]
+                'lastName'  => $user->getLastName(),
+                'roles'     => $user->getRoles(),
+            ],
         ]);
     }
 
     #[Route('/forgot-password', name: 'api_forgot_password', methods: ['POST'])]
     public function forgotPassword(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
+        $data  = json_decode($request->getContent(), true);
         $email = $data['email'] ?? null;
 
         if (!$email) {
@@ -72,6 +72,7 @@ class AuthController extends AbstractController
 
         $user = $this->userRepository->findOneBy(['email' => $email]);
 
+        // Réponse générique pour ne pas révéler si l'email existe
         if (!$user) {
             return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
         }
@@ -83,11 +84,12 @@ class AuthController extends AbstractController
         }
 
         $emailMessage = (new Email())
-            ->from('no-reply@educationapp.com')
+            ->from('no-reply@miralabs.com')
             ->to($user->getEmail())
             ->subject('Réinitialisation de votre mot de passe')
             ->html(sprintf(
-                '<p>Bonjour %s,</p><p>Cliquez sur ce lien pour réinitialiser votre mot de passe :</p>
+                '<p>Bonjour %s,</p>
+                <p>Cliquez sur ce lien pour réinitialiser votre mot de passe :</p>
                 <a href="http://localhost:5173/reset-password/%s">Réinitialiser mon mot de passe</a>
                 <p>Ce lien expire dans 1 heure.</p>',
                 $user->getFirstName(),
@@ -96,14 +98,18 @@ class AuthController extends AbstractController
 
         $this->mailer->send($emailMessage);
 
-        return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+        return $this->json([
+            'message'   => 'Si cet email existe, un lien a été envoyé.',
+            // À retirer en production — utile uniquement en dev
+            'dev_token' => $resetToken->getToken(),
+        ]);
     }
 
     #[Route('/reset-password', name: 'api_reset_password', methods: ['POST'])]
     public function resetPassword(Request $request): JsonResponse
     {
-        $data = json_decode($request->getContent(), true);
-        $token = $data['token'] ?? null;
+        $data        = json_decode($request->getContent(), true);
+        $token       = $data['token'] ?? null;
         $newPassword = $data['password'] ?? null;
 
         if (!$token || !$newPassword) {
@@ -121,8 +127,11 @@ class AuthController extends AbstractController
         }
 
         $this->resetPasswordHelper->removeResetRequest($token);
-        $hashedPassword = $this->passwordHasher->hashPassword($user, $newPassword);
-        $user->setPassword($hashedPassword);
+
+        $user->setPassword(
+            $this->passwordHasher->hashPassword($user, $newPassword)
+        );
+
         $this->userRepository->save($user, true);
 
         return $this->json(['message' => 'Mot de passe réinitialisé avec succès.']);

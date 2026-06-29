@@ -12,6 +12,7 @@ import ParentDashboard from './pages/parent/ParentDashboard'
 import EnseignantHome from './pages/enseignant/HomePage'
 // En haut avec les autres imports
 import Notes from './pages/student/Notes'
+import Absences from './pages/student/Absences'
 
 
 function App() {
@@ -53,6 +54,7 @@ function App() {
           <Route path="/parent/dashboard" element={<ParentDashboard />} />
           <Route path="/enseignant/home" element={<EnseignantHome />} />
           <Route path="/notes" element={<Notes />} />
+          <Route path="/absences" element={<Absences />} />
 
         </Routes>
       </BrowserRouter>

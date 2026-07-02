@@ -43,7 +43,7 @@ class AuthController extends AbstractController
         }
 
         if (!$user->isActive()) {
-            return $this->json(['message' => 'Compte désactivé.'], 403);
+            return $this->json(['message' => 'Compte désactivé. Contactez l\'administrateur.'], 403);
         }
 
         $token = $this->jwtManager->create($user);
@@ -51,11 +51,12 @@ class AuthController extends AbstractController
         return $this->json([
             'token' => $token,
             'user'  => [
-                'id'        => $user->getId(),
-                'email'     => $user->getEmail(),
-                'firstName' => $user->getFirstName(),
-                'lastName'  => $user->getLastName(),
-                'roles'     => $user->getRoles(),
+                'id'                 => $user->getId(),
+                'email'              => $user->getEmail(),
+                'firstName'          => $user->getFirstName(),
+                'lastName'           => $user->getLastName(),
+                'roles'              => $user->getRoles(),
+                'mustChangePassword' => $user->isMustChangePassword(), // Indique si changement requis
             ],
         ]);
     }
@@ -72,7 +73,6 @@ class AuthController extends AbstractController
 
         $user = $this->userRepository->findOneBy(['email' => $email]);
 
-        // Réponse générique pour ne pas révéler si l'email existe
         if (!$user) {
             return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
         }
@@ -83,25 +83,29 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
         }
 
-        $emailMessage = (new Email())
+        $this->mailer->send((new Email())
             ->from('no-reply@miralabs.com')
             ->to($user->getEmail())
-            ->subject('Réinitialisation de votre mot de passe')
+            ->subject('Réinitialisation de votre mot de passe — Miralabs')
             ->html(sprintf(
-                '<p>Bonjour %s,</p>
-                <p>Cliquez sur ce lien pour réinitialiser votre mot de passe :</p>
-                <a href="http://localhost:5173/reset-password/%s">Réinitialiser mon mot de passe</a>
-                <p>Ce lien expire dans 1 heure.</p>',
+                '<div style="font-family:sans-serif;max-width:480px;margin:auto;">
+                    <h2 style="color:#111;">Réinitialisation de mot de passe</h2>
+                    <p>Bonjour <strong>%s</strong>,</p>
+                    <p>Cliquez sur le bouton ci-dessous pour réinitialiser votre mot de passe :</p>
+                    <a href="http://localhost:5173/reset-password/%s"
+                       style="display:inline-block;padding:12px 24px;background:#111;color:#fff;border-radius:8px;text-decoration:none;margin:16px 0;">
+                        Réinitialiser mon mot de passe
+                    </a>
+                    <p style="color:#888;font-size:12px;">Ce lien expire dans 1 heure.</p>
+                </div>',
                 $user->getFirstName(),
                 $resetToken->getToken()
-            ));
-
-        $this->mailer->send($emailMessage);
+            ))
+        );
 
         return $this->json([
             'message'   => 'Si cet email existe, un lien a été envoyé.',
-            // À retirer en production — utile uniquement en dev
-            'dev_token' => $resetToken->getToken(),
+            'dev_token' => $resetToken->getToken(), // À retirer en production
         ]);
     }
 
@@ -128,10 +132,8 @@ class AuthController extends AbstractController
 
         $this->resetPasswordHelper->removeResetRequest($token);
 
-        $user->setPassword(
-            $this->passwordHasher->hashPassword($user, $newPassword)
-        );
-
+        $user->setPassword($this->passwordHasher->hashPassword($user, $newPassword));
+        $user->setMustChangePassword(false); // Changement effectué — flag réinitialisé
         $this->userRepository->save($user, true);
 
         return $this->json(['message' => 'Mot de passe réinitialisé avec succès.']);

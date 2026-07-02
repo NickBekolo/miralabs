@@ -1,19 +1,27 @@
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
-import SplashScreen from './pages/auth/SplashScreen'
-import Onboarding from './pages/auth/Onboarding'
-import Login from './pages/auth/Login'
-import ForgotPassword from './pages/auth/ForgotPassword'
-import ResetPassword from './pages/auth/ResetPassword'
-import SuperAdminDashboard from './pages/superadmin/Dashboard'
-import StudentDashboard from './pages/student/StudentDashboard'
-import ParentDashboard from './pages/parent/ParentDashboard'
-import EnseignantHome from './pages/enseignant/HomePage'
-// En haut avec les autres imports
-import Notes from './pages/student/Notes'
-import Absences from './pages/student/Absences'
 
+// Auth
+import SplashScreen    from './pages/auth/SplashScreen'
+import Onboarding      from './pages/auth/Onboarding'
+import Login           from './pages/auth/Login'
+import ForgotPassword  from './pages/auth/ForgotPassword'
+import ResetPassword   from './pages/auth/ResetPassword'
+import ChangePassword  from './pages/auth/ChangePassword'
+
+// Superadmin
+import SuperAdminDashboard from './pages/superadmin/Dashboard'
+
+// Étudiant
+import StudentDashboard from './pages/student/StudentDashboard'
+import Notes            from './pages/student/Notes'
+
+// Enseignant
+import EnseignantHome from './pages/enseignant/HomePage'
+
+// Parent
+import ParentDashboard from './pages/parent/ParentDashboard'
 
 function App() {
   const [splashDone, setSplashDone] = useState(
@@ -45,17 +53,33 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Login />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
+          {/* Auth */}
+          <Route path="/"                      element={<Login />} />
+          <Route path="/login"                 element={<Login />} />
+          <Route path="/forgot-password"       element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
-          <Route path="/superadmin/dashboard" element={<SuperAdminDashboard />} />
-          <Route path="/student/dashboard" element={<StudentDashboard />} />
-          <Route path="/parent/dashboard" element={<ParentDashboard />} />
-          <Route path="/enseignant/home" element={<EnseignantHome />} />
-          <Route path="/notes" element={<Notes />} />
-          <Route path="/absences" element={<Absences />} />
+          <Route path="/change-password"       element={<ChangePassword />} />
 
+          {/* Superadmin */}
+          <Route path="/superadmin/dashboard"  element={<SuperAdminDashboard />} />
+
+          {/* Étudiant */}
+          <Route path="/student/dashboard"     element={<StudentDashboard />} />
+          <Route path="/student/notes"         element={<Notes />} />
+
+          {/* Enseignant */}
+          <Route path="/enseignant/home"       element={<EnseignantHome />} />
+
+          {/* Parent */}
+          <Route path="/parent/dashboard"      element={<ParentDashboard />} />
+
+          {/* Pages à venir — placeholders */}
+          <Route path="/directeur/dashboard"   element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Directeur — en construction</h2></div>} />
+          <Route path="/pedagogique/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Service Pédagogique — en construction</h2></div>} />
+          <Route path="/cpe/dashboard"         element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>CPE — en construction</h2></div>} />
+          <Route path="/secretariat/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Secrétariat — en construction</h2></div>} />
+          <Route path="/comptabilite/dashboard"element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Comptabilité — en construction</h2></div>} />
+          <Route path="/surveillant/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Surveillant — en construction</h2></div>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

@@ -2,7 +2,9 @@
 
 namespace App\Controller;
 
+use App\Entity\EventLog;
 use App\Repository\UserRepository;
+use App\Service\EventLogService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -23,6 +25,7 @@ class AuthController extends AbstractController
         private JWTTokenManagerInterface $jwtManager,
         private ResetPasswordHelperInterface $resetPasswordHelper,
         private MailerInterface $mailer,
+        private EventLogService $eventLog,
     ) {}
 
     #[Route('/login', name: 'api_login', methods: ['POST'])]
@@ -46,6 +49,16 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Compte désactivé. Contactez l\'administrateur.'], 403);
         }
 
+        // Log de la connexion
+        $this->eventLog->log(
+            type: EventLog::LOGIN,
+            user: $user,
+            metadata: [
+                'ip'        => $request->getClientIp(),
+                'userAgent' => $request->headers->get('User-Agent'),
+            ]
+        );
+
         $token = $this->jwtManager->create($user);
 
         return $this->json([
@@ -56,7 +69,12 @@ class AuthController extends AbstractController
                 'firstName'          => $user->getFirstName(),
                 'lastName'           => $user->getLastName(),
                 'roles'              => $user->getRoles(),
-                'mustChangePassword' => $user->isMustChangePassword(), // Indique si changement requis
+                'mustChangePassword' => $user->isMustChangePassword(),
+                'etablissement'      => $user->getEtablissement() ? [
+                    'id'   => $user->getEtablissement()->getId(),
+                    'name' => $user->getEtablissement()->getName(),
+                    'code' => $user->getEtablissement()->getCode(),
+                ] : null,
             ],
         ]);
     }
@@ -131,9 +149,8 @@ class AuthController extends AbstractController
         }
 
         $this->resetPasswordHelper->removeResetRequest($token);
-
         $user->setPassword($this->passwordHasher->hashPassword($user, $newPassword));
-        $user->setMustChangePassword(false); // Changement effectué — flag réinitialisé
+        $user->setMustChangePassword(false);
         $this->userRepository->save($user, true);
 
         return $this->json(['message' => 'Mot de passe réinitialisé avec succès.']);

@@ -3,32 +3,38 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 
 // Auth
-import SplashScreen    from './pages/auth/SplashScreen'
-import Onboarding      from './pages/auth/Onboarding'
-import Login           from './pages/auth/Login'
-import ForgotPassword  from './pages/auth/ForgotPassword'
-import ResetPassword   from './pages/auth/ResetPassword'
-import ChangePassword  from './pages/auth/ChangePassword'
+import SplashScreen          from './pages/auth/SplashScreen'
+import SelectEtablissement   from './pages/auth/SelectEtablissement'
+import Login                 from './pages/auth/Login'
+import ForgotPassword        from './pages/auth/ForgotPassword'
+import ResetPassword         from './pages/auth/ResetPassword'
+import ChangePassword        from './pages/auth/ChangePassword'
+
+// Platform (éditeur Miralabs)
+import PlatformDashboard from './pages/platform/PlatformDashboard'
 
 // Superadmin
-import SuperAdminDashboard from './pages/superadmin/Dashboard'
+import SuperAdminDashboard   from './pages/superadmin/Dashboard'
 
 // Étudiant
-import StudentDashboard from './pages/student/StudentDashboard'
-import Notes            from './pages/student/Notes'
+import StudentDashboard      from './pages/student/StudentDashboard'
+import Notes                 from './pages/student/Notes'
 
 // Enseignant
-import EnseignantHome from './pages/enseignant/HomePage'
+import EnseignantHome        from './pages/enseignant/HomePage'
 
 // Parent
-import ParentDashboard from './pages/parent/ParentDashboard'
+import ParentDashboard       from './pages/parent/ParentDashboard'
+
+const Placeholder = ({ title }) => (
+  <div style={{ padding:40, fontFamily:'sans-serif' }}>
+    <h2>{title} — en construction</h2>
+  </div>
+)
 
 function App() {
   const [splashDone, setSplashDone] = useState(
     () => sessionStorage.getItem('splashDone') === 'true'
-  )
-  const [onboardingDone, setOnboardingDone] = useState(
-    () => sessionStorage.getItem('onboardingDone') === 'true'
   )
 
   if (!splashDone) {
@@ -40,27 +46,22 @@ function App() {
     )
   }
 
-  if (!onboardingDone) {
-    return (
-      <Onboarding onFinish={() => {
-        sessionStorage.setItem('onboardingDone', 'true')
-        setOnboardingDone(true)
-      }} />
-    )
-  }
-
   return (
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Sélection établissement — page d'accueil */}
+          <Route path="/"                      element={<SelectEtablissement />} />
+          <Route path="/select"                element={<SelectEtablissement />} />
+
           {/* Auth */}
-          <Route path="/"                      element={<Login />} />
           <Route path="/login"                 element={<Login />} />
           <Route path="/forgot-password"       element={<ForgotPassword />} />
           <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/change-password"       element={<ChangePassword />} />
 
           {/* Superadmin */}
+          <Route path="/platform/dashboard" element={<PlatformDashboard />} />
           <Route path="/superadmin/dashboard"  element={<SuperAdminDashboard />} />
 
           {/* Étudiant */}
@@ -73,13 +74,13 @@ function App() {
           {/* Parent */}
           <Route path="/parent/dashboard"      element={<ParentDashboard />} />
 
-          {/* Pages à venir — placeholders */}
-          <Route path="/directeur/dashboard"   element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Directeur — en construction</h2></div>} />
-          <Route path="/pedagogique/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Service Pédagogique — en construction</h2></div>} />
-          <Route path="/cpe/dashboard"         element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>CPE — en construction</h2></div>} />
-          <Route path="/secretariat/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Secrétariat — en construction</h2></div>} />
-          <Route path="/comptabilite/dashboard"element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Comptabilité — en construction</h2></div>} />
-          <Route path="/surveillant/dashboard" element={<div style={{padding:40,fontFamily:'sans-serif'}}><h2>Surveillant — en construction</h2></div>} />
+          {/* Placeholders */}
+          <Route path="/directeur/dashboard"    element={<Placeholder title="Directeur" />} />
+          <Route path="/pedagogique/dashboard"  element={<Placeholder title="Service Pédagogique" />} />
+          <Route path="/cpe/dashboard"          element={<Placeholder title="CPE" />} />
+          <Route path="/secretariat/dashboard"  element={<Placeholder title="Secrétariat" />} />
+          <Route path="/comptabilite/dashboard" element={<Placeholder title="Comptabilité" />} />
+          <Route path="/surveillant/dashboard"  element={<Placeholder title="Surveillant" />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

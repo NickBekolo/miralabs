@@ -1,11 +1,75 @@
-* {
+/* MIRALABS — Global Styles — Dark Mode Sana-inspired */
+
+*, *::before, *::after {
+  box-sizing: border-box;
   margin: 0;
   padding: 0;
-  box-sizing: border-box;
+}
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
 }
 
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  background-color: #f5f7fa;
-  color: #333;
+  background-color: #0f0f0f;
+  color: #ffffff;
+  font-family: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar dark */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* Remove default button styles */
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+/* Remove default input styles */
+input, select, textarea {
+  font-family: inherit;
+}
+
+/* Remove default link styles */
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Selection */
+::selection {
+  background: rgba(0, 200, 150, 0.3);
+  color: #ffffff;
+}
+
+/* Transitions globales */
+* {
+  transition-property: background-color, border-color, color, opacity;
+  transition-duration: 0.12s;
+  transition-timing-function: ease;
+}
+
+/* Désactive les transitions sur les éléments animés */
+.no-transition * {
+  transition: none !important;
 }

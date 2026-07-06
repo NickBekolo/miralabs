@@ -28,7 +28,7 @@ class NoteController extends AbstractController
         $user = $this->getUser();
         $roles = $user->getRoles();
 
-        if (in_array('ROLE_ADMIN', $roles) || in_array('ROLE_PROF', $roles)) {
+        if (in_array('ROLE_ADMIN', $roles) || in_array('ROLE_TEACHER', $roles)) {
             $notes = $this->noteRepository->findAll();
         } else {
             $notes = $this->noteRepository->findByEleve($user->getId());
@@ -46,7 +46,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('', name: 'notes_create', methods: ['POST'])]
-    #[IsGranted('ROLE_PROF')]
+    #[IsGranted('ROLE_TEACHER')]
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -81,7 +81,7 @@ class NoteController extends AbstractController
     }
 
     #[Route('/{id}', name: 'notes_update', methods: ['PUT'])]
-    #[IsGranted('ROLE_PROF')]
+    #[IsGranted('ROLE_TEACHER')]
     public function update(int $id, Request $request): JsonResponse
     {
         $note = $this->noteRepository->find($id);

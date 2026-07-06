@@ -1,12 +1,14 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 
 export const FONTS = [
-  { id:'arial',   label:'Arial Rounded',    stack:"'Arial Rounded MT Bold','Arial Rounded MT',sans-serif" },
-  { id:'nunito',  label:'Nunito',           stack:"'Nunito',sans-serif" },
-  { id:'jakarta', label:'Plus Jakarta Sans',stack:"'Plus Jakarta Sans',sans-serif" },
-  { id:'inter',   label:'Inter',            stack:"'Inter',sans-serif" },
-  { id:'outfit',  label:'Outfit',           stack:"'Outfit',sans-serif" },
-  { id:'dm',      label:'DM Sans',          stack:"'DM Sans',sans-serif" },
+  { id:'apple',   label:'SF Pro (défaut)',    stack:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" },
+  { id:'arial',   label:'Arial Rounded',      stack:"'Arial Rounded MT Bold','Arial Rounded MT',sans-serif" },
+  { id:'nunito',  label:'Nunito',             stack:"'Nunito',sans-serif" },
+  { id:'jakarta', label:'Plus Jakarta Sans',  stack:"'Plus Jakarta Sans',sans-serif" },
+  { id:'inter',   label:'Inter',              stack:"'Inter',sans-serif" },
+  { id:'outfit',  label:'Outfit',             stack:"'Outfit',sans-serif" },
+  { id:'dm',      label:'DM Sans',            stack:"'DM Sans',sans-serif" },
 ]
 
 export const DEFAULT_COLORS = {
@@ -30,11 +32,65 @@ export const DEFAULT_COLORS = {
   annBorder:    '#e0e0e0',
 }
 
-export const useThemeStore = create(set => ({
-  font: FONTS[0].stack,
-  fontId: 'arial',
-  colors: { ...DEFAULT_COLORS },
-  setFont: (id) => set({ fontId: id, font: FONTS.find(f => f.id === id)?.stack || FONTS[0].stack }),
-  setColor: (key, value) => set(state => ({ colors: { ...state.colors, [key]: value } })),
-  resetColors: () => set({ colors: { ...DEFAULT_COLORS }, font: FONTS[0].stack, fontId: 'arial' }),
-}))
+// ─── Thèmes clair / sombre ────────────────────────────────────
+
+export const LIGHT_THEME = {
+  bg:       '#F2F2F2',
+  surface:  '#ffffff',
+  surface2: '#F5F5F5',
+  surface3: '#EBEBEB',
+  border:   'rgba(0,0,0,0.06)',
+  text:     '#111111',
+  muted:    '#8A8A8A',
+  hint:     '#AEAEB2',
+  sidebar:  '#ffffff',
+  red:      '#dc2626',
+}
+
+export const DARK_THEME = {
+  bg:       '#0a0a0a',
+  surface:  '#141414',
+  surface2: '#1c1c1c',
+  surface3: '#242424',
+  border:   'rgba(255,255,255,0.07)',
+  text:     '#f5f5f5',
+  muted:    'rgba(255,255,255,0.4)',
+  hint:     'rgba(255,255,255,0.18)',
+  sidebar:  '#111111',
+  red:      '#ff5555',
+}
+
+// ─── Store ────────────────────────────────────────────────────
+
+export const useThemeStore = create(
+  persist(
+    (set, get) => ({
+      // Mode clair par défaut
+      darkMode: false,
+      toggleDarkMode: () => set(s => ({ darkMode: !s.darkMode })),
+      setDarkMode: (val) => set({ darkMode: val }),
+
+      // Thème actif (calculé)
+      getTheme: () => get().darkMode ? DARK_THEME : LIGHT_THEME,
+
+      // Police
+      font:   FONTS[0].stack,
+      fontId: 'apple',
+      setFont: (id) => set({ fontId: id, font: FONTS.find(f => f.id === id)?.stack || FONTS[0].stack }),
+
+      // Couleurs EDT
+      colors: { ...DEFAULT_COLORS },
+      setColor: (key, value) => set(state => ({ colors: { ...state.colors, [key]: value } })),
+      resetColors: () => set({ colors: { ...DEFAULT_COLORS }, font: FONTS[0].stack, fontId: 'apple' }),
+    }),
+    {
+      name: 'miralabs-theme', // clé localStorage
+      partialize: (state) => ({
+        darkMode: state.darkMode,
+        fontId:   state.fontId,
+        font:     state.font,
+        colors:   state.colors,
+      }),
+    }
+  )
+)

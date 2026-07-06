@@ -81,6 +81,11 @@ function App() {
           <Route path="/secretariat/dashboard"  element={<Placeholder title="Secrétariat" />} />
           <Route path="/comptabilite/dashboard" element={<Placeholder title="Comptabilité" />} />
           <Route path="/surveillant/dashboard"  element={<Placeholder title="Surveillant" />} />
+          <Route path="*" element={
+  <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0a0a0a', color:'rgba(255, 255, 255, 0.63)', fontFamily:'sans-serif', fontSize:22 }}>
+    Page introuvable
+  </div>
+} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

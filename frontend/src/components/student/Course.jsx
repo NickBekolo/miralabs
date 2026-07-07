@@ -7,13 +7,7 @@ const ft = '-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,"Hel
    (HomeScreen.jsx importe Colors, adj, subjectColor)
    ─────────────────────────────────────────────────────────── */
 
-export const Colors = [
-  "#C50017","#DA2400","#DD6B00","#E8901C","#E8B048",
-  "#6BAE00","#37BB12","#12BB67","#26B290","#26ABB2",
-  "#2DB9D8","#009EC5","#007FDA","#3A56D0","#7600CA",
-  "#962DD8","#B300CA","#C50066","#DD004A","#DD0030"
-]
-
+export 
 export function adj(hex, factor) {
   if (!hex) return '#888'
   const h = hex.replace('#', '')

@@ -7,16 +7,6 @@ import Library from '../../../components/library/Library'
 
 const ft = '-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,sans-serif'
 
-const BOOKS = [
-  { title:'Fonctions polynômes',    color:'#1e3a5f' },
-  { title:'Solutions aqueuses',     color:'#9f1239' },
-  { title:'Probabilités',           color:'#4a1942' },
-  { title:'Circuits électriques',   color:'#1a3c34' },
-  { title:'Pression hydrostatique', color:'#7c2d12' },
-  { title:'Second degré',           color:'#374151' },
-  { title:'Boyle-Mariotte',         color:'#1e3a5f' },
-  { title:'Histoire coloniale',     color:'#713f12' },
-]
 
 function avg(notes) {
   if (!notes.length) return 0

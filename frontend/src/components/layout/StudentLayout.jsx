@@ -66,8 +66,8 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
   return (
     <div style={{
       fontFamily: ft, background: '#fff', color: '#111111',
-      WebkitFontSmoothing: 'antialiased', minHeight: '100vh',
-      display: 'flex', flexDirection: 'column',
+      WebkitFontSmoothing: 'antialiased', height: '100vh',
+      display: 'flex', flexDirection: 'column', overflow: 'hidden',
     }}>
       {/* Header mobile */}
       <div style={{
@@ -78,9 +78,6 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
       }}>
         {/* Gauche : menu + Miralabs + chevron */}
         <div style={{ display:'flex', alignItems:'center', gap:10, position:'relative' }}>
-          <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', color:'#111111', padding:0 }}>
-            <AlignLeft size={22} strokeWidth={2}/>
-          </button>
           <button
             onClick={() => setDropdownOpen(o => !o)}
             style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', padding:0, fontFamily:ft }}

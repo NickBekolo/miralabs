@@ -67,7 +67,7 @@ function MoyenneSection({ notes, C }) {
 function AbsencesSection({ absences, loading, C }) {
   const today      = new Date().getDate()
   const absentDays = absences.map(a => new Date(a.date).getDate())
-  const jours      = ['L','M','M','J','V','S','D']
+  const jours      = ['Lu','Ma','Me','Je','Ve','Sa','Di']
   return (
     <Card C={C}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:2 }}>
@@ -81,8 +81,8 @@ function AbsencesSection({ absences, loading, C }) {
         <div style={{ fontSize:11, color:C.hint }}>Chargement...</div>
       ) : (
         <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
-          {jours.map(j => (
-            <div key={j} style={{ fontSize:8, color:C.hint, textAlign:'center', fontWeight:500 }}>{j}</div>
+          {jours.map((j, idx) => (
+            <div key={idx} style={{ fontSize:8, color:C.hint, textAlign:'center', fontWeight:500 }}>{j}</div>
           ))}
           {Array.from({ length:30 }, (_, i) => i + 1).map(d => {
             const isAbsent = absentDays.includes(d)

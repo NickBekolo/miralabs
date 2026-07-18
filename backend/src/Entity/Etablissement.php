@@ -28,6 +28,9 @@ class Etablissement
     #[ORM\Column]
     private ?bool $isActive = null;
 
+    #[ORM\Column(length: 100, nullable: true)]
+    private ?string $ville = null;
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -107,4 +110,11 @@ class Etablissement
 
         return $this;
     }
+    #[ORM\Column(options: ['default' => true])]
+    private bool $signatureNumeriqueActive = true;
+
+    public function isSignatureNumeriqueActive(): bool { return $this->signatureNumeriqueActive; }
+    public function setSignatureNumeriqueActive(bool $v): static { $this->signatureNumeriqueActive = $v; return $this; }
+    public function getVille(): ?string { return $this->ville; }
+    public function setVille(?string $v): static { $this->ville = $v; return $this; }
 }

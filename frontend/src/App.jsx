@@ -21,7 +21,7 @@ import StudentDashboard      from './pages/student/StudentDashboard'
 import Notes                 from './pages/student/Notes'
 
 // Enseignant
-import EnseignantHome        from './pages/enseignant/HomePage'
+import EnseignantHome        from './pages/enseignant/EnseignantDashboard'
 
 // Parent
 import ParentDashboard       from './pages/parent/ParentDashboard'

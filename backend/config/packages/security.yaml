@@ -22,6 +22,7 @@ security:
     access_control:
         # Public — auth et sélection établissement
         - { path: ^/api/auth,                                roles: PUBLIC_ACCESS }
+        - { path: ^/api/public,                              roles: PUBLIC_ACCESS }
         - { path: ^/api/platform/etablissements/public, roles: PUBLIC_ACCESS }
 
         # Éditeur Miralabs (tous les établissements)

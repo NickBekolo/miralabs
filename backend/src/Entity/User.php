@@ -43,6 +43,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\ManyToOne]
     private ?Etablissement $etablissement = null;
 
+    #[ORM\ManyToOne]
+    private ?Classe $classe = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -145,6 +148,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    public function getClasse(): ?Classe { return $this->classe; }
+    public function setClasse(?Classe $c): static { $this->classe = $c; return $this; }
 
     public function getEtablissement(): ?Etablissement
     {

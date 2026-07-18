@@ -1,29 +1,35 @@
 import { useState } from 'react'
 import { StudentLayout }  from '../../components/layout/StudentLayout'
-import HomeScreen         from './home/index'
+import ForYou             from './ForYou'
+import Conversations      from './Conversations'
+import Espaces            from './Espaces'
 import EmploiDuTemps      from './EmploiDuTemps'
-import Personnalisation   from './Personnalisation'
 import Notes              from './Notes'
+import Assiduite          from './Assiduite'
+import MiraIA             from './MiraIA'
+import Personnalisation   from './Personnalisation'
 
-/**
- * StudentDashboard — tableau de bord étudiant.
- * Structure calquée sur la page enseignant :
- * layout avec sidebar + topbar, navigation entre les pages via sidebar.
- */
+// Pages qui ont besoin de toute la hauteur sans padding
+const FULL_HEIGHT_PAGES = ['conversations', 'espaces']
+
 export default function StudentDashboard({ isParent }) {
   const [active, setActive] = useState('accueil')
 
   const renderPage = () => {
     switch (active) {
-      case 'accueil':   return <HomeScreen />
-      case 'emploi':    return <EmploiDuTemps />
-      case 'notes':     return <Notes />
-      case 'params':    return <Personnalisation />
-      case 'assiduite': return <Placeholder title="Assiduité" />
-      case 'revision':  return <Placeholder title="Révision avec Mira" />
-      default:          return <Placeholder title="En construction" />
+      case 'accueil':       return <ForYou />
+      case 'conversations': return <Conversations />
+      case 'espaces':       return <Espaces />
+      case 'notes':         return <Notes />
+      case 'emploi':        return <EmploiDuTemps />
+      case 'assiduite':     return <Assiduite />
+      case 'revision':      return <MiraIA />
+      case 'params':        return <Personnalisation />
+      default:              return <ForYou />
     }
   }
+
+  const fullHeight = FULL_HEIGHT_PAGES.includes(active)
 
   return (
     <StudentLayout
@@ -31,22 +37,11 @@ export default function StudentDashboard({ isParent }) {
       onNavChange={setActive}
       userName={isParent ? 'Parent' : 'Ritah'}
     >
-      <div style={{ padding: '20px 24px 48px' }}>
-        <div style={{ maxWidth: 900, margin: '0 auto' }}>
-          {renderPage()}
-        </div>
-      </div>
+      {fullHeight
+        ? renderPage()
+        : renderPage()
+      }
     </StudentLayout>
   )
 }
 
-function Placeholder({ title }) {
-  return (
-    <div style={{ padding: 32 }}>
-      <div style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.8px', color: '#111111', marginBottom: 8 }}>
-        {title}
-      </div>
-      <div style={{ fontSize: 14, color: '#8A8A8A' }}>En cours de construction</div>
-    </div>
-  )
-}

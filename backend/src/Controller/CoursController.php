@@ -9,6 +9,7 @@ use App\Repository\MatiereRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Trait\EtablissementTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -18,6 +19,7 @@ use App\Entity\User;
 #[Route('/api/cours')]
 class CoursController extends AbstractController
 {
+    use EtablissementTrait;
     public function __construct(
         private CoursRepository    $coursRepo,
         private ClasseRepository   $classeRepo,

@@ -28,6 +28,8 @@ class Absence
 
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $motif = null;
+    #[ORM\Column(options: ['default' => false])]
+    private bool $isJustified = false;
 
     #[ORM\Column]
     private ?bool $justifiee = false;
@@ -54,6 +56,8 @@ class Absence
 
     public function getMotif(): ?string { return $this->motif; }
     public function setMotif(?string $motif): static { $this->motif = $motif; return $this; }
+    public function isIsJustified(): bool { return $this->isJustified; }
+    public function setIsJustified(bool $v): static { $this->isJustified = $v; return $this; }
 
     public function isJustifiee(): ?bool { return $this->justifiee; }
     public function setJustifiee(bool $justifiee): static { $this->justifiee = $justifiee; return $this; }
@@ -63,4 +67,9 @@ class Absence
 
     public function getSaisiePar(): ?User { return $this->saisiePar; }
     public function setSaisiePar(?User $saisiePar): static { $this->saisiePar = $saisiePar; return $this; }
+    #[ORM\ManyToOne]
+    private ?Etablissement $etablissement = null;
+    public function getEtablissement(): ?Etablissement { return $this->etablissement; }
+    public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
+
 }

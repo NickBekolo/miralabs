@@ -19,6 +19,9 @@ class Note
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $commentaire = null;
 
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $typeEvaluation = null; // DS, TP, Devoir, Interrogation, Examen
+
     #[ORM\Column]
     private ?\DateTimeImmutable $createdAt = null;
 
@@ -42,6 +45,9 @@ class Note
     public function getValeur(): ?float { return $this->valeur; }
     public function setValeur(float $valeur): static { $this->valeur = $valeur; return $this; }
 
+    public function getTypeEvaluation(): ?string { return $this->typeEvaluation; }
+    public function setTypeEvaluation(?string $t): static { $this->typeEvaluation = $t; return $this; }
+
     public function getCommentaire(): ?string { return $this->commentaire; }
     public function setCommentaire(?string $commentaire): static { $this->commentaire = $commentaire; return $this; }
 
@@ -59,4 +65,9 @@ class Note
 
     public function getNoteSur(): ?float { return $this->noteSur; }
     public function setNoteSur(?float $noteSur): static { $this->noteSur = $noteSur; return $this; }
+    #[ORM\ManyToOne]
+    private ?Etablissement $etablissement = null;
+    public function getEtablissement(): ?Etablissement { return $this->etablissement; }
+    public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
+
 }

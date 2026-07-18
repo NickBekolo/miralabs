@@ -7,6 +7,7 @@ use App\Repository\NoteRepository;
 use App\Repository\UserRepository;
 use App\Repository\MatiereRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Trait\EtablissementTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -15,6 +16,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/notes')]
 class NoteController extends AbstractController
 {
+    use EtablissementTrait;
     public function __construct(
         private NoteRepository $noteRepository,
         private UserRepository $userRepository,
@@ -70,6 +72,7 @@ class NoteController extends AbstractController
         $note->setValeur($data['valeur'])
             ->setNoteSur($data['noteSur'] ?? 20)
             ->setCommentaire($data['commentaire'] ?? null)
+            ->setTypeEvaluation($data['typeEvaluation'] ?? null)
             ->setEleve($eleve)
             ->setProfesseur($this->getUser())
             ->setMatiere($matiere)
@@ -93,6 +96,7 @@ class NoteController extends AbstractController
 
         if (isset($data['valeur'])) $note->setValeur($data['valeur']);
         if (isset($data['commentaire'])) $note->setCommentaire($data['commentaire']);
+        if (isset($data['typeEvaluation'])) $note->setTypeEvaluation($data['typeEvaluation']);
         if (isset($data['noteSur'])) $note->setNoteSur($data['noteSur']);
 
         $this->noteRepository->save($note, true);
@@ -120,6 +124,7 @@ class NoteController extends AbstractController
             'valeur' => $note->getValeur(),
             'noteSur' => $note->getNoteSur(),
             'commentaire' => $note->getCommentaire(),
+            'typeEvaluation' => $note->getTypeEvaluation(),
             'createdAt' => $note->getCreatedAt()?->format('Y-m-d'),
             'eleve' => [
                 'id' => $note->getEleve()->getId(),

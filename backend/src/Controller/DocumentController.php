@@ -7,6 +7,7 @@ use App\Repository\DocumentRepository;
 use App\Repository\MatiereRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Trait\EtablissementTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -17,6 +18,7 @@ use App\Entity\User;
 #[Route('/api/documents')]
 class DocumentController extends AbstractController
 {
+    use EtablissementTrait;
     public function __construct(
         private DocumentRepository $documentRepo,
         private MatiereRepository  $matiereRepo,

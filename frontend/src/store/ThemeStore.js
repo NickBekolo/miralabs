@@ -35,7 +35,7 @@ export const DEFAULT_COLORS = {
 // ─── Thèmes clair / sombre ────────────────────────────────────
 
 export const LIGHT_THEME = {
-  bg:       '#F2F2F2',
+  bg:       '#ffffff',
   surface:  '#ffffff',
   surface2: '#F5F5F5',
   surface3: '#EBEBEB',
@@ -67,6 +67,10 @@ export const useThemeStore = create(
     (set, get) => ({
       // Mode clair par défaut
       darkMode: false,
+
+      // Couleur profil
+      profileColor: '#6C5CE7',
+      setProfileColor: (color) => set({ profileColor: color }),
       toggleDarkMode: () => set(s => ({ darkMode: !s.darkMode })),
       setDarkMode: (val) => set({ darkMode: val }),
 
@@ -87,6 +91,7 @@ export const useThemeStore = create(
       name: 'miralabs-theme', // clé localStorage
       partialize: (state) => ({
         darkMode: state.darkMode,
+        profileColor: state.profileColor,
         fontId:   state.fontId,
         font:     state.font,
         colors:   state.colors,

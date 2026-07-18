@@ -6,6 +6,7 @@ use App\Entity\Absence;
 use App\Repository\AbsenceRepository;
 use App\Repository\UserRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use App\Trait\EtablissementTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
@@ -14,6 +15,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 #[Route('/api/absences')]
 class AbsenceController extends AbstractController
 {
+    use EtablissementTrait;
     public function __construct(
         private AbsenceRepository $absenceRepository,
         private UserRepository $userRepository,

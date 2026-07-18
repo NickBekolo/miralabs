@@ -122,4 +122,9 @@ class Document
 
         return $this;
     }
+    #[ORM\ManyToOne]
+    private ?Etablissement $etablissement = null;
+    public function getEtablissement(): ?Etablissement { return $this->etablissement; }
+    public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
+
 }

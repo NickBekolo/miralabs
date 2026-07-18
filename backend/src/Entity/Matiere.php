@@ -44,4 +44,9 @@ class Matiere
     public function setCoefficient(float $coefficient): static { $this->coefficient = $coefficient; return $this; }
 
     public function getNotes(): Collection { return $this->notes; }
+    #[ORM\ManyToOne]
+    private ?Etablissement $etablissement = null;
+    public function getEtablissement(): ?Etablissement { return $this->etablissement; }
+    public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
+
 }

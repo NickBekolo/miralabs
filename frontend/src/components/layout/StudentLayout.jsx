@@ -1,23 +1,30 @@
 import { useState, useEffect } from 'react'
-import { AlignLeft, Bell, ChevronDown, Sparkles, BookOpen, Brain, Home, BarChart2, Calendar, Edit3 } from 'lucide-react'
+import api from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
+import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
+import Signature from '../../pages/student/Signature'
+import { ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy } from 'lucide-react'
 
-const ft = '-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,sans-serif'
+const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
 
 const NAV_ITEMS = [
-  { id:'accueil',   label:'Accueil',         icon:'⊞' },
-  { id:'notes',     label:'Notes',            icon:'📊' },
-  { id:'emploi',    label:'Emploi du temps',  icon:'📅' },
-  { id:'assiduite', label:'Assiduité',        icon:'✅' },
-  { id:'revision',  label:'Révision',         icon:'✦'  },
-  { id:'params',    label:'Paramètres',       icon:'⚙'  },
+  { id:'accueil',   label:'Accueil',        icon:Home },
+  { id:'notes',     label:'Notes',           icon:BarChart2 },
+  { id:'emploi',    label:'Emploi du temps', icon:Calendar },
+  { id:'conversations', label:'Messages',       icon:MessageSquare },
+  { id:'espaces',       label:'Espaces',        icon:LayoutGrid },
+  { id:'assiduite',     label:'Assiduité',       icon:Edit3 },
+  { id:'revision',  label:'Révision',        icon:Edit3 },
+  { id:'params',    label:'Paramètres',      icon:Settings },
 ]
 
-// Tab bar mobile — seulement 4 items principaux
 const TAB_ITEMS = [
-  { id:'accueil',  label:'Accueil', lucide:<Home size={22} strokeWidth={2}/> },
-  { id:'notes',    label:'Notes',   lucide:<BarChart2 size={22} strokeWidth={2}/> },
-  { id:'emploi',   label:'EDT',     lucide:<Calendar size={22} strokeWidth={2}/> },
-  { id:'revision', label:'Révision',lucide:<Edit3 size={22} strokeWidth={2}/> },
+  { id:'accueil',       label:'Pour vous' },
+  { id:'conversations', label:'Messages' },
+  { id:'espaces', label:'Espaces' },
+  { id:'notes',   label:'Vos notes' },
+  { id:'emploi',  label:'Emploi du temps' },
+  { id:'revision',label:'Mira IA' },
 ]
 
 export function StudentLayout({ children, activePage, onNavChange, userName = 'Ritah' }) {
@@ -32,220 +39,191 @@ export function StudentLayout({ children, activePage, onNavChange, userName = 'R
   if (isMobile) {
     return <MobileLayout activePage={activePage} onNavChange={onNavChange} userName={userName}>{children}</MobileLayout>
   }
-
   return <DesktopLayout activePage={activePage} onNavChange={onNavChange} userName={userName}>{children}</DesktopLayout>
 }
 
-/* ─── Desktop : sidebar + topbar ─────────────── */
+// ─── Desktop ──────────────────────────────────────────────────
+
 function DesktopLayout({ children, activePage, onNavChange, userName }) {
+  const darkMode = useThemeStore(s => s.darkMode)
+  const C        = darkMode ? DARK_THEME : LIGHT_THEME
+  const [hasAppel,  setHasAppel]  = useState(false)
+  const [showSign,  setShowSign]  = useState(false)
+
+  useEffect(() => {
+    const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
-    <div style={{
-      fontFamily: ft, background: '#F2F2F2', color: '#111111',
-      WebkitFontSmoothing: 'antialiased', fontSize: 14,
-      height: '100vh', display: 'flex', overflow: 'hidden',
-    }}>
-      <Sidebar activePage={activePage} onNavChange={onNavChange} userName={userName}/>
+    <div style={{ fontFamily:ft, background:C.bg, color:C.text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', overflow:'hidden' }}>
+      <div style={{ width:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:'18px 10px', height:'100vh' }}>
+        <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text, padding:'4px 12px', marginBottom:24 }}>Miralabs.</div>
+        <nav style={{ flex:1 }}>
+          {NAV_ITEMS.map(({ id, label, icon:Icon }) => {
+            const active = activePage === id
+            return (
+              <div key={id} onClick={() => onNavChange(id)}
+                style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 12px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?C.text:C.muted, background:active?C.surface2:'transparent', marginBottom:1 }}
+                onMouseEnter={e => { if (!active) e.currentTarget.style.background = C.surface }}
+                onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
+                <Icon size={15} strokeWidth={1.5}/>{label}
+              </div>
+            )
+          })}
+        </nav>
+        <div style={{ padding:'8px 12px', borderTop:`1px solid ${C.border}` }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:28, height:28, borderRadius:'50%', background:C.surface3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:C.text }}>
+              {userName?.[0] ?? 'R'}
+            </div>
+            <div>
+              <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{userName}</div>
+              <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <Topbar/>
-        <div style={{ flex:1, overflowY:'auto' }}>{children}</div>
+        <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.sidebar, flexShrink:0 }}>
+          {hasAppel && (
+            <button onClick={() => setShowSign(true)}
+              style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', marginRight:12 }}>
+              ✏️ Signer
+            </button>
+          )}
+          {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
+          <Bell size={17} strokeWidth={1.5} color={C.muted}/>
+        </div>
+        <div style={{ flex:1, overflowY:'auto', background:C.bg }}>{children}</div>
       </div>
     </div>
   )
 }
 
-/* ─── Mobile : header simple + tab bar en bas ── */
-function MobileLayout({ children, activePage, onNavChange, userName }) {
-  const [dropdownOpen, setDropdownOpen] = useState(false)
+// ─── Mobile style Sana ────────────────────────────────────────
 
-  const PRODUCTS = [
-    { label:'Mira',      icon:<Sparkles size={16}/> },
-    { label:'MiraLearn', icon:<BookOpen size={16}/> },
-    { label:'MiraIA',    icon:<Brain size={16}/>    },
-  ]
+function MobileLayout({ children, activePage, onNavChange, userName }) {
+  const darkMode     = useThemeStore(s => s.darkMode)
+  const C            = darkMode ? DARK_THEME : LIGHT_THEME
+  const { user }     = useAuth()
+  const [menu, setMenu] = useState(false)
+  const [dropdown, setDropdown] = useState(false)
+  const [showSign, setShowSign] = useState(false)
+  const [hasAppel, setHasAppel] = useState(false)
+
+  useEffect(() => {
+    const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
+    check()
+    const interval = setInterval(check, 30000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const bg      = darkMode ? '#111' : '#ffffff'
+  const cardBg  = darkMode ? '#1a1a1a' : '#f5f5f5'
+  const text     = darkMode ? '#fff' : '#111'
+  const muted    = darkMode ? 'rgba(255,255,255,0.4)' : '#999'
+  const shadow   = darkMode ? '0 10px 25px rgba(0,0,0,0.3)' : '0 10px 25px rgba(0,0,0,0.06)'
+  const promptBg = darkMode ? '#1a1a1a' : '#fafafa'
 
   return (
-    <div style={{
-      fontFamily: ft, background: '#fff', color: '#111111',
-      WebkitFontSmoothing: 'antialiased', height: '100vh',
-      display: 'flex', flexDirection: 'column', overflow: 'hidden',
-    }}>
-      {/* Header mobile */}
-      <div style={{
-        display:'flex', alignItems:'center', justifyContent:'space-between',
-        padding:'13px 16px', background:'#fff',
-        borderBottom:'1px solid #E5E7EB', flexShrink:0,
-        position:'sticky', top:0, zIndex:100,
-      }}>
-        {/* Gauche : menu + Miralabs + chevron */}
-        <div style={{ display:'flex', alignItems:'center', gap:10, position:'relative' }}>
-          <button
-            onClick={() => setDropdownOpen(o => !o)}
-            style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', padding:0, fontFamily:ft }}
-          >
-            <span style={{ fontSize:17, fontWeight:700, letterSpacing:'-0.4px', color:'#111111' }}>Miralabs.</span>
-            <ChevronDown size={15} strokeWidth={2.5} color='#8A8A8A'
-              style={{ transform: dropdownOpen ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
+    <div style={{ fontFamily:ft, background:'#ffffff', color:text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+
+      {/* Header */}
+      <div style={{ padding:'20px 24px 0', flexShrink:0, background:bg }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:28 }}>
+          {/* Menu */}
+          <button onClick={() => setMenu(m => !m)} style={{ background:'none', border:'none', cursor:'pointer', color:text, display:'flex', alignItems:'center' }}>
+            <Menu size={22}/>
           </button>
 
-          {/* Dropdown produits */}
-          {dropdownOpen && (
-            <div style={{
-              position:'absolute', top:36, left:0,
-              background:'#fff', border:'1px solid #E5E7EB', borderRadius:16,
-              boxShadow:'0 8px 24px rgba(0,0,0,0.10)', padding:6, minWidth:160, zIndex:200,
-            }}>
-              {PRODUCTS.map(p => (
-                <div key={p.label} onClick={() => setDropdownOpen(false)} style={{
-                  display:'flex', alignItems:'center', gap:10,
-                  padding:'10px 12px', borderRadius:10, cursor:'pointer', fontSize:14, fontWeight:600, color:'#111111',
-                }}
-                onMouseEnter={e => e.currentTarget.style.background = '#F5F5F5'}
-                onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                  <span style={{ color:'#8A8A8A' }}>{p.icon}</span>
-                  {p.label}
-                </div>
-              ))}
-            </div>
+          <div style={{ position:'relative' }}>
+            <button onClick={() => setDropdown(d => !d)} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', fontSize:18, fontWeight:700, cursor:'pointer', color:text, fontFamily:ft }}>
+              Miralabs.
+              <ChevronDown size={18} color={muted} style={{ transform: dropdown ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
+            </button>
+            {dropdown && (
+              <div onClick={() => setDropdown(false)} style={{ position:'absolute', top:36, left:'50%', transform:'translateX(-50%)', background: darkMode ? '#1a1a1a' : '#fff', borderRadius:20, padding:8, minWidth:200, boxShadow:'0 8px 32px rgba(0,0,0,0.15)', zIndex:300 }}>
+                {[{label:'Mira School',Icon:School,desc:'Gestion scolaire'},{label:'Mira Learn',Icon:BookOpen,desc:'Réseau collaboratif'},{label:'Mira IA',Icon:Sparkles,desc:'Assistant intelligent'},{label:'Mira Challenge',Icon:Trophy,desc:'Compétitions'}].map(({ label, Icon: PIcon, desc }) => (
+                  <div key={label} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:14, cursor:'pointer' }}
+                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#242424' : '#f5f5f5'}
+                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
+                    <PIcon size={18} strokeWidth={1.5} color={text}/>
+                    <div>
+                      <div style={{ fontSize:14, fontWeight:600, color:text }}>{label}</div>
+                      <div style={{ fontSize:11, color:muted }}>{desc}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Bouton signer */}
+          {hasAppel && (
+            <button onClick={() => setShowSign(true)}
+              style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', fontFamily:ft, animation:'pulse 2s infinite' }}>
+              ✏️ Signer
+            </button>
           )}
+          {/* Avatar */}
+          <div style={{ width:32, height:32, borderRadius:'50%', background:cardBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:600, color:text }}>
+            {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
+          </div>
         </div>
 
-        {/* Droite : cloche + avatar */}
-        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-          <div style={{ position:'relative' }}>
-            <button style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', color:'#111111', padding:6 }}>
-              <Bell size={20} strokeWidth={2}/>
-            </button>
-            <div style={{
-              position:'absolute', top:5, right:5, width:7, height:7,
-              borderRadius:'50%', background:'#ff0000', border:'1.5px solid #fff',
-            }}/>
-          </div>
-          <div style={{
-            width:32, height:32, borderRadius:10, background:'#111111',
-            color:'#fff', display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:13, fontWeight:700, cursor:'pointer',
-          }}>
-            {userName.charAt(0)}
-          </div>
+        {/* Tabs */}
+        <div style={{ display:'flex', gap:24, overflowX:'auto', paddingBottom:2, background:bg }}>
+          {TAB_ITEMS.map(tab => {
+            const active = activePage === tab.id
+            return (
+              <button key={tab.id} onClick={() => onNavChange(tab.id)}
+                style={{
+                  border:'none', background:'none', fontSize: active ? 22 : 17,
+                  color: active ? text : muted,
+                  fontWeight: active ? 700 : 400,
+                  whiteSpace:'nowrap', cursor:'pointer', fontFamily:ft,
+                  padding:'0 0 8px',
+                  
+                }}>
+                {tab.label}
+              </button>
+            )
+          })}
         </div>
       </div>
 
       {/* Contenu scrollable */}
-      <div style={{ flex:1, overflowY:'auto', paddingBottom:70 }}>
+      <div style={{ flex:1, overflowY:'auto', background:C.bg }}>
         {children}
       </div>
 
-      {/* Tab bar en bas — sans bordures sur les items */}
-      <div style={{
-        position:'fixed', bottom:0, left:0, right:0,
-        background:'#fff', borderTop:'1px solid #E5E7EB',
-        display:'flex', zIndex:100,
-        paddingBottom:'env(safe-area-inset-bottom)',
-      }}>
-        {TAB_ITEMS.map(t => {
-          const isActive = activePage === t.id
-          return (
-            <button
-              key={t.id}
-              onClick={() => onNavChange(t.id)}
-              style={{
-                flex:1, display:'flex', flexDirection:'column',
-                alignItems:'center', justifyContent:'center',
-                gap:4, padding:'10px 0', cursor:'pointer',
-                border:'none', background:'none', fontFamily:ft,
-              }}
-            >
-              <span style={{ color: isActive ? '#111111' : '#AEAEB2', display:'flex' }}>
-                {t.lucide}
-              </span>
-              <span style={{ fontSize:10, fontWeight:600, color: isActive ? '#111111' : '#AEAEB2' }}>
-                {t.label}
-              </span>
-            </button>
-          )
-        })}
+      {/* Barre Mira IA */}
+      <div style={{ padding:'12px 24px 32px', flexShrink:0 }}>
+        <div style={{ height:58, borderRadius:30, background:promptBg, display:'flex', alignItems:'center', padding:'0 18px', gap:12, boxShadow: darkMode ? 'none' : '0 -2px 10px rgba(0,0,0,0.05)' }}>
+          <Plus size={20} color={muted}/>
+          <input placeholder="Pose une question à Mira..."
+            style={{ border:'none', outline:'none', width:'100%', background:'transparent', fontSize:16, color:text, fontFamily:ft }}/>
+        </div>
       </div>
-    </div>
-  )
-}
 
-/* ─── Sidebar desktop ─────────────────────────── */
-function Sidebar({ activePage, onNavChange, userName }) {
-  return (
-    <div style={{
-      width:200, background:'#fff', borderRight:'1px solid #E5E7EB',
-      display:'flex', flexDirection:'column', flexShrink:0, overflowY:'auto',
-    }}>
-      <div style={{
-        padding:'18px 16px 14px', borderBottom:'1px solid #f0f0f0',
-        fontSize:15, fontWeight:700, letterSpacing:'-0.4px',
-      }}>
-        Miralabs.
-      </div>
-      <div style={{ padding:'10px 0 4px', flex:1 }}>
-        {NAV_ITEMS.map(n => (
-          <NavItem key={n.id} item={n} active={activePage === n.id} onClick={() => onNavChange(n.id)}/>
-        ))}
-      </div>
-      <div style={{ padding:12, borderTop:'1px solid #f0f0f0' }}>
-        <div style={{
-          display:'flex', alignItems:'center', gap:9,
-          padding:'10px 12px', background:'#F8F8F8', borderRadius:12,
-        }}>
-          <div style={{
-            width:30, height:30, borderRadius:'50%', background:'#111111',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontSize:11, fontWeight:700, color:'#fff', flexShrink:0,
-          }}>{userName.charAt(0)}</div>
-          <div>
-            <div style={{ fontSize:13, fontWeight:600, color:'#111111' }}>{userName}</div>
-            <div style={{ fontSize:11, color:'#8A8A8A' }}>Étudiant · 1ASSP1</div>
+      {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
+      {/* Menu latéral */}
+      {menu && (
+        <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width:260, background:bg, height:'100%', padding:'48px 20px 32px', display:'flex', flexDirection:'column' }}>
+            <div style={{ fontSize:18, fontWeight:700, color:text, marginBottom:32 }}>Miralabs.</div>
+            {NAV_ITEMS.map(({ id, label, icon:Icon }) => (
+              <div key={id} onClick={() => { onNavChange(id); setMenu(false) }}
+                style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color: activePage===id ? text : muted, fontWeight: activePage===id ? 600 : 400, fontSize:16, borderBottom:`1px solid ${darkMode ? 'rgba(255,255,255,0.06)' : '#f0f0f0'}` }}>
+                <Icon size={18} strokeWidth={1.5}/>{label}
+              </div>
+            ))}
           </div>
         </div>
-      </div>
-    </div>
-  )
-}
-
-function NavItem({ item, active, onClick }) {
-  return (
-    <div onClick={onClick} style={{
-      display:'flex', alignItems:'center', gap:8,
-      padding:'7px 10px', cursor:'pointer', borderRadius:8,
-      margin:'2px 8px', fontSize:13, fontWeight:500,
-      background: active ? '#111111' : 'transparent',
-      color: active ? '#fff' : '#6b7280',
-      transition:'all 0.12s',
-    }}
-    onMouseEnter={e => { if (!active) e.currentTarget.style.background = '#f5f5f7' }}
-    onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
-      <span style={{ fontSize:14, width:17, textAlign:'center' }}>{item.icon}</span>
-      {item.label}
-    </div>
-  )
-}
-
-function Topbar() {
-  return (
-    <div style={{
-      display:'flex', alignItems:'center', justifyContent:'space-between',
-      padding:'10px 24px', background:'#fff', borderBottom:'1px solid #E5E7EB', flexShrink:0,
-    }}>
-      <div style={{ fontSize:13, color:'#8A8A8A' }}>Mardi 23 juin 2026 · 5 cours aujourd'hui</div>
-      <div style={{ display:'flex', alignItems:'center', gap:10 }}>
-        <div style={{ position:'relative' }}>
-          <span style={{ fontSize:18 }}>🔔</span>
-          <div style={{
-            position:'absolute', top:-1, right:-2, width:7, height:7,
-            borderRadius:'50%', background:'#dc2626', border:'1.5px solid #fff',
-          }}/>
-        </div>
-        <button style={{
-          padding:'5px 12px', borderRadius:7, border:'none',
-          background:'#111111', color:'#fff', fontSize:12, fontWeight:600,
-          cursor:'pointer', fontFamily:ft,
-        }}>Se déconnecter</button>
-      </div>
+      )}
     </div>
   )
 }

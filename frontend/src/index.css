@@ -15,7 +15,7 @@ html, body, #root {
 body {
   background-color: #0f0f0f;
   color: #ffffff;
-  font-family: -apple-system, "SF Pro Display", BlinkMacSystemFont, "Inter", sans-serif;
+  font-family: -apple-system, 'SF Pro Display', 'SF Pro Text', BlinkMacSystemFont, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -73,3 +73,5 @@ a {
 .no-transition * {
   transition: none !important;
 }
+
+body { background: #fff; }

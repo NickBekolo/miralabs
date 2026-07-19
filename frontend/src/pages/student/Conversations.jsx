@@ -146,39 +146,49 @@ function TypingIndicator({ dark }) {
 }
 
 function ChatView({ contact, onBack, dark, myColor }) {
-  const [msgs,   setMsgs]   = useState(HISTORY[contact.id] ?? [])
-  const [input,  setInput]  = useState('')
+  const [msgs, setMsgs] = useState([])
+  const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
   const bottomRef = useRef(null)
   const inputRef  = useRef(null)
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior:'smooth' })
-  }, [msgs])
+    const convId = contact.convId || contact.id
+    if (!convId) return
+    api.get('/api/conversations/'+convId+'/messages').then(r => {
+      setMsgs(r.data.map(m => ({
+        id: m.id, me: m.isMe, text: m.content, time: m.createdAt,
+        from: m.sender?.firstName, tapback: null,
+      })))
+    }).catch(()=>{})
+  }, [contact.convId, contact.id])
 
-  // Simulation typing
+  // Polling toutes les 3s
   useEffect(() => {
-    let t
-    if (msgs.length > 0 && !msgs[msgs.length-1].me) {
-      t = setTimeout(() => setTyping(true), 2000)
-      setTimeout(() => setTyping(false), 4000)
-    }
-    return () => clearTimeout(t)
-  }, [])
+    const convId = contact.convId || contact.id
+    if (!convId) return
+    const iv = setInterval(() => {
+      api.get('/api/conversations/'+convId+'/messages').then(r => {
+        setMsgs(r.data.map(m => ({
+          id: m.id, me: m.isMe, text: m.content, time: m.createdAt,
+          from: m.sender?.firstName, tapback: null,
+        })))
+      }).catch(()=>{})
+    }, 3000)
+    return () => clearInterval(iv)
+  }, [contact.convId, contact.id])
+
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [msgs])
 
   const send = () => {
     if (!input.trim()) return
-    const newMsg = { id:Date.now(), me:true, text:input.trim(), time:'Maintenant' }
+    const convId = contact.convId || contact.id
+    const newMsg = { id:Date.now(), me:true, text:input.trim(), time:'Maintenant', tapback:null }
     setMsgs(m => [...m, newMsg])
     setInput('')
-    // Simulate reply
-    setTimeout(() => {
-      setTyping(true)
-      setTimeout(() => {
-        setTyping(false)
-        setMsgs(m => [...m, { id:Date.now()+1, me:false, text:'Bien reçu ! 👍', time:'Maintenant' }])
-      }, 2000)
-    }, 1000)
+    if (convId) {
+      api.post('/api/conversations/'+convId+'/messages', { content: newMsg.text }).catch(()=>{})
+    }
   }
 
   const tapback = (msgId, emoji) => {

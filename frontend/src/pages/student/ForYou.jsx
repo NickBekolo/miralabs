@@ -225,7 +225,7 @@ export default function ForYou() {
           Tout est à jour pour aujourd'hui 🎉
         </div>
       ) : cards.map(card => (
-        <Card key={card.key} C={C} {...card}
+        <Card key={card.key} C={C} {...{...card, key:undefined}}
           title={card.title.split('\n').map((line, i) => (
             <span key={i}>{line}{i === 0 && card.title.includes('\n') && <br/>}</span>
           ))}

@@ -67,6 +67,7 @@ export const useThemeStore = create(
     (set, get) => ({
       // Mode clair par défaut
       darkMode: false,
+  font: 'SF Pro Display',
 
       // Couleur profil
       profileColor: '#6C5CE7',

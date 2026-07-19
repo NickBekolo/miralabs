@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
+import api from '../../services/api'
+import { ft } from '../../constants/theme'
 import { useThemeStore } from '../../store/ThemeStore'
 
-const ft = "'Arial Rounded MT Bold', 'Arial Rounded MT', Nunito, sans-serif"
 
 // iMessage colors
 const IMSG_BLACK  = '#111111'
@@ -306,9 +307,73 @@ function ContactList({ contacts, onSelect, dark, myColor }) {
   )
 }
 
+function NewConvPanel({ users, dark, onSelect }) {
+  const [filtre, setFiltre] = useState('tous')
+  const [search, setSearch] = useState('')
+  const CATS = [
+    { key:'tous',          label:'Tous' },
+    { key:'enseignants',   label:'Enseignants' },
+    { key:'administration',label:'Administration' },
+    { key:'camarades',     label:'Camarades' },
+  ]
+  const filtered = users.filter(u => {
+    const matchSearch = (u.firstName+' '+u.lastName).toLowerCase().includes(search.toLowerCase())
+    const matchFiltre = filtre==='tous' ? true
+      : filtre==='enseignants' ? u.roles?.includes('ROLE_TEACHER')
+      : filtre==='administration' ? u.roles?.includes('ROLE_ADMIN')
+      : !u.roles?.includes('ROLE_TEACHER') && !u.roles?.includes('ROLE_ADMIN')
+    return matchSearch && matchFiltre
+  })
+  const color = u => u.roles?.includes('ROLE_TEACHER')?'#FF6B35':u.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF'
+  const role  = u => u.roles?.includes('ROLE_TEACHER')?'Enseignant':u.roles?.includes('ROLE_ADMIN')?'Admin':'Camarade'
+  return (
+    <div style={{ background:dark?'#1C1C1E':'#f9f9f9', borderRadius:16, margin:'0 16px 12px', overflow:'hidden' }}>
+      {/* Recherche */}
+      <div style={{ padding:'10px 14px', borderBottom:`0.5px solid ${dark?'#2C2C2E':'#E5E5EA'}` }}>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher..."
+          style={{ width:'100%',border:'none',background:dark?'#2C2C2E':'#fff',borderRadius:10,padding:'8px 12px',fontSize:14,color:dark?'#fff':'#000',outline:'none',fontFamily:ft,boxSizing:'border-box' }}/>
+      </div>
+      {/* Filtres chips */}
+      <div style={{ display:'flex',gap:6,padding:'10px 14px',overflowX:'auto',borderBottom:`0.5px solid ${dark?'#2C2C2E':'#E5E5EA'}` }}>
+        {CATS.map(cat=>(
+          <button key={cat.key} onClick={()=>setFiltre(cat.key)}
+            style={{ padding:'5px 14px',borderRadius:980,border:'none',cursor:'pointer',fontSize:12,fontWeight:filtre===cat.key?700:400,background:filtre===cat.key?dark?'#fff':'#111':dark?'#2C2C2E':'#e5e5e5',color:filtre===cat.key?dark?'#000':'#fff':dark?'#fff':'#000',whiteSpace:'nowrap',fontFamily:ft }}>
+            {cat.label}
+          </button>
+        ))}
+      </div>
+      {/* Liste */}
+      <div style={{ maxHeight:280,overflowY:'auto' }}>
+        {filtered.length===0?(
+          <div style={{ textAlign:'center',padding:24,color:'#8E8E93',fontSize:13 }}>Aucun résultat</div>
+        ):filtered.map(u=>(
+          <div key={u.id} onClick={()=>onSelect(u)}
+            style={{ display:'flex',alignItems:'center',gap:12,padding:'10px 14px',cursor:'pointer',borderBottom:`0.5px solid ${dark?'#2C2C2E':'#E5E5EA'}` }}
+            onMouseEnter={e=>e.currentTarget.style.background=dark?'#2C2C2E':'#f0f0f0'}
+            onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+            <div style={{ width:38,height:38,borderRadius:'50%',background:color(u),display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:'#fff',flexShrink:0 }}>{u.firstName?.[0]}{u.lastName?.[0]}</div>
+            <div style={{ flex:1 }}>
+              <div style={{ fontSize:14,color:dark?'#fff':'#000',fontWeight:500 }}>{u.firstName} {u.lastName}</div>
+              <div style={{ fontSize:11,color:'#8E8E93' }}>{role(u)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+
 export default function Conversations() {
   const [selected, setSelected] = useState(null)
+  const [convs, setConvs] = useState([])
+  const [users, setUsers] = useState([])
+  const [showNewConv, setShowNewConv] = useState(false)
   const profileColor = useThemeStore(s => s.profileColor) ?? '#007AFF'
+  useEffect(() => {
+    api.get('/api/conversations').then(r => setConvs(r.data)).catch(()=>{})
+    api.get('/api/conversations/users').then(r => setUsers(r.data)).catch(()=>{})
+  }, [])
   const darkMode     = useThemeStore(s => s.darkMode)
 
   const bg   = darkMode ? '#000' : '#fff'
@@ -349,7 +414,31 @@ export default function Conversations() {
                 <span style={{ fontSize:15, color:'#8E8E93' }}>Rechercher</span>
               </div>
             </div>
-            <ContactList contacts={CONTACTS} onSelect={setSelected} dark={darkMode} myColor={profileColor}/>
+            <div style={{ padding:'0 16px 12px' }}>
+              <button onClick={()=>setShowNewConv(s=>!s)}
+                style={{ width:'100%',padding:'10px',borderRadius:12,border:'none',background:darkMode?'#1C1C1E':'#f5f5f5',color:darkMode?'#fff':'#111',fontSize:13,cursor:'pointer',fontFamily:ft }}>
+                {showNewConv?'Annuler':'+ Nouvelle conversation'}
+              </button>
+            </div>
+            {showNewConv&&(
+              <NewConvPanel users={users} dark={darkMode} onSelect={u=>{
+                api.post('/api/conversations',{userId:u.id}).then(r=>{
+                  setShowNewConv(false)
+                  api.get('/api/conversations').then(r2=>setConvs(r2.data)).catch(()=>{})
+                  const color=u.roles?.includes('ROLE_TEACHER')?'#FF6B35':u.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF'
+                  setSelected({id:r.data.id,convId:r.data.id,name:u.firstName+' '+u.lastName,avatar:(u.firstName?.[0]??'')+(u.lastName?.[0]??''),color,online:false,role:u.roles?.includes('ROLE_TEACHER')?'Enseignant':'Etudiant'})
+                }).catch(()=>{})
+              }}/>
+            )}
+
+            <ContactList contacts={convs.map(cv=>({
+              id:cv.id, convId:cv.id,
+              name:(cv.other?.firstName??'')+' '+(cv.other?.lastName??''),
+              role:cv.other?.roles?.includes('ROLE_TEACHER')?'Enseignant':'Etudiant',
+              avatar:(cv.other?.firstName?.[0]??'')+(cv.other?.lastName?.[0]??''),
+              color:'#007AFF', last:cv.lastMessage?.content??'Nouvelle conversation',
+              time:cv.lastMessage?.createdAt??'', unread:cv.unreadCount??0, online:false,
+            }))} onSelect={contact=>setSelected({...contact,convId:contact.id})} dark={darkMode} myColor={profileColor}/>
           </>
         )}
       </div>

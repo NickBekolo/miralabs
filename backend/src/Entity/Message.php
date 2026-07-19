@@ -23,6 +23,9 @@ class Message
     #[ORM\Column]
     private bool $isRead = false;
 
+    #[ORM\Column(length: 10, nullable: true)]
+    private ?string $tapback = null;
+
     public function __construct() { $this->createdAt = new \DateTimeImmutable(); }
 
     public function getId(): ?int { return $this->id; }
@@ -35,4 +38,6 @@ class Message
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
     public function isRead(): bool { return $this->isRead; }
     public function setIsRead(bool $r): static { $this->isRead = $r; return $this; }
+    public function getTapback(): ?string { return $this->tapback; }
+    public function setTapback(?string $t): static { $this->tapback = $t; return $this; }
 }

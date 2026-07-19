@@ -9,42 +9,10 @@ const IMSG_BLACK  = '#111111'
 const IMSG_GRAY   = '#E9E9EB'
 const IMSG_GRAY_D = '#2C2C2E'
 
-const CONTACTS = [
-  { id:1, name:'Mme Martin',     avatar:'MM', color:'#FF2D55', last:'Votre TP est noté 16/20 👏', time:'09:32', unread:2, online:true },
-  { id:2, name:'M. Dupont',      avatar:'MD', color:'#007AFF', last:'Exercices pour vendredi svp', time:'Hier',  unread:0, online:false },
-  { id:3, name:'Administration', avatar:'LJ', color:'#34C759', last:'Réunion parents-profs 13 juin', time:'Lun',  unread:1, online:true },
-  { id:4, name:'Alice B.',       avatar:'AB', color:'#FF9500', last:'Tu peux m\'aider pour l\'exo ?', time:'Dim',  unread:3, online:true },
-  { id:5, name:'Kevin L.',       avatar:'KL', color:'#AF52DE', last:'OK à demain !', time:'Sam',  unread:0, online:false },
-  { id:6, name:'M. Brun',        avatar:'MB', color:'#FF6B35', last:'Bien reçu, merci', time:'Ven',  unread:0, online:false },
-]
+const CONTACTS = []
 
-const HISTORY = {
-  1:[
-    { id:1, me:false, text:'Bonjour Ritah !', time:'09:28' },
-    { id:2, me:false, text:'Je voulais vous informer que votre TP de Physique-Chimie a été corrigé.', time:'09:29' },
-    { id:3, me:true,  text:'Bonjour Madame ! Merci pour l\'info 😊', time:'09:30' },
-    { id:4, me:false, text:'Vous avez obtenu 16/20. Très bon travail, continuez comme ça !', time:'09:31', tapback:'👏' },
-    { id:5, me:true,  text:'Merci beaucoup Madame ! 🙏', time:'09:32', tapback:'❤️' },
-  ],
-  2:[
-    { id:1, me:false, text:'Bonjour, n\'oubliez pas les exercices 12 à 18 page 45 pour vendredi.', time:'Hier' },
-    { id:2, me:true,  text:'Bien reçu M. Dupont, merci !', time:'Hier' },
-  ],
-  3:[
-    { id:1, me:false, text:'📌 Rappel : réunion parents-professeurs le 13 juin à 17h.', time:'Lun' },
-    { id:2, me:false, text:'⚠️ La sortie pédagogique du 15 juin est annulée. Rattrapage à venir.', time:'Lun' },
-  ],
-  4:[
-    { id:1, me:false, text:'Salut ! Tu peux m\'aider pour l\'exo 15 ?', time:'14:20' },
-    { id:2, me:true,  text:'Oui bien sûr ! On se retrouve à la biblio ?', time:'14:21' },
-    { id:3, me:false, text:'Super ! À 16h ça te va ?', time:'14:22', tapback:'👍' },
-    { id:4, me:true,  text:'Parfait 👍', time:'14:23' },
-  ],
-  5:[{ id:1, me:false, text:'OK à demain alors ! Bonne soirée 🌙', time:'Sam' }],
-  6:[{ id:1, me:false, text:'Votre dossier sur la décolonisation est bien reçu, merci.', time:'Ven' }],
-}
-
-const TAPBACKS = ['❤️','👍','👎','😂','‼️','?']
+const HISTORY = {}
+const TAPBACKS = ['❤️','👍','👎','😂','😮','🙏']
 
 // ─── Composants ───────────────────────────────────────────────
 
@@ -61,8 +29,9 @@ function Avatar({ name, color, size=44, online=false }) {
 }
 
 // Bulle avec animations CSS via style tag
-function Bubble({ msg, dark, myColor, onTapback }) {
+function Bubble({ msg, dark, myColor, onTapback, sameAsPrev=false, sameAsNext=false }) {
   const [showTapbacks, setShowTapbacks] = useState(false)
+  const pressTimer = useRef(null)
   const [anim, setAnim] = useState(false)
 
   useEffect(() => {
@@ -78,10 +47,21 @@ function Bubble({ msg, dark, myColor, onTapback }) {
     <div style={{ display:'flex', flexDirection:'column', alignItems:msg.me?'flex-end':'flex-start', marginBottom:msg.tapback?20:4, position:'relative' }}>
       <div
         onDoubleClick={() => setShowTapbacks(s=>!s)}
+        onContextMenu={e=>{e.preventDefault();setReplyTo(msg)}}
+        onTouchStart={() => { pressTimer.current = setTimeout(() => setShowTapbacks(s=>!s), 500) }}
+        onTouchEnd={() => clearTimeout(pressTimer.current)}
+        onTouchMove={() => clearTimeout(pressTimer.current)}
         style={{
-          maxWidth:'72%',
           padding:'9px 13px',
-          borderRadius: msg.me ? '18px 18px 5px 18px' : '18px 18px 18px 5px',
+          borderRadius: msg.me
+            ? (sameAsPrev && sameAsNext ? '22px 6px 6px 22px'
+              : sameAsPrev ? '22px 6px 22px 22px'
+              : sameAsNext ? '22px 22px 6px 22px'
+              : '22px 22px 6px 22px')
+            : (sameAsPrev && sameAsNext ? '6px 22px 22px 6px'
+              : sameAsPrev ? '6px 22px 22px 22px'
+              : sameAsNext ? '22px 22px 22px 6px'
+              : '22px 22px 22px 6px'),
           background: msg.me ? sentBg : recvBg,
           color: msg.me ? sentColor : recvColor,
           fontSize:16,
@@ -93,6 +73,11 @@ function Bubble({ msg, dark, myColor, onTapback }) {
           userSelect:'none',
           position:'relative',
         }}>
+        {msg.replyTo&&(
+          <div style={{borderLeft:'3px solid rgba(255,255,255,0.5)',paddingLeft:8,marginBottom:6,opacity:0.7,fontSize:11,maxWidth:200,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>
+            {msg.replyTo.text}
+          </div>
+        )}
         {msg.text}
 
         {/* Tapback */}
@@ -145,10 +130,11 @@ function TypingIndicator({ dark }) {
   )
 }
 
-function ChatView({ contact, onBack, dark, myColor }) {
+function ChatView({ contact, onBack, dark, myColor, onSent }) {
   const [msgs, setMsgs] = useState([])
   const [input, setInput] = useState('')
   const [typing, setTyping] = useState(false)
+  const [replyTo, setReplyTo] = useState(null)
   const bottomRef = useRef(null)
   const inputRef  = useRef(null)
 
@@ -158,7 +144,7 @@ function ChatView({ contact, onBack, dark, myColor }) {
     api.get('/api/conversations/'+convId+'/messages').then(r => {
       setMsgs(r.data.map(m => ({
         id: m.id, me: m.isMe, text: m.content, time: m.createdAt,
-        from: m.sender?.firstName, tapback: null,
+        from: m.sender?.firstName, tapback: m.tapback??null,
       })))
     }).catch(()=>{})
   }, [contact.convId, contact.id])
@@ -169,10 +155,13 @@ function ChatView({ contact, onBack, dark, myColor }) {
     if (!convId) return
     const iv = setInterval(() => {
       api.get('/api/conversations/'+convId+'/messages').then(r => {
-        setMsgs(r.data.map(m => ({
-          id: m.id, me: m.isMe, text: m.content, time: m.createdAt,
-          from: m.sender?.firstName, tapback: null,
-        })))
+        setMsgs(prev => r.data.map(m => {
+          const existing = prev.find(p => p.id === m.id)
+          return {
+            id: m.id, me: m.isMe, text: m.content, time: m.createdAt,
+            from: m.sender?.firstName, tapback: m.tapback ?? existing?.tapback ?? null,
+          }
+        }))
       }).catch(()=>{})
     }, 3000)
     return () => clearInterval(iv)
@@ -183,16 +172,21 @@ function ChatView({ contact, onBack, dark, myColor }) {
   const send = () => {
     if (!input.trim()) return
     const convId = contact.convId || contact.id
-    const newMsg = { id:Date.now(), me:true, text:input.trim(), time:'Maintenant', tapback:null }
+    const newMsg = { id:Date.now(), me:true, text:input.trim(), time:'Maintenant', tapback:null, replyTo:replyTo }
     setMsgs(m => [...m, newMsg])
     setInput('')
+    setReplyTo(null)
     if (convId) {
-      api.post('/api/conversations/'+convId+'/messages', { content: newMsg.text }).catch(()=>{})
+      api.post('/api/conversations/'+convId+'/messages', { content: newMsg.text }).then(()=>{
+        if (onSent) onSent()
+      }).catch(()=>{})
     }
   }
 
   const tapback = (msgId, emoji) => {
-    setMsgs(m => m.map(msg => msg.id===msgId ? { ...msg, tapback: msg.tapback===emoji ? undefined : emoji } : msg))
+    const newEmoji = msgs.find(m=>m.id===msgId)?.tapback===emoji ? null : emoji
+    setMsgs(m => m.map(msg => msg.id===msgId ? { ...msg, tapback: newEmoji } : msg))
+    api.patch('/api/conversations/'+msgId+'/tapback', { tapback: newEmoji }).catch(()=>{})
   }
 
   const bg    = dark ? '#000' : '#fff'
@@ -216,16 +210,40 @@ function ChatView({ contact, onBack, dark, myColor }) {
       {/* Messages */}
       <div style={{ flex:1, overflowY:'auto', padding:'12px 14px 8px' }}>
         {msgs.map((msg, i) => {
-          const showTime = i===0 || msgs[i-1]?.me !== msg.me
+          const sameAsPrev = i > 0 && msgs[i-1].me === msg.me
+          const sameAsNext = i < msgs.length-1 && msgs[i+1].me === msg.me
+          const isFirst    = !sameAsPrev
+          const isLast     = !sameAsNext
+          const showAvatar = !msg.me && isLast
+          const showTime   = isLast
+          const showTime2  = i===0 || msgs[i-1]?.me !== msg.me
+          const getDateLabel = (t) => {
+            const now = new Date()
+            const d = new Date(now.toDateString()+' '+t)
+            if (isNaN(d)) return null
+            return null // on simplifie : juste Aujourd'hui pour i===0
+          }
           return (
-            <div key={msg.id}>
-              {showTime && !msg.me && (
-                <div style={{ display:'flex', justifyContent:'flex-start', marginBottom:2 }}>
-                  <Avatar name={contact.name} color={contact.color} size={24}/>
+            <div key={msg.id} style={{marginTop:sameAsPrev?2:16}}>
+              {i===0&&(
+                <div style={{textAlign:'center',margin:'12px 0'}}>
+                  <span style={{fontSize:11,color:dark?'rgba(255,255,255,0.4)':'#8E8E93',background:dark?'#2C2C2E':'#F2F2F7',padding:'3px 12px',borderRadius:980,fontFamily:ft}}>
+                    {"Aujourd'hui · "}{new Date().toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}
+                  </span>
                 </div>
               )}
-              <div style={{ paddingLeft: !msg.me ? 32 : 0 }}>
-                <Bubble msg={msg} dark={dark} myColor={myColor} onTapback={tapback}/>
+              <div style={{display:'flex',alignItems:'flex-end',gap:6,justifyContent:msg.me?'flex-end':'flex-start'}}>
+                {!msg.me && (
+                  <div style={{width:28,flexShrink:0}}>
+                    {showAvatar && <Avatar name={contact.name} color={contact.color} size={28}/>}
+                  </div>
+                )}
+                <div style={{display:'flex',flexDirection:'column',alignItems:msg.me?'flex-end':'flex-start',maxWidth:'70%'}}>
+                  <Bubble msg={msg} dark={dark} myColor={myColor} onTapback={tapback} sameAsPrev={sameAsPrev} sameAsNext={sameAsNext}/>
+                  {showTime&&<div style={{fontSize:10,color:dark?'rgba(255,255,255,0.35)':'#8E8E93',marginTop:2}}>
+                    {msg.time}
+                  </div>}
+                </div>
               </div>
             </div>
           )
@@ -317,6 +335,84 @@ function ContactList({ contacts, onSelect, dark, myColor }) {
   )
 }
 
+function GroupedContactList({ convs, dark, myColor, onSelect }) {
+  const bg   = dark ? '#000' : '#fff'
+  const text = dark ? '#fff' : '#000'
+  const sub  = dark ? '#8E8E93' : '#8E8E93'
+  const sep  = dark ? '#1C1C1E' : '#F2F2F7'
+
+  const today     = new Date().toDateString()
+  const yesterday = new Date(Date.now()-86400000).toDateString()
+
+  const getLabel = (datetime) => {
+    if (!datetime) return null
+    const d = new Date(datetime)
+    if (d.toDateString() === today) return "Aujourd'hui"
+    if (d.toDateString() === yesterday) return 'Hier'
+    return d.toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })
+  }
+
+  const getTime = (datetime) => {
+    if (!datetime) return ''
+    const d = new Date(datetime)
+    if (d.toDateString() === today) return d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'})
+    if (d.toDateString() === yesterday) return 'Hier'
+    return d.toLocaleDateString('fr-FR',{day:'numeric',month:'short'})
+  }
+
+  // Grouper par date
+  const groups = []
+  const seen = new Set()
+  convs.forEach(cv => {
+    const label = cv.lastMessage ? (getLabel(cv.lastMessage.datetime) ?? "Aujourd'hui") : 'Sans messages'
+    if (!seen.has(label)) { seen.add(label); groups.push({ label, items:[] }) }
+    groups[groups.length-1].items.push(cv)
+  })
+
+  return (
+    <div>
+      {groups.map(g => (
+        <div key={g.label}>
+          {/* Séparateur de date */}
+          <div style={{ display:'flex',alignItems:'center',gap:10,padding:'10px 16px 6px' }}>
+            <div style={{ flex:1,height:'0.5px',background:dark?'#2C2C2E':'#E5E5EA' }}/>
+            <span style={{ fontSize:11,color:sub,fontWeight:600 }}>{g.label}</span>
+            <div style={{ flex:1,height:'0.5px',background:dark?'#2C2C2E':'#E5E5EA' }}/>
+          </div>
+          {g.items.map((cv,i) => {
+            const other = cv.other
+            const name  = (other?.firstName??'')+' '+(other?.lastName??'')
+            const avatar= (other?.firstName?.[0]??'')+(other?.lastName?.[0]??'')
+            const color = other?.roles?.includes('ROLE_TEACHER')?'#FF6B35':other?.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF'
+            const last  = cv.lastMessage
+            return (
+              <div key={cv.id} onClick={()=>onSelect({id:cv.id,convId:cv.id,name,avatar,color,online:false,role:other?.roles?.includes('ROLE_TEACHER')?'Enseignant':'Etudiant'})}
+                style={{ display:'flex',alignItems:'center',gap:12,padding:'10px 16px',cursor:'pointer',borderBottom:`0.5px solid ${dark?'#1C1C1E':'#F2F2F7'}` }}
+                onMouseEnter={e=>e.currentTarget.style.background=dark?'#1C1C1E':'#F9F9F9'}
+                onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
+                <div style={{ position:'relative',flexShrink:0 }}>
+                  <div style={{ width:48,height:48,borderRadius:'50%',background:color,display:'flex',alignItems:'center',justifyContent:'center',fontSize:17,fontWeight:600,color:'#fff' }}>{avatar}</div>
+                  {cv.unreadCount>0&&<div style={{ position:'absolute',top:-2,right:-2,width:18,height:18,borderRadius:'50%',background:'#FF3B30',display:'flex',alignItems:'center',justifyContent:'center',fontSize:10,fontWeight:700,color:'#fff' }}>{cv.unreadCount}</div>}
+                </div>
+                <div style={{ flex:1,minWidth:0 }}>
+                  <div style={{ display:'flex',justifyContent:'space-between',marginBottom:3 }}>
+                    <span style={{ fontSize:15,fontWeight:cv.unreadCount>0?700:500,color:text }}>{name}</span>
+                    {last&&<span style={{ fontSize:12,color:sub }}>{getTime(last.datetime)}</span>}
+                  </div>
+                  <div style={{ fontSize:13,color:cv.unreadCount>0?text:sub,fontWeight:cv.unreadCount>0?600:400,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap' }}>
+                    {last?(last.isMe?'Vous : ':'')+last.content:'Nouvelle conversation'}
+                  </div>
+                </div>
+              </div>
+            )
+          })}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+
 function NewConvPanel({ users, dark, onSelect }) {
   const [filtre, setFiltre] = useState('tous')
   const [search, setSearch] = useState('')
@@ -381,8 +477,11 @@ export default function Conversations() {
   const [showNewConv, setShowNewConv] = useState(false)
   const profileColor = useThemeStore(s => s.profileColor) ?? '#007AFF'
   useEffect(() => {
-    api.get('/api/conversations').then(r => setConvs(r.data)).catch(()=>{})
+    const loadConvs = () => api.get('/api/conversations').then(r => setConvs(r.data.sort((a,b)=>new Date(b.lastMessage?.createdAt??0)-new Date(a.lastMessage?.createdAt??0)))).catch(()=>{})
+    loadConvs()
     api.get('/api/conversations/users').then(r => setUsers(r.data)).catch(()=>{})
+    const iv = setInterval(loadConvs, 5000)
+    return () => clearInterval(iv)
   }, [])
   const darkMode     = useThemeStore(s => s.darkMode)
 
@@ -404,7 +503,7 @@ export default function Conversations() {
 
       <div style={{ fontFamily:ft, height:'100%', display:'flex', flexDirection:'column', background:bg }}>
         {selected ? (
-          <ChatView contact={selected} onBack={() => setSelected(null)} dark={darkMode} myColor={profileColor}/>
+          <ChatView contact={selected} onBack={() => setSelected(null)} dark={darkMode} myColor={profileColor} onSent={()=>api.get('/api/conversations').then(r=>setConvs(r.data)).catch(()=>{})}/>
         ) : (
           <>
             <div style={{ padding:'16px 16px 10px', flexShrink:0, background:bg }}>
@@ -446,9 +545,11 @@ export default function Conversations() {
               name:(cv.other?.firstName??'')+' '+(cv.other?.lastName??''),
               role:cv.other?.roles?.includes('ROLE_TEACHER')?'Enseignant':'Etudiant',
               avatar:(cv.other?.firstName?.[0]??'')+(cv.other?.lastName?.[0]??''),
-              color:'#007AFF', last:cv.lastMessage?.content??'Nouvelle conversation',
+              color:cv.other?.roles?.includes('ROLE_TEACHER')?'#FF6B35':cv.other?.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF',
+              last:cv.lastMessage?(cv.lastMessage.isMe?'Vous : ':'')+cv.lastMessage.content:'Nouvelle conversation',
               time:cv.lastMessage?.createdAt??'', unread:cv.unreadCount??0, online:false,
             }))} onSelect={contact=>setSelected({...contact,convId:contact.id})} dark={darkMode} myColor={profileColor}/>
+
           </>
         )}
       </div>

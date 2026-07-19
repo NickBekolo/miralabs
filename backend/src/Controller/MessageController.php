@@ -89,6 +89,7 @@ class MessageController extends AbstractController
             'sender'    => ['id'=>$m->getSender()?->getId(),'firstName'=>$m->getSender()?->getFirstName()],
             'createdAt' => $m->getCreatedAt()->format('H:i'),
             'isRead'    => $m->isRead(),
+            'tapback'   => $m->getTapback(),
         ], $conv->getMessages()->toArray()));
     }
 
@@ -142,4 +143,15 @@ class MessageController extends AbstractController
             'roles'     => $u->getRoles(),
         ], $users));
     }
+    #[Route('/{msgId}/tapback', methods:['PATCH'])]
+    public function tapback(int $msgId, Request $req, EntityManagerInterface $em): JsonResponse
+    {
+        $msg = $em->getRepository(\App\Entity\Message::class)->find($msgId);
+        if (!$msg) return $this->json(['error' => 'Non trouve'], 404);
+        $data = json_decode($req->getContent(), true);
+        $msg->setTapback($data['tapback'] ?? null);
+        $em->flush();
+        return $this->json(['tapback' => $msg->getTapback()]);
+    }
+
 }

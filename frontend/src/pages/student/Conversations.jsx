@@ -533,6 +533,15 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
   const bottomRef = useRef(null)
 
   useEffect(() => {
+    // Marquer notifs groupe comme lues
+    api.get('/api/notifications').then(r => {
+      r.data.filter(n => n.type==='groupe' && !n.isRead && n.title?.includes(groupe?.nom||'')).forEach(n => {
+        api.patch('/api/notifications/'+n.id+'/read').catch(()=>{})
+      })
+    }).catch(()=>{})
+  }, [groupe?.id])
+
+  useEffect(() => {
     api.get('/api/groupes/'+groupe.id+'/messages').then(r => setMsgs(r.data)).catch(()=>{})
     const iv = setInterval(() => {
       api.get('/api/groupes/'+groupe.id+'/messages').then(r => setMsgs(r.data)).catch(()=>{})
@@ -623,6 +632,12 @@ export default function Conversations() {
   const text = darkMode ? '#fff' : '#000'
   const sub  = darkMode ? '#8E8E93' : '#8E8E93'
 
+  const [notifs, setNotifs] = useState([])
+  const loadNotifs = () => api.get('/api/notifications').then(r => setNotifs(r.data)).catch(()=>{})
+  const unreadMsgs   = convs.reduce((acc, cv) => acc + (cv.unreadCount??0), 0)
+  const unreadGroupes = notifs.filter(n => n.type==='groupe' && !n.isRead).length
+
+
   const loadConvs = () => api.get('/api/conversations').then(r => {
     const sorted = r.data.sort((a,b) => {
       if (!a.lastMessage && !b.lastMessage) return 0
@@ -635,6 +650,7 @@ export default function Conversations() {
 
   useEffect(() => {
     loadConvs()
+    loadNotifs()
     api.get('/api/conversations/users').then(r => setUsers(r.data)).catch(() => {})
     const loadGroupes = () => api.get('/api/groupes').then(r=>setGroupes(r.data)).catch(()=>{})
     loadGroupes()
@@ -680,11 +696,14 @@ export default function Conversations() {
 
             {/* Onglets */}
             <div style={{ display:'flex', gap:6, padding:'8px 16px 0' }}>
-              {[{key:'msgs',label:'Messages'},{key:'groupes',label:'Groupes'}].map(t=>(
-                <button key={t.key} onClick={()=>{setTab(t.key);setShowNewConv(false);setShowNewGroupe(false)}}
-                  style={{ padding:'6px 16px', borderRadius:980, border:'none', cursor:'pointer', fontSize:13, fontWeight:tab===t.key?700:400, background:tab===t.key?darkMode?'#fff':'#111':darkMode?'#2C2C2E':'#F2F2F7', color:tab===t.key?darkMode?'#000':'#fff':darkMode?'#fff':'#000', fontFamily:ft }}>
-                  {t.label}
-                </button>
+              {[{key:'msgs',label:'Messages',count:unreadMsgs},{key:'groupes',label:'Groupes',count:unreadGroupes}].map(t=>(
+                <div key={t.key} style={{position:'relative',display:'inline-flex'}}>
+                  <button onClick={()=>{setTab(t.key);setShowNewConv(false);setShowNewGroupe(false)}}
+                    style={{padding:'6px 16px',borderRadius:980,border:'none',cursor:'pointer',fontSize:13,fontWeight:tab===t.key?700:400,background:tab===t.key?darkMode?'#fff':'#111':darkMode?'#2C2C2E':'#F2F2F7',color:tab===t.key?darkMode?'#000':'#fff':darkMode?'#fff':'#000',fontFamily:ft}}>
+                    {t.label}
+                  </button>
+                  {t.count>0&&<div style={{position:'absolute',top:-7,right:-7,minWidth:20,height:20,borderRadius:'50%',background:'#FF3B30',color:'#fff',fontSize:11,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px',zIndex:10}}>{t.count}</div>}
+                </div>
               ))}
             </div>
 

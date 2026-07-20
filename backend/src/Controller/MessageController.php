@@ -110,6 +110,20 @@ class MessageController extends AbstractController
         $msg->setContent($data['content']);
         $conv->setLastMessageAt(new \DateTimeImmutable());
 
+        // Notification pour l'autre participant
+        $other = $conv->getOtherParticipant($user);
+        if ($other) {
+            $notif = new \App\Entity\Notification();
+            $notif->setTitle('💬 '.$user->getFirstName().' '.$user->getLastName());
+            $notif->setMessage(substr($data['content'], 0, 80));
+            $notif->setType('message');
+            $notif->setSender($user);
+            $notif->setRecipient($other);
+            $notif->setIsRead(false);
+            $notif->setCreateAt(new \DateTimeImmutable());
+            $em->persist($notif);
+        }
+
         $em->persist($msg);
         $em->flush();
 

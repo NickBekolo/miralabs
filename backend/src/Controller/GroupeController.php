@@ -25,6 +25,7 @@ class GroupeController extends AbstractController
             ->where('m = :user')
             ->setParameter('user', $user)
             ->orderBy('g.lastMessageAt', 'DESC')
+            ->addOrderBy('g.id', 'DESC')
             ->getQuery()->getResult();
 
         return $this->json(array_map(fn($g) => [
@@ -32,6 +33,7 @@ class GroupeController extends AbstractController
             'nom'           => $g->getNom(),
             'couleur'       => $g->getCouleur(),
             'nbMembres'     => $g->getMembres()->count(),
+            'unread'        => $g->getMessages()->filter(fn($m) => !$m->getSender() || $m->getSender()->getId() !== $user->getId())->count() > 0 ? 1 : 0,
             'lastMessage'   => $g->getMessages()->last() ? [
                 'content'   => $g->getMessages()->last()->getContent(),
                 'createdAt' => $g->getMessages()->last()->getCreatedAt()->format('H:i'),

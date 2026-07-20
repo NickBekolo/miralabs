@@ -49,6 +49,23 @@ function DesktopLayout({ children, activePage, onNavChange, userName }) {
   const C        = darkMode ? DARK_THEME : LIGHT_THEME
   const [hasAppel,  setHasAppel]  = useState(false)
   const [showSign,  setShowSign]  = useState(false)
+  const [unreadMsg, setUnreadMsg] = useState(0)
+
+  useEffect(() => {
+    const checkUnread = () => {
+      Promise.all([
+        api.get('/api/conversations'),
+        api.get('/api/notifications')
+      ]).then(([convR, notifR]) => {
+        const convUnread = convR.data.reduce((acc, cv) => acc + (cv.unreadCount??0), 0)
+        const groupUnread = notifR.data.filter(n => n.type==='groupe' && !n.isRead).length
+        setUnreadMsg(convUnread + groupUnread)
+      }).catch(()=>{})
+    }
+    checkUnread()
+    const iv = setInterval(checkUnread, 10000)
+    return () => clearInterval(iv)
+  }, [])
 
   useEffect(() => {
     const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
@@ -70,6 +87,11 @@ function DesktopLayout({ children, activePage, onNavChange, userName }) {
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = C.surface }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
                 <Icon size={15} strokeWidth={1.5}/>{label}
+              {id==='conversations' && unreadMsg>0 && (
+                <span style={{marginLeft:'auto',minWidth:16,height:16,borderRadius:'50%',background:'#FF3B30',color:'#fff',fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>
+                  {unreadMsg}
+                </span>
+              )}
               </div>
             )
           })}

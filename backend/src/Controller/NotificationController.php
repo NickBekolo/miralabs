@@ -86,12 +86,12 @@ class NotificationController extends AbstractController
      * Marquer toutes les notifications comme lues
      */
     #[Route('/read-all', name: 'notif_read_all', methods: ['PATCH'])]
-    public function markAllRead(#[CurrentUser] User $user): JsonResponse
+    public function markAllRead(#[CurrentUser] User $user, \Symfony\Component\HttpFoundation\Request $req): JsonResponse
     {
-        $notifs = $this->notifRepo->findBy([
-            'recipient' => $user,
-            'isRead'    => false,
-        ]);
+        $type = $req->query->get('type');
+        $criteria = ['recipient' => $user, 'isRead' => false];
+        if ($type) $criteria['type'] = $type;
+        $notifs = $this->notifRepo->findBy($criteria);
 
         foreach ($notifs as $n) {
             $n->setIsRead(true);

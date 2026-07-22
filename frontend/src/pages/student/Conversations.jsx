@@ -242,7 +242,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
     const convId = contact.convId || contact.id
     if (!convId) return
     api.get('/api/conversations/'+convId+'/messages').then(r => {
-      setMsgs(r.data.map(m => ({ id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??null })))
+      setMsgs(r.data.map(m => ({ id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??null, replyTo:m.replyTo??null })))
     }).catch(() => {})
   }, [contact.convId, contact.id])
 
@@ -253,7 +253,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
       api.get('/api/conversations/'+convId+'/messages').then(r => {
         setMsgs(prev => r.data.map(m => {
           const existing = prev.find(p => p.id === m.id)
-          return { id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??existing?.tapback??null }
+          return { id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??existing?.tapback??null, replyTo:m.replyTo??existing?.replyTo??null }
         }))
       }).catch(() => {})
     }, 3000)
@@ -283,7 +283,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
     setInput('')
     setReplyTo(null)
     if (convId) {
-      api.post('/api/conversations/'+convId+'/messages', { content:newMsg.text }).then(() => {
+      api.post('/api/conversations/'+convId+'/messages', { content:newMsg.text, replyToId:replyTo?.id??null, replyToText:replyTo?.text??null }).then(() => {
         if (onSent) onSent()
       }).catch(() => {})
     }
@@ -326,7 +326,13 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
                   </span>
                 </div>
               )}
-              <div style={{ display:'flex', alignItems:'flex-end', gap:6, justifyContent:msg.me?'flex-end':'flex-start' }}>
+              <div style={{ display:'flex', alignItems:'flex-end', gap:6, justifyContent:msg.me?'flex-end':'flex-start', position:'relative' }}
+                onMouseEnter={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='1'}}
+                onMouseLeave={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='0'}}>
+                <button className="reply-btn" onClick={()=>setReplyTo({id:msg.id,text:msg.text,me:msg.me})}
+                  style={{opacity:0,transition:'opacity 0.15s',background:'none',border:'none',cursor:'pointer',fontSize:16,color:'#8E8E93',padding:'0 4px',flexShrink:0,alignSelf:'center',order:msg.me?-1:2}}>
+                  ↩
+                </button>
                 {!msg.me && (
                   <div style={{ width:28, flexShrink:0 }}>
                     {showAvatar && <Avatar name={contact.name??'?'} color={contact.color??'#007AFF'} size={28}/>}
@@ -654,9 +660,10 @@ export default function Conversations() {
     api.get('/api/conversations/users').then(r => setUsers(r.data)).catch(() => {})
     const loadGroupes = () => api.get('/api/groupes').then(r=>setGroupes(r.data)).catch(()=>{})
     loadGroupes()
-    const iv2 = setInterval(loadGroupes, 5000)
-    const iv = setInterval(loadConvs, 5000)
-    return () => { clearInterval(iv); clearInterval(iv2) }
+    const iv2 = setInterval(loadGroupes, 2000)
+    const iv = setInterval(loadConvs, 2000)
+    const iv3 = setInterval(loadNotifs, 2000)
+    return () => { clearInterval(iv); clearInterval(iv2); clearInterval(iv3) }
   }, [])
 
   return (
@@ -671,7 +678,7 @@ export default function Conversations() {
         ) : selected ? (
           <ChatView
             contact={selected}
-            onBack={() => setSelected(null)}
+            onBack={() => { setSelected(null); loadConvs() }}
             dark={darkMode}
             myColor={profileColor}
             onSent={loadConvs}
@@ -738,12 +745,17 @@ export default function Conversations() {
                     onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
                     <GroupAvatar size={48} couleur={g.couleur}/>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ display:'flex', justifyContent:'space-between', marginBottom:3 }}>
-                        <span style={{ fontSize:15, fontWeight:500, color:text }}>{g.nom}</span>
-                        {g.lastMessage&&<span style={{ fontSize:12, color:sub }}>{g.lastMessage.createdAt}</span>}
+                      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:3 }}>
+                        <span style={{ fontSize:15, fontWeight:notifs.filter(n=>n.type==='groupe'&&!n.isRead&&n.title?.includes(g.nom)).length>0?700:500, color:text }}>{g.nom}</span>
+                        <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                          {g.lastMessage&&<span style={{ fontSize:12, color:sub }}>{g.lastMessage.createdAt}</span>}
+                          {notifs.filter(n=>n.type==='groupe'&&!n.isRead&&n.title?.includes(g.nom)).length>0&&<span style={{ minWidth:18,height:18,borderRadius:'50%',background:'#FF0000',color:'#fff',fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px' }}>{notifs.filter(n=>n.type==='groupe'&&!n.isRead&&n.title?.includes(g.nom)).length}</span>}
+                        </div>
                       </div>
                       <div style={{ fontSize:13, color:sub, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-                        {g.lastMessage?(g.lastMessage.isMe?'Vous : ':'')+g.lastMessage.content:`${g.nbMembres} membres`}
+                        <span style={{fontWeight:notifs.filter(n=>n.type==='groupe'&&!n.isRead&&n.title?.includes(g.nom)).length>0?700:400,color:notifs.filter(n=>n.type==='groupe'&&!n.isRead&&n.title?.includes(g.nom)).length>0?text:sub}}>
+                        {g.lastMessage?(g.lastMessage.isMe?'Vous : ':'')+g.lastMessage.content:g.nbMembres+' membres'}
+                      </span>
                       </div>
                     </div>
                   </div>

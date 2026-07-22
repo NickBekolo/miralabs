@@ -90,6 +90,7 @@ class MessageController extends AbstractController
             'createdAt' => $m->getCreatedAt()->format('H:i'),
             'isRead'    => $m->isRead(),
             'tapback'   => $m->getTapback(),
+            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText()] : null,
         ], $conv->getMessages()->toArray()));
     }
 
@@ -108,6 +109,8 @@ class MessageController extends AbstractController
         $msg->setConversation($conv);
         $msg->setSender($user);
         $msg->setContent($data['content']);
+        if (!empty($data['replyToId'])) $msg->setReplyToId((int)$data['replyToId']);
+        if (!empty($data['replyToText'])) $msg->setReplyToText($data['replyToText']);
         $conv->setLastMessageAt(new \DateTimeImmutable());
 
         // Notification pour l'autre participant

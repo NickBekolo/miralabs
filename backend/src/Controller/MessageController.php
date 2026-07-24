@@ -90,7 +90,7 @@ class MessageController extends AbstractController
             'createdAt' => $m->getCreatedAt()->format('H:i'),
             'isRead'    => $m->isRead(),
             'tapback'   => $m->getTapback(),
-            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText()] : null,
+            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText(),'senderName'=>($em->getRepository(\App\Entity\Message::class)->find($m->getReplyToId())?->getSender()?->getFirstName()??'?')] : null,
         ], $conv->getMessages()->toArray()));
     }
 

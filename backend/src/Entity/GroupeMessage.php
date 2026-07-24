@@ -30,4 +30,15 @@ class GroupeMessage
     public function getContent(): string { return $this->content; }
     public function setContent(string $c): static { $this->content = $c; return $this; }
     public function getCreatedAt(): \DateTimeImmutable { return $this->createdAt; }
+    #[ORM\Column(nullable: true)]
+    private ?int $replyToId = null;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $replyToText = null;
+
+    public function getReplyToId(): ?int { return $this->replyToId; }
+    public function setReplyToId(?int $id): static { $this->replyToId = $id; return $this; }
+    public function getReplyToText(): ?string { return $this->replyToText; }
+    public function setReplyToText(?string $t): static { $this->replyToText = $t; return $this; }
+
 }

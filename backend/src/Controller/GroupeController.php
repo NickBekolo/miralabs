@@ -80,6 +80,7 @@ class GroupeController extends AbstractController
             'isMe'      => $m->getSender()?->getId() === $user->getId(),
             'sender'    => ['id'=>$m->getSender()?->getId(),'firstName'=>$m->getSender()?->getFirstName(),'lastName'=>$m->getSender()?->getLastName()],
             'createdAt' => $m->getCreatedAt()->format('H:i'),
+            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText()] : null,
         ], $groupe->getMessages()->toArray()));
     }
 
@@ -98,6 +99,8 @@ class GroupeController extends AbstractController
         $msg->setGroupe($groupe);
         $msg->setSender($user);
         $msg->setContent($data['content']);
+        if (!empty($data['replyToId'])) $msg->setReplyToId((int)$data['replyToId']);
+        if (!empty($data['replyToText'])) $msg->setReplyToText($data['replyToText']);
         $groupe->setLastMessageAt(new \DateTimeImmutable());
 
         $em->persist($msg);

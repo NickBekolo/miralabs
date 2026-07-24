@@ -92,11 +92,7 @@ function Bubble({ msg, dark, myColor, onTapback, sameAsPrev=false, sameAsNext=fa
           cursor:'default', userSelect:'none', position:'relative',
           maxWidth:'100%', wordBreak:'break-word',
         }}>
-        {msg.replyTo && (
-          <div style={{ borderLeft:`3px solid rgba(255,255,255,0.5)`, paddingLeft:8, marginBottom:6, opacity:0.7, fontSize:12, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>
-            {msg.replyTo.text}
-          </div>
-        )}
+
         {msg.text}
         {msg.tapback && (
           <div style={{ position:'absolute', bottom:-16, right:msg.me?8:'auto', left:msg.me?'auto':8, fontSize:14, background:dark?'#2C2C2E':'#fff', borderRadius:980, padding:'3px 8px', boxShadow:`0 2px 8px rgba(0,0,0,0.2)`, border:`1px solid ${dark?'rgba(255,255,255,0.12)':'rgba(0,0,0,0.1)'}`, zIndex:10 }}>
@@ -242,7 +238,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
     const convId = contact.convId || contact.id
     if (!convId) return
     api.get('/api/conversations/'+convId+'/messages').then(r => {
-      setMsgs(r.data.map(m => ({ id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??null, replyTo:m.replyTo??null })))
+      setMsgs(r.data.map(m => ({ id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??null, replyTo:m.replyTo?{...m.replyTo, senderName:m.replyTo.senderName}:null })))
     }).catch(() => {})
   }, [contact.convId, contact.id])
 
@@ -253,7 +249,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
       api.get('/api/conversations/'+convId+'/messages').then(r => {
         setMsgs(prev => r.data.map(m => {
           const existing = prev.find(p => p.id === m.id)
-          return { id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??existing?.tapback??null, replyTo:m.replyTo??existing?.replyTo??null }
+          return { id:m.id, me:m.isMe, text:m.content, time:m.createdAt, from:m.sender?.firstName, tapback:m.tapback??existing?.tapback??null, replyTo:m.replyTo?{...m.replyTo}:(existing?.replyTo??null) }
         }))
       }).catch(() => {})
     }, 3000)
@@ -318,7 +314,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
           const isLast     = !sameAsNext
           const showAvatar = !msg.me && isLast
           return (
-            <div key={msg.id} style={{ marginTop:sameAsPrev?2:16 }}>
+            <div key={msg.id} style={{ marginTop:msg.replyTo?(sameAsPrev?8:24):(sameAsPrev?2:16), marginBottom:msg.replyTo?4:0 }}>
               {i===0 && (
                 <div style={{ textAlign:'center', margin:'0 0 16px' }}>
                   <span style={{ fontSize:11, color:sub, background:dark?'#1C1C1E':'#F2F2F7', padding:'3px 12px', borderRadius:980, fontFamily:ft }}>
@@ -329,7 +325,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
               <div style={{ display:'flex', alignItems:'flex-end', gap:6, justifyContent:msg.me?'flex-end':'flex-start', position:'relative' }}
                 onMouseEnter={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='1'}}
                 onMouseLeave={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='0'}}>
-                <button className="reply-btn" onClick={()=>setReplyTo({id:msg.id,text:msg.text,me:msg.me})}
+                <button className="reply-btn" onClick={()=>setReplyTo({id:msg.id,text:msg.text,me:msg.me,senderName:msg.me?'Moi':(msg.from||contact?.name||''),senderColor:msg.me?(myColor||'#111'):(contact?.color||'#007AFF')})}
                   style={{opacity:0,transition:'opacity 0.15s',background:'none',border:'none',cursor:'pointer',fontSize:16,color:'#8E8E93',padding:'0 4px',flexShrink:0,alignSelf:'center',order:msg.me?-1:2}}>
                   ↩
                 </button>
@@ -339,6 +335,15 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
                   </div>
                 )}
                 <div style={{ display:'flex', flexDirection:'column', alignItems:msg.me?'flex-end':'flex-start', maxWidth:'72%', paddingBottom:msg.tapback?20:0 }}>
+                  {msg.replyTo && (
+                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2, marginLeft:12, opacity:0.75, cursor:'pointer' }}>
+
+                      <div style={{ background:dark?'#2C2C2E':'#E9E9EB', borderRadius:'12px 12px 12px 4px', padding:'5px 10px', maxWidth:160 }}>
+                        <div style={{ fontSize:9, fontWeight:700, color:'#007AFF', marginBottom:1 }}>{msg.replyTo.senderName||msg.replyTo.from||'Message'}</div>
+                        <div style={{ fontSize:11, color:dark?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.6)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
+                      </div>
+                    </div>
+                  )}
                   <Bubble msg={msg} dark={dark} myColor={myColor} onTapback={tapback} sameAsPrev={sameAsPrev} sameAsNext={sameAsNext}/>
                   {isLast && <div style={{ fontSize:10, color:dark?'rgba(255,255,255,0.35)':'#8E8E93', marginTop:msg.tapback?20:2, paddingLeft:4, paddingRight:4 }}>{msg.time}</div>}
                 </div>

@@ -235,7 +235,7 @@ export default function MiraIA() {
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKey}
-                placeholder="Pose une question à Mira IA..."
+                placeholder="Écris un message..."
                 rows={1}
                 style={{ width:'100%', border:'none', background:'transparent', fontSize:15, fontFamily:ft, color:text, resize:'none', lineHeight:1.6, display:'block', marginBottom:8, maxHeight:200, overflowY:'auto' }}
               />

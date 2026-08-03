@@ -222,14 +222,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
         {children}
       </div>
 
-      {/* Barre Mira IA */}
-      <div style={{ padding:'12px 24px 32px', flexShrink:0 }}>
-        <div style={{ height:58, borderRadius:30, background:promptBg, display:'flex', alignItems:'center', padding:'0 18px', gap:12, boxShadow: darkMode ? 'none' : '0 -2px 10px rgba(0,0,0,0.05)' }}>
-          <Plus size={20} color={muted}/>
-          <input placeholder="Pose une question à Mira..."
-            style={{ border:'none', outline:'none', width:'100%', background:'transparent', fontSize:16, color:text, fontFamily:ft }}/>
-        </div>
-      </div>
+
 
       {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
       {/* Menu latéral */}

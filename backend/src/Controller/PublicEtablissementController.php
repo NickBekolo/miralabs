@@ -29,7 +29,7 @@ class PublicEtablissementController extends AbstractController
             'code'  => $e->getCode(),
             'type'  => $e->getType(),
             'ville' => $e->getVille(),
-            'api_url' => 'http://127.0.0.1:8000',
+            'api_url' => $e->getApiUrl() ?? 'http://127.0.0.1:8000',
         ], $etabs));
     }
 
@@ -48,7 +48,7 @@ class PublicEtablissementController extends AbstractController
             'code'    => $e->getCode(),
             'type'    => $e->getType(),
             'ville'   => $e->getVille(),
-            'api_url' => 'http://127.0.0.1:8000',
+            'api_url' => $e->getApiUrl() ?? 'http://127.0.0.1:8000',
         ], $etabs));
     }
 }

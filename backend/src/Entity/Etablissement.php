@@ -117,4 +117,10 @@ class Etablissement
     public function setSignatureNumeriqueActive(bool $v): static { $this->signatureNumeriqueActive = $v; return $this; }
     public function getVille(): ?string { return $this->ville; }
     public function setVille(?string $v): static { $this->ville = $v; return $this; }
+    #[ORM\Column(length: 255, nullable: true)]
+    private ?string $apiUrl = null;
+
+    public function getApiUrl(): ?string { return $this->apiUrl; }
+    public function setApiUrl(?string $url): static { $this->apiUrl = $url; return $this; }
+
 }

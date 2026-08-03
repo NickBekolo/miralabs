@@ -135,7 +135,7 @@ export default function Home() {
           <Plus size={20}/>
 
           <input
-            placeholder="Pose une question..."
+            placeholder="Rechercher..."
           />
 
         </div>

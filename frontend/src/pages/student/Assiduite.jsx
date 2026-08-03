@@ -203,7 +203,7 @@ export default function Assiduite() {
       )}
 
       {/* Layout 2 colonnes */}
-      <div style={{ display:'grid', gridTemplateColumns:'minmax(280px,360px) 1fr', gap:14, alignItems:'start' }}>
+      <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
 
         {/* Colonne gauche — Calendrier + Barre mensuelle */}
         <div>

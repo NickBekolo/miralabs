@@ -3,6 +3,7 @@ import { useThemeStore } from '../../store/ThemeStore'
 import { useAuth } from '../../context/AuthContext'
 import api from '../../services/api'
 import { ft } from '../../constants/theme'
+import MessageInputBar from '../../components/MessageInputBar'
 import {
   Paperclip, Image, Camera, Mic, ChevronLeft,
   Send, Plus, X, Search
@@ -85,7 +86,7 @@ function Bubble({ msg, dark, myColor, onTapback, sameAsPrev=false, sameAsNext=fa
           borderRadius: radius,
           background: msg.me ? sentBg : recvBg,
           color: msg.me ? sentColor : recvColor,
-          fontSize:15, lineHeight:1.45,
+          fontSize:16, lineHeight:1.5, letterSpacing:'-0.2px', fontWeight:400,
           opacity: anim ? 1 : 0,
           transform: anim ? 'scale(1) translateY(0)' : 'scale(0.7) translateY(10px)',
           transition:'opacity 0.25s ease, transform 0.25s ease',
@@ -354,7 +355,18 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
         <div ref={bottomRef}/>
       </div>
 
-      <InputBar input={input} setInput={setInput} send={send} dark={dark} replyTo={replyTo} setReplyTo={setReplyTo} contact={contact}/>
+      <MessageInputBar
+          onSend={({ content, replyToId, replyToText }) => {
+            const convId = contact?.convId || contact?.id
+            if (!content.trim()) return
+            const newMsg = { id:Date.now(), me:true, text:content, time:'Maintenant', tapback:null, replyTo:replyTo??null }
+            setMsgs(m => [...m, newMsg])
+            setReplyTo(null)
+            if (convId) api.post('/api/conversations/'+convId+'/messages', { content, replyToId, replyToText }).catch(()=>{})
+          }}
+          replyTo={replyTo}
+          onCancelReply={() => setReplyTo(null)}
+        />
     </div>
   )
 }
@@ -609,7 +621,7 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
                       : (sameAsPrev&&sameAsNext?'6px 22px 22px 6px':sameAsPrev?'6px 22px 22px 22px':sameAsNext?'22px 22px 22px 6px':'22px 22px 22px 6px'),
                     background:m.isMe?(dark?'#fff':'#111'):(dark?IMSG_GRAY_D:IMSG_GRAY),
                     color:m.isMe?(dark?'#111':'#fff'):(dark?'#fff':'#000'),
-                    fontSize:15, lineHeight:1.45, wordBreak:'break-word',
+                    fontSize:16, lineHeight:1.5, letterSpacing:'-0.2px', fontWeight:400, wordBreak:'break-word',
                   }}>
                     {m.content}
                   </div>

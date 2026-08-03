@@ -14,6 +14,7 @@ const FULL_HEIGHT_PAGES = ['conversations', 'espaces']
 
 export default function StudentDashboard({ isParent }) {
   const [active, setActive] = useState('accueil')
+  const user = JSON.parse(localStorage.getItem('user') || '{}')
 
   const renderPage = () => {
     switch (active) {
@@ -35,7 +36,7 @@ export default function StudentDashboard({ isParent }) {
     <StudentLayout
       activePage={active}
       onNavChange={setActive}
-      userName={isParent ? 'Parent' : 'Ritah'}
+      userName={isParent ? 'Parent' : (user.firstName || 'Étudiant')}
     >
       {fullHeight
         ? renderPage()

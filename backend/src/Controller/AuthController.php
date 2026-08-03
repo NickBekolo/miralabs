@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Controller;
 
 use App\Entity\EventLog;
@@ -49,7 +48,12 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Compte désactivé. Contactez l\'administrateur.'], 403);
         }
 
-        // Log de la connexion
+        // Vérifier que l'utilisateur appartient à l'établissement sélectionné
+        $etabId = $data['etablissementId'] ?? null;
+        if ($etabId && $user->getEtablissement()?->getId() !== (int)$etabId) {
+            return $this->json(['message' => 'Votre compte n\'est pas rattaché à cet établissement.'], 403);
+        }
+
         $this->eventLog->log(
             type: EventLog::LOGIN,
             user: $user,
@@ -107,7 +111,7 @@ class AuthController extends AbstractController
             ->subject('Réinitialisation de votre mot de passe — Miralabs')
             ->html(sprintf(
                 '<div style="font-family:sans-serif;max-width:480px;margin:auto;">
-                    <h2 style="color:#111;">Réinitialisation de mot de passe</h2>
+                    <h2>Réinitialisation de mot de passe</h2>
                     <p>Bonjour <strong>%s</strong>,</p>
                     <p>Cliquez sur le bouton ci-dessous pour réinitialiser votre mot de passe :</p>
                     <a href="http://localhost:5173/reset-password/%s"
@@ -123,7 +127,7 @@ class AuthController extends AbstractController
 
         return $this->json([
             'message'   => 'Si cet email existe, un lien a été envoyé.',
-            'dev_token' => $resetToken->getToken(), // À retirer en production
+            'dev_token' => $resetToken->getToken(),
         ]);
     }
 

@@ -78,6 +78,7 @@ function App() {
 
           {/* Placeholders */}
           <Route path="/directeur/dashboard"    element={<Placeholder title="Directeur" />} />
+          <Route path="/admin/dashboard"        element={<Placeholder title="Administrateur" />} />
           <Route path="/pedagogique/dashboard"  element={<Placeholder title="Service Pédagogique" />} />
           <Route path="/cpe/dashboard"          element={<Placeholder title="CPE" />} />
           <Route path="/secretariat/dashboard"  element={<Placeholder title="Secrétariat" />} />

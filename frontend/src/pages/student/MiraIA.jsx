@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect } from 'react'
 import { useThemeStore } from '../../store/ThemeStore'
+import { ArrowUp, RotateCcw, Sparkles } from 'lucide-react'
 
-const ft = "-apple-system, 'SF Pro Text', BlinkMacSystemFont, sans-serif"
+const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
 const SUGGESTIONS = [
   'Explique-moi les fonctions polynômes',
@@ -10,60 +11,54 @@ const SUGGESTIONS = [
   'Comment résoudre une équation du second degré ?',
 ]
 
-function UserMsg({ text }) {
+const SYSTEM_PROMPT = `Tu es Mira IA, l'assistant scolaire intelligent de Miralabs. Tu aides les élèves à réviser leurs cours, comprendre des concepts, faire des exercices et préparer leurs examens. Tu réponds toujours en français, de manière claire, pédagogique et encourageante. Tu t'adaptes au niveau lycée/collège.`
+
+function UserMsg({ text, dark }) {
+  const bg   = dark ? '#fff'     : '#0a0a0a'
+  const col  = dark ? '#0a0a0a'  : '#fff'
   return (
-    <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:24 }}>
-      <div style={{
-        maxWidth:'70%', padding:'12px 16px',
-        background:'#2F2F2F', color:'#fff',
-        borderRadius:18, fontSize:15, lineHeight:1.6,
-        fontFamily:ft,
-      }}>
+    <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:28 }}>
+      <div style={{ maxWidth:'72%', padding:'12px 18px', background:bg, color:col, borderRadius:'18px 18px 4px 18px', fontSize:15, lineHeight:1.6, fontFamily:ft, fontWeight:400 }}>
         {text}
       </div>
     </div>
   )
 }
 
-function AssistantMsg({ text, loading }) {
+function AssistantMsg({ text, loading, dark }) {
   const [displayed, setDisplayed] = useState('')
-  const [done, setDone] = useState(false)
+  const [done,      setDone]      = useState(false)
+  const col = dark ? '#fff' : '#0a0a0a'
 
   useEffect(() => {
     if (loading) { setDisplayed(''); setDone(false); return }
     let i = 0
     setDisplayed('')
-    const interval = setInterval(() => {
-      if (i < text.length) {
-        setDisplayed(t => t + text[i])
-        i++
-      } else {
-        clearInterval(interval)
-        setDone(true)
-      }
-    }, 12)
-    return () => clearInterval(interval)
+    setDone(false)
+    const iv = setInterval(() => {
+      if (i < text.length) { setDisplayed(t => t + text[i]); i++ }
+      else { clearInterval(iv); setDone(true) }
+    }, 10)
+    return () => clearInterval(iv)
   }, [text, loading])
 
   return (
-    <div style={{ display:'flex', gap:12, marginBottom:24, alignItems:'flex-start' }}>
+    <div style={{ display:'flex', gap:12, marginBottom:28, alignItems:'flex-start' }}>
       {/* Avatar Mira */}
-      <div style={{ width:30, height:30, borderRadius:'50%', background:'linear-gradient(135deg, #10a37f, #1a7f64)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-          <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-        </svg>
+      <div style={{ width:28, height:28, borderRadius:8, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
+        <Sparkles size={14} color="#fff" strokeWidth={2}/>
       </div>
       <div style={{ flex:1 }}>
         {loading ? (
-          <div style={{ display:'flex', gap:4, alignItems:'center', padding:'8px 0' }}>
+          <div style={{ display:'flex', gap:5, alignItems:'center', padding:'10px 0' }}>
             {[0,1,2].map(i => (
-              <div key={i} style={{ width:8, height:8, borderRadius:'50%', background:'#666', animation:`pulse 1.2s ease infinite ${i*0.2}s` }}/>
+              <div key={i} style={{ width:7, height:7, borderRadius:'50%', background:dark?'#555':'#ccc', animation:`miraPulse 1.2s ease infinite`, animationDelay:`${i*0.2}s` }}/>
             ))}
           </div>
         ) : (
-          <div style={{ fontSize:15, lineHeight:1.8, color:'#ececec', fontFamily:ft, whiteSpace:'pre-wrap' }}>
+          <div style={{ fontSize:15, lineHeight:1.8, color:col, fontFamily:ft, whiteSpace:'pre-wrap' }}>
             {displayed}
-            {!done && <span style={{ opacity:0.7, animation:'blink 1s step-end infinite' }}>▋</span>}
+            {!done && <span style={{ animation:'miraBlink 1s step-end infinite' }}>▋</span>}
           </div>
         )}
       </div>
@@ -71,196 +66,146 @@ function AssistantMsg({ text, loading }) {
   )
 }
 
-const MOCK_RESPONSES = {
-  default: `Je suis **Mira IA**, ton assistant scolaire intelligent. Je peux t'aider à :
-
-• **Réviser** tes cours et expliquer des concepts
-• **Créer des quiz** personnalisés sur tes matières
-• **Résoudre des exercices** étape par étape
-• **Rédiger** des plans et dissertations
-
-Pose-moi une question et je ferai de mon mieux pour t'aider ! 📚`,
-
-  polynome: `Les **fonctions polynômes** sont des fonctions de la forme :
-
-**f(x) = aₙxⁿ + aₙ₋₁xⁿ⁻¹ + ... + a₁x + a₀**
-
-Pour une fonction du **second degré** : f(x) = ax² + bx + c
-
-**Discriminant :** Δ = b² - 4ac
-
-• Si Δ > 0 → 2 racines réelles : x = (-b ± √Δ) / 2a
-• Si Δ = 0 → 1 racine double : x = -b / 2a  
-• Si Δ < 0 → pas de racine réelle
-
-Tu veux que je te fasse des exercices ?`,
-}
-
-function getResponse(input) {
-  const lower = input.toLowerCase()
-  if (lower.includes('polynôme') || lower.includes('second degré')) return MOCK_RESPONSES.polynome
-  return MOCK_RESPONSES.default
-}
-
 export default function MiraIA() {
+  const dark = useThemeStore(s => s.darkMode)
   const [msgs,    setMsgs]    = useState([])
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
-  const bottomRef = useRef(null)
+  const bottomRef   = useRef(null)
   const textareaRef = useRef(null)
 
-  const bg      = '#212121'
-  const sidebar = '#171717'
-  const text    = '#ececec'
-  const muted   = '#8e8e8e'
-  const inputBg = '#2F2F2F'
+  const bg      = dark ? '#0a0a0a' : '#fff'
+  const text    = dark ? '#fff'    : '#0a0a0a'
+  const muted   = dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)'
+  const inputBg = dark ? '#111'    : '#f5f5f5'
+  const border  = dark ? '#2a2a2a' : '#e5e5e5'
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior:'smooth' })
   }, [msgs, loading])
 
-  const send = async () => {
-    if (!input.trim() || loading) return
-    const userText = input.trim()
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto'
+      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 180) + 'px'
+    }
+  }, [input])
+
+  const send = async (txt) => {
+    const userText = (txt || input).trim()
+    if (!userText || loading) return
     setInput('')
-    setMsgs(m => [...m, { role:'user', text:userText }])
+    const newMsgs = [...msgs, { role:'user', text:userText }]
+    setMsgs(newMsgs)
     setLoading(true)
-    await new Promise(r => setTimeout(r, 1200))
-    setLoading(false)
-    setMsgs(m => [...m, { role:'assistant', text:getResponse(userText) }])
+
+    try {
+      const history = newMsgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
+      const res = await fetch('https://api.anthropic.com/v1/messages', {
+        method:'POST',
+        headers:{ 'Content-Type':'application/json' },
+        body: JSON.stringify({
+          model:'claude-sonnet-4-6',
+          max_tokens:1000,
+          system: SYSTEM_PROMPT,
+          messages: history,
+        })
+      })
+      const data = await res.json()
+      const reply = data.content?.[0]?.text || "Désolé, je n'ai pas pu répondre."
+      setMsgs(m => [...m, { role:'assistant', text:reply }])
+    } catch {
+      setMsgs(m => [...m, { role:'assistant', text:"Erreur de connexion. Vérifie ta connexion internet." }])
+    } finally {
+      setLoading(false)
+    }
   }
 
   const handleKey = (e) => {
     if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); send() }
   }
 
-  // Auto resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + 'px'
-    }
-  }, [input])
-
   const isEmpty = msgs.length === 0
 
   return (
     <>
       <style>{`
-        @keyframes pulse { 0%,100% { opacity:0.3 } 50% { opacity:1 } }
-        @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
-        .mira-input::placeholder { color:#8e8e8e }
-        .mira-input:focus { outline:none }
-        .suggestion-btn:hover { background:#2F2F2F !important }
+        @keyframes miraPulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+        @keyframes miraBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+        .mira-textarea::placeholder { color:${muted} }
+        .mira-textarea:focus { outline:none }
+        .mira-suggestion:hover { background:${dark?'#1a1a1a':'#f0f0f0'} !important }
       `}</style>
 
-      <div style={{ display:'flex', height:'100%', background:bg, color:text, fontFamily:ft }}>
+      <div style={{ display:'flex', flexDirection:'column', height:'100%', background:bg, fontFamily:ft }}>
 
-        {/* Sidebar historique */}
-        <div style={{ width:260, flexShrink:0, background:sidebar, display:'flex', flexDirection:'column', padding:'16px 10px', borderRight:'1px solid rgba(255,255,255,0.06)' }}>
-          <button style={{ display:'flex', alignItems:'center', gap:8, width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'transparent', color:text, cursor:'pointer', fontSize:14, fontFamily:ft, marginBottom:16 }}
-            onMouseEnter={e => e.currentTarget.style.background='#2F2F2F'}
-            onMouseLeave={e => e.currentTarget.style.background='transparent'}
-            onClick={() => setMsgs([])}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={text} strokeWidth="2">
-              <path d="M12 5v14M5 12h14"/>
-            </svg>
-            Nouvelle conversation
-          </button>
-
-          <div style={{ fontSize:11, color:muted, padding:'6px 12px', marginBottom:6, textTransform:'uppercase', letterSpacing:'0.5px' }}>Aujourd'hui</div>
-
-          {[
-            'Révision Physique-Chimie',
-            'Exercices polynômes',
-            'Plan dissertation Français',
-          ].map((h, i) => (
-            <button key={i} style={{ display:'flex', width:'100%', padding:'10px 12px', borderRadius:10, border:'none', background:'transparent', color:muted, cursor:'pointer', fontSize:13, fontFamily:ft, textAlign:'left', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}
-              onMouseEnter={e => e.currentTarget.style.background='#2F2F2F'}
-              onMouseLeave={e => e.currentTarget.style.background='transparent'}>
-              {h}
-            </button>
-          ))}
-        </div>
-
-        {/* Zone principale */}
-        <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-
-          {/* Header */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', padding:'14px 20px', borderBottom:'1px solid rgba(255,255,255,0.06)', flexShrink:0 }}>
+        {/* Header */}
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderBottom:`1px solid ${border}`, flexShrink:0 }}>
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <div style={{ width:26, height:26, borderRadius:7, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Sparkles size={13} color="#fff" strokeWidth={2}/>
+            </div>
             <span style={{ fontSize:15, fontWeight:600, color:text }}>Mira IA</span>
           </div>
+          {!isEmpty && (
+            <button onClick={() => setMsgs([])}
+              style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:`1px solid ${border}`, borderRadius:8, padding:'6px 12px', color:muted, cursor:'pointer', fontSize:13, fontFamily:ft }}>
+              <RotateCcw size={13} strokeWidth={2}/> Nouveau
+            </button>
+          )}
+        </div>
 
-          {/* Messages */}
-          <div style={{ flex:1, overflowY:'auto', padding:'24px 20%' }}>
-            {isEmpty ? (
-              <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
-                {/* Logo */}
-                <div style={{ width:56, height:56, borderRadius:'50%', background:'linear-gradient(135deg, #10a37f, #1a7f64)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5">
-                    <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-                  </svg>
+        {/* Zone messages */}
+        <div style={{ flex:1, overflowY:'auto', padding:'32px 20px' }}>
+          {isEmpty ? (
+            /* Écran vide style ChatGPT */
+            <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
+              <div style={{ textAlign:'center' }}>
+                <div style={{ width:52, height:52, borderRadius:14, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+                  <Sparkles size={24} color="#fff" strokeWidth={1.8}/>
                 </div>
-                <div style={{ fontSize:22, fontWeight:600, color:text }}>Comment puis-je vous aider ?</div>
-
-                {/* Suggestions */}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, width:'100%', maxWidth:600 }}>
-                  {SUGGESTIONS.map((s, i) => (
-                    <button key={i} className="suggestion-btn" onClick={() => { setInput(s); textareaRef.current?.focus() }}
-                      style={{ padding:'14px 16px', borderRadius:12, border:'1px solid rgba(255,255,255,0.1)', background:'transparent', color:text, cursor:'pointer', fontSize:13, fontFamily:ft, textAlign:'left', lineHeight:1.4, transition:'background 0.15s' }}>
-                      {s}
-                    </button>
-                  ))}
-                </div>
+                <div style={{ fontSize:22, fontWeight:700, color:text, letterSpacing:'-0.5px', marginBottom:6 }}>Comment puis-je t'aider ?</div>
+                <div style={{ fontSize:14, color:muted }}>Pose-moi une question sur tes cours</div>
               </div>
-            ) : (
-              <>
-                {msgs.map((m, i) => (
-                  m.role === 'user'
-                    ? <UserMsg key={i} text={m.text}/>
-                    : <AssistantMsg key={i} text={m.text}/>
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, width:'100%', maxWidth:520 }}>
+                {SUGGESTIONS.map((s, i) => (
+                  <button key={i} className="mira-suggestion" onClick={() => send(s)}
+                    style={{ textAlign:'left', padding:'12px 14px', background:inputBg, border:`1px solid ${border}`, borderRadius:12, color:text, cursor:'pointer', fontSize:13, fontFamily:ft, lineHeight:1.4, transition:'background 0.15s' }}>
+                    {s}
+                  </button>
                 ))}
-                {loading && <AssistantMsg text="" loading={true}/>}
-                <div ref={bottomRef}/>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          ) : (
+            <div style={{ maxWidth:680, margin:'0 auto' }}>
+              {msgs.map((m, i) => m.role === 'user'
+                ? <UserMsg key={i} text={m.text} dark={dark}/>
+                : <AssistantMsg key={i} text={m.text} dark={dark} loading={false}/>
+              )}
+              {loading && <AssistantMsg text="" dark={dark} loading={true}/>}
+              <div ref={bottomRef}/>
+            </div>
+          )}
+        </div>
 
-          {/* Input ChatGPT style */}
-          <div style={{ padding:'16px 20%', flexShrink:0 }}>
-            <div style={{ background:inputBg, borderRadius:16, padding:'12px 12px 12px 16px', border:'1px solid rgba(255,255,255,0.1)' }}>
+        {/* Zone de saisie */}
+        <div style={{ padding:'12px 20px 24px', flexShrink:0 }}>
+          <div style={{ maxWidth:680, margin:'0 auto' }}>
+            <div style={{ background:inputBg, border:`1.5px solid ${border}`, borderRadius:16, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}>
               <textarea
                 ref={textareaRef}
-                className="mira-input"
+                className="mira-textarea"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 onKeyDown={handleKey}
-                placeholder="Écris un message..."
+                placeholder="Message Mira IA..."
                 rows={1}
-                style={{ width:'100%', border:'none', background:'transparent', fontSize:15, fontFamily:ft, color:text, resize:'none', lineHeight:1.6, display:'block', marginBottom:8, maxHeight:200, overflowY:'auto' }}
+                style={{ background:'transparent', border:'none', resize:'none', fontSize:15, fontFamily:ft, color:text, lineHeight:1.5, maxHeight:180, width:'100%', boxSizing:'border-box' }}
               />
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                <div style={{ display:'flex', gap:8 }}>
-                  <button style={{ background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:6, color:muted }}
-                    onMouseEnter={e => e.currentTarget.style.color=text}
-                    onMouseLeave={e => e.currentTarget.style.color=muted}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/>
-                    </svg>
-                  </button>
-                  <button style={{ background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:6, color:muted }}
-                    onMouseEnter={e => e.currentTarget.style.color=text}
-                    onMouseLeave={e => e.currentTarget.style.color=muted}>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/>
-                    </svg>
-                  </button>
-                </div>
-                <button onClick={send} disabled={!input.trim() || loading}
-                  style={{ width:34, height:34, borderRadius:8, border:'none', background:input.trim()&&!loading?'#fff':'rgba(255,255,255,0.15)', cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={input.trim()&&!loading?'#000':'#666'} strokeWidth="2.5">
-                    <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
-                  </svg>
+              <div style={{ display:'flex', justifyContent:'flex-end' }}>
+                <button onClick={() => send()} disabled={!input.trim() || loading}
+                  style={{ width:32, height:32, borderRadius:8, border:'none', background:input.trim()&&!loading?text:'transparent', cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
+                  <ArrowUp size={16} color={input.trim()&&!loading?bg:muted} strokeWidth={2.5}/>
                 </button>
               </div>
             </div>

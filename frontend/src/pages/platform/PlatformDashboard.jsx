@@ -37,7 +37,7 @@ function SideItem({ id, label, icon: Icon, active, onClick }) {
       onMouseLeave={() => setHov(false)}
       style={{
         display:'flex', alignItems:'center', gap:9, padding:'8px 12px',
-        borderRadius:radius.sm, cursor:'pointer', fontSize:13,
+        borderRadius:radius.sm, cursor:'pointer', fontSize:13, 
         fontWeight: active ? 500 : 400,
         color: active ? T.text : T.muted,
         background: active ? T.surface2 : hov ? T.surface : 'transparent',

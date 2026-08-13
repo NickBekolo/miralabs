@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { MapPin, Search, ChevronLeft } from 'lucide-react'
 
 const sf = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
-const API = 'http://192.168.1.108:8000'
+const API = 'http://192.168.1.35:8000'
 
 export default function SelectEtablissement() {
   const navigate = useNavigate()

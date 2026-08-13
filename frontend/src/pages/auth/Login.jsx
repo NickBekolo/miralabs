@@ -36,8 +36,10 @@ export default function Login() {
       else if (roles.includes('ROLE_ADMIN'))             navigate('/admin/dashboard')
       else if (roles.includes('ROLE_TEACHER'))           navigate('/enseignant/home')
       else navigate('/student/dashboard')
-    } catch {
-      setError('Email ou mot de passe incorrect.')
+    } catch (err) {
+      const msg = err?.response?.data?.message
+      if (msg) setError(msg)
+      else setError('Email ou mot de passe incorrect.')
     } finally {
       setLoading(false)
     }

@@ -67,7 +67,7 @@ export default function Mobile() {
       </div>
 
       {/* Carte moyenne */}
-      <div style={{ margin:'12px 16px', background:C.surface, borderRadius:20, padding:'16px 18px' }}>
+      <div style={{ margin:'12px 16px', background:C.surface, borderRadius:20, padding:'10px 14px' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
           <div>
             <div style={{ fontSize:12, color:C.hint, marginBottom:2 }}>Moyenne générale</div>

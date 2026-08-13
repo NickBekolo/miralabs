@@ -1,0 +1,75 @@
+.navbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  background: #ffffff;
+}
+
+.navbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.navbar__logo {
+  width: 30px;
+  height: 30px;
+  color: #111111;
+}
+
+.navbar__title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #111111;
+}
+
+.navbar__links {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.navbar__link {
+  font-size: 17px;
+  font-weight: 600;
+  color: #111111;
+  text-decoration: none;
+}
+
+.navbar__link:hover {
+  opacity: 0.65;
+}
+
+.navbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar__icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: #111111;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.navbar__logout {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1.5px solid #111111;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111111;
+  cursor: pointer;
+}
+
+.navbar__logout:hover {
+  background: #111111;
+  color: #ffffff;
+}

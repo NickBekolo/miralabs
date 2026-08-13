@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { StudentLayout }  from '../../components/layout/StudentLayout'
 import ForYou             from './ForYou'
+import HomeScreen         from './home'
 import Conversations      from './Conversations'
 import Espaces            from './Espaces'
 import EmploiDuTemps      from './EmploiDuTemps'
@@ -18,7 +19,7 @@ export default function StudentDashboard({ isParent }) {
 
   const renderPage = () => {
     switch (active) {
-      case 'accueil':       return <ForYou />
+      case 'accueil':       return <HomeScreen />
       case 'conversations': return <Conversations />
       case 'espaces':       return <Espaces />
       case 'notes':         return <Notes />

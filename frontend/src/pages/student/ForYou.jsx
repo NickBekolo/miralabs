@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
-import { ChevronRight, Bell, BookOpen, ClipboardList, AlertTriangle, Calendar } from 'lucide-react'
+import { ChevronRight, Bell, BookOpen, ClipboardList, AlertTriangle, Calendar, MessageCircle } from 'lucide-react'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
@@ -79,10 +79,14 @@ function DevoirFooter({ devoir, C }) {
 }
 
 function NotifFooter({ notif, C }) {
+  const isMsg = notif.type === 'message'
+  const isGroupe = notif.type === 'groupe'
+  const iconColor = isMsg ? '#FF3B30' : isGroupe ? '#007AFF' : C.muted
+  const Icon = isMsg ? MessageCircle : Bell
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, background:C.bg==='#fff'?'#f7f7f7':'#1e1e1e', borderRadius:12, padding:'10px 12px' }}>
-      <div style={{ width:44, height:44, borderRadius:10, background:C.bg==='#fff'?'#ebebeb':'#2a2a2a', display:'flex', alignItems:'center', justifyContent:'center' }}>
-        <Bell size={18} color={C.muted} strokeWidth={1.8}/>
+      <div style={{ width:36, height:36, borderRadius:10, background:isMsg?'rgba(255,59,48,0.1)':isGroupe?'rgba(0,122,255,0.1)':(C.bg==='#fff'?'#ebebeb':'#2a2a2a'), display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        <Icon size={17} color={iconColor} strokeWidth={2}/>
       </div>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:14, fontWeight:600, color:C.text }}>{notif.title}</div>

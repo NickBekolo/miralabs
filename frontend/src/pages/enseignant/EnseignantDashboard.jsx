@@ -32,7 +32,7 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
   return (
     <div>
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22,fontWeight:600,color:C.text,marginBottom:3 }}>Bonjour, {user?.firstName??'Enseignant'} 👋</h1>
+        <h1 style={{ fontSize:22,fontWeight:600,color:C.text,marginBottom:3 }}>Bonjour, {user?.firstName??'toi'}</h1>
         <p style={{ fontSize:12,color:C.hint }}>{today}</p>
       </div>
       <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16 }}>

@@ -59,7 +59,7 @@ export default function Mobile() {
       {/* Salutation */}
       <div style={{ padding:'16px 16px 4px' }}>
         <div style={{ fontSize:20, fontWeight:600, color:C.text, letterSpacing:'-0.3px' }}>
-          Bonjour, {user?.firstName ?? 'Étudiant'} 👋
+          Bonjour, {user?.firstName ?? 'toi'}
         </div>
         <div style={{ fontSize:12, color:C.hint, marginTop:2 }}>
           {new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })}

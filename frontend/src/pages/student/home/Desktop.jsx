@@ -233,7 +233,7 @@ export default function HomeScreen() {
     <div style={{ fontFamily:ft, padding:'16px 0 40px', background:C.bg, minHeight:'100vh', color:C.text }}>
       <div style={{ marginBottom:20 }}>
         <h1 style={{ fontSize:22, fontWeight:500, letterSpacing:'-0.4px', color:C.text, marginBottom:3 }}>
-          Bonjour, {user?.firstName ?? 'Étudiant'} 
+          Bonjour, {user?.firstName ?? 'toi'} 
         </h1>
         <p style={{ fontSize:12, color:C.hint }}>{today}</p>
       </div>

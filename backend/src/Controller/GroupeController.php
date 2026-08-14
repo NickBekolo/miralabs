@@ -132,7 +132,7 @@ class GroupeController extends AbstractController
         foreach ($groupe->getMembres() as $membre) {
             if ($membre->getId() === $sender->getId()) continue;
             $notif = new \App\Entity\Notification();
-            $notif->setTitle('💬 '.$groupe->getNom());
+            $notif->setTitle($groupe->getNom());
             $notif->setMessage($sender->getFirstName().' a envoyé un message dans '.$groupe->getNom());
             $notif->setType('groupe');
             $notif->setSender($sender);

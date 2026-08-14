@@ -1,15 +1,10 @@
 import { useState, useRef, useEffect } from 'react'
 import { useThemeStore } from '../../store/ThemeStore'
-import { ArrowUp, RotateCcw, Sparkles } from 'lucide-react'
+import { ArrowUp, RotateCcw, Sparkles, Plus, Mic, Globe, Pencil } from 'lucide-react'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
-const SUGGESTIONS = [
-  'Explique-moi les fonctions polynômes',
-  'Aide-moi à réviser la photosynthèse',
-  'Crée un quiz sur la Révolution française',
-  'Comment résoudre une équation du second degré ?',
-]
+const SUGGESTIONS = []
 
 const SYSTEM_PROMPT = `Tu es Mira IA, l'assistant scolaire intelligent de Miralabs. Tu aides les élèves à réviser leurs cours, comprendre des concepts, faire des exercices et préparer leurs examens. Tu réponds toujours en français, de manière claire, pédagogique et encourageante. Tu t'adaptes au niveau lycée/collège.`
 
@@ -44,10 +39,7 @@ function AssistantMsg({ text, loading, dark }) {
 
   return (
     <div style={{ display:'flex', gap:12, marginBottom:28, alignItems:'flex-start' }}>
-      {/* Avatar Mira */}
-      <div style={{ width:28, height:28, borderRadius:8, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, marginTop:2 }}>
-        <Sparkles size={14} color="#fff" strokeWidth={2}/>
-      </div>
+
       <div style={{ flex:1 }}>
         {loading ? (
           <div style={{ display:'flex', gap:5, alignItems:'center', padding:'10px 0' }}>
@@ -71,6 +63,7 @@ export default function MiraIA() {
   const [msgs,    setMsgs]    = useState([])
   const [input,   setInput]   = useState('')
   const [loading, setLoading] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const bottomRef   = useRef(null)
   const textareaRef = useRef(null)
 
@@ -140,13 +133,8 @@ export default function MiraIA() {
       <div style={{ display:'flex', flexDirection:'column', height:'100%', background:bg, fontFamily:ft }}>
 
         {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', borderBottom:`1px solid ${border}`, flexShrink:0 }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:26, height:26, borderRadius:7, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Sparkles size={13} color="#fff" strokeWidth={2}/>
-            </div>
-            <span style={{ fontSize:15, fontWeight:600, color:text }}>Mira IA</span>
-          </div>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px',  flexShrink:0 }}>
+          <div style={{ fontSize:18, fontWeight:500, color:text, letterSpacing:'-0.5px', fontFamily:ft }}>Mira IA.</div>
           {!isEmpty && (
             <button onClick={() => setMsgs([])}
               style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:`1px solid ${border}`, borderRadius:8, padding:'6px 12px', color:muted, cursor:'pointer', fontSize:13, fontFamily:ft }}>
@@ -161,9 +149,7 @@ export default function MiraIA() {
             /* Écran vide style ChatGPT */
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
               <div style={{ textAlign:'center' }}>
-                <div style={{ width:52, height:52, borderRadius:14, background:'linear-gradient(135deg,#0a0a0a,#444)', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
-                  <Sparkles size={24} color="#fff" strokeWidth={1.8}/>
-                </div>
+  
                 <div style={{ fontSize:22, fontWeight:700, color:text, letterSpacing:'-0.5px', marginBottom:6 }}>Comment puis-je t'aider ?</div>
                 <div style={{ fontSize:14, color:muted }}>Pose-moi une question sur tes cours</div>
               </div>
@@ -189,30 +175,51 @@ export default function MiraIA() {
         </div>
 
         {/* Zone de saisie */}
-        <div style={{ padding:'12px 20px 24px', flexShrink:0 }}>
-          <div style={{ maxWidth:680, margin:'0 auto' }}>
-            <div style={{ background:inputBg, border:`1.5px solid ${border}`, borderRadius:16, padding:'12px 14px', display:'flex', flexDirection:'column', gap:8 }}>
-              <textarea
-                ref={textareaRef}
-                className="mira-textarea"
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                onKeyDown={handleKey}
-                placeholder="Message Mira IA..."
-                rows={1}
-                style={{ background:'transparent', border:'none', resize:'none', fontSize:15, fontFamily:ft, color:text, lineHeight:1.5, maxHeight:180, width:'100%', boxSizing:'border-box' }}
-              />
-              <div style={{ display:'flex', justifyContent:'flex-end' }}>
-                <button onClick={() => send()} disabled={!input.trim() || loading}
-                  style={{ width:32, height:32, borderRadius:8, border:'none', background:input.trim()&&!loading?text:'transparent', cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', transition:'all 0.15s' }}>
-                  <ArrowUp size={16} color={input.trim()&&!loading?bg:muted} strokeWidth={2.5}/>
+        <div style={{ padding:'8px 16px 24px', flexShrink:0, background:bg }}>
+          <div style={{ maxWidth:680, margin:'0 auto', position:'relative' }}>
+            {/* Menu + */}
+            {menuOpen && (
+              <div style={{ position:'absolute', bottom:'100%', left:0, marginBottom:12, width:240, borderRadius:20, background:'#fff', boxShadow:'0 8px 30px rgba(0,0,0,0.15)', border:'1px solid #e5e5e5', overflow:'hidden', zIndex:10 }}>
+                {[{key:'write',label:'Écrire ou modifier',Icon:Pencil},{key:'search',label:'Rechercher',Icon:Globe}].map(({key,label,Icon},i,arr)=>(
+                  <button key={key} onClick={()=>setMenuOpen(false)}
+                    style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'12px 16px', background:'none', border:'none', borderBottom:i<arr.length-1?'1px solid #f0f0f0':'none', cursor:'pointer', fontFamily:ft, fontSize:14, color:'#0a0a0a', textAlign:'left' }}
+                    onMouseEnter={e=>e.currentTarget.style.background='#f9f9f9'}
+                    onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                    <Icon size={18} color="#666" strokeWidth={1.75}/>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px' }}>
+              {/* Bouton + */}
+              <button onClick={()=>setMenuOpen(o=>!o)}
+                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:menuOpen?'#e5e5e5':'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                onMouseEnter={e=>e.currentTarget.style.background='#f0f0f0'}
+                onMouseLeave={e=>e.currentTarget.style.background=menuOpen?'#e5e5e5':'transparent'}>
+                <Plus size={22} color="#0a0a0a" strokeWidth={2}/>
+              </button>
+              {/* Zone texte */}
+              <div style={{ flex:1, display:'flex', alignItems:'center', background:'#fff', borderRadius:24, border:'1.5px solid #e0e0e0', paddingLeft:16, paddingRight:8, paddingTop:8, paddingBottom:8, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+                <input
+                  value={input}
+                  onChange={e=>setInput(e.target.value)}
+                  onKeyDown={handleKey}
+                  placeholder="Demander à Mira IA..."
+                  style={{ flex:1, background:'transparent', border:'none', outline:'none', fontSize:15, fontFamily:ft, color:'#0a0a0a' }}
+                />
+                <button style={{ width:32, height:32, borderRadius:'50%', border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Mic size={18} color="#888" strokeWidth={1.75}/>
                 </button>
               </div>
-            </div>
-            <div style={{ textAlign:'center', fontSize:11, color:muted, marginTop:8 }}>
-              Mira IA peut faire des erreurs. Vérifiez les informations importantes.
+              {/* Bouton envoyer */}
+              <button onClick={()=>send()} disabled={!input.trim()||loading}
+                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:input.trim()&&!loading?'#007AFF':'#e0e0e0', cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
+                <ArrowUp size={17} color="#fff" strokeWidth={2.5}/>
+              </button>
             </div>
           </div>
+
         </div>
       </div>
     </>

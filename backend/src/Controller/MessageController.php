@@ -117,7 +117,7 @@ class MessageController extends AbstractController
         $other = $conv->getOtherParticipant($user);
         if ($other) {
             $notif = new \App\Entity\Notification();
-            $notif->setTitle('💬 '.$user->getFirstName().' '.$user->getLastName());
+            $notif->setTitle($user->getFirstName().' '.$user->getLastName());
             $notif->setMessage(substr($data['content'], 0, 80));
             $notif->setType('message');
             $notif->setSender($user);

@@ -59,7 +59,7 @@ export default function Mobile() {
       {/* Salutation */}
       <div style={{ padding:'16px 16px 4px' }}>
         <div style={{ fontSize:20, fontWeight:600, color:C.text, letterSpacing:'-0.3px' }}>
-          Bonjour, {user?.firstName ?? 'toi'}
+          Bonjour, {user?.firstName ?? 'toi !'}
         </div>
         <div style={{ fontSize:12, color:C.hint, marginTop:2 }}>
           {new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' })}
@@ -71,7 +71,7 @@ export default function Mobile() {
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
           <div>
             <div style={{ fontSize:12, color:C.hint, marginBottom:2 }}>Moyenne générale</div>
-            <div style={{ fontSize:11, color:C.hint }}>Sept 2025 → Juin 2026</div>
+            <div style={{ fontSize:11, color:C.hint }}>2025 à 2026</div>
           </div>
           <div style={{ fontSize:28, fontWeight:700, color:C.text, letterSpacing:'-0.8px' }}>
             {moyenne}<span style={{ fontSize:14, color:C.muted }}>/20</span>

@@ -3,7 +3,7 @@ import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import Signature from '../../pages/student/Signature'
-import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck } from 'lucide-react'
+import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut } from 'lucide-react'
 
 const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
 
@@ -109,6 +109,11 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             <div style={{ width:28, height:28, borderRadius:'50%', background:C.surface3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:C.text }}>
               {userName?.[0] ?? 'R'}
             </div>
+            <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
+              style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:C.muted, fontSize:12, fontFamily:ft, marginTop:8, padding:'4px 0' }}>
+              <LogOut size={14} strokeWidth={1.5}/>
+              {!collapsed && 'Déconnexion'}
+            </button>
             <div>
               <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{userName}</div>
               <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
@@ -201,7 +206,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
             Signer
           </button>
           {/* Avatar */}
-          <div style={{ width:32, height:32, borderRadius:'50%', background:cardBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:600, color:text }}>
+          <div style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 }}>
             {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
           </div>
           </div>
@@ -247,6 +252,10 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
                 <Icon size={18} strokeWidth={1.5}/>{label}
               </div>
             ))}
+            <div onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
+              style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color:'#FF3B30', fontSize:16, marginTop:8 }}>
+              <LogOut size={18} strokeWidth={1.5}/>Déconnexion
+            </div>
           </div>
         </div>
       )}

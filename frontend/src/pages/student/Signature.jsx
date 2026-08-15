@@ -82,6 +82,7 @@ export default function Signature({ onClose }) {
   }
 
   const submitSignature = async () => {
+    if (!appel) { setMsg('Aucun appel en cours.'); return }
     setLoading(true); setMsg(null)
     try {
       const canvas = canvasRef.current
@@ -109,9 +110,9 @@ export default function Signature({ onClose }) {
         {step === 'code' && (
           <>
             <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:12, fontWeight:600, color:'#9ca3af', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:8 }}>Présence</div>
+              <div style={{ fontSize:12, fontWeight:600, color:'#000000ff', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:8 }}>Présence</div>
               <div style={{ fontSize:22, fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.5px', marginBottom:6 }}>Signer l'appel</div>
-              <div style={{ fontSize:14, color:'#9ca3af' }}>Saisissez le code affiché par votre professeur</div>
+              <div style={{ fontSize:14, color:'#000000ff' }}>Saisissez le code affiché par votre professeur</div>
             </div>
 
             <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:24 }}>
@@ -134,7 +135,7 @@ export default function Signature({ onClose }) {
             </button>
 
             {appel && (
-              <div style={{ textAlign:'center', marginTop:16, fontSize:13, color:'#9ca3af' }}>
+              <div style={{ textAlign:'center', marginTop:16, fontSize:13, color:'#000000ff' }}>
                 {appel.enseignant} · {appel.cours}
               </div>
             )}
@@ -146,7 +147,7 @@ export default function Signature({ onClose }) {
           <>
             <div style={{ marginBottom:20 }}>
               <div style={{ fontSize:22, fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.5px', marginBottom:6 }}>Votre signature</div>
-              <div style={{ fontSize:14, color:'#9ca3af' }}>Tracez votre signature dans la zone ci-dessous</div>
+              <div style={{ fontSize:14, color:'#000000ff' }}>Tracez votre signature dans la zone ci-dessous</div>
             </div>
 
             <div style={{ position:'relative', marginBottom:20 }}>
@@ -165,7 +166,7 @@ export default function Signature({ onClose }) {
 
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={() => setStep('code')}
-                style={{ flex:1, padding:'14px 0', borderRadius:980, border:'1.5px solid #e5e5e5', background:'#fff', color:'#666', fontSize:14, cursor:'pointer', fontFamily:ft }}>
+                style={{ flex:1, padding:'14px 0', borderRadius:980, border:'1.5px solid #e5e5e5', background:'#fff', color:'#000000ff', fontSize:14, cursor:'pointer', fontFamily:ft }}>
                 Retour
               </button>
               <button onClick={submitSignature} disabled={loading}
@@ -195,7 +196,7 @@ export default function Signature({ onClose }) {
         {/* ÉTAPE erreur */}
         {step === 'error' && (
           <div style={{ textAlign:'center', padding:'20px 0' }}>
-            <div style={{ fontSize:22, fontWeight:700, color:'#FF3B30', letterSpacing:'-0.5px', marginBottom:8 }}>Erreur</div>
+            <div style={{ fontSize:22, fontWeight:700, color:'#ff0d00ff', letterSpacing:'-0.5px', marginBottom:8 }}>Erreur</div>
             <div style={{ fontSize:14, color:'#9ca3af', marginBottom:28 }}>{msg}</div>
             <button onClick={() => setStep('code')}
               style={{ padding:'14px 32px', borderRadius:980, border:'none', background:'#0a0a0a', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer', fontFamily:ft }}>

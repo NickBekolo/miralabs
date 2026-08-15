@@ -121,7 +121,7 @@ class AppelController extends AbstractController
                 $presence->setStatut($signatureActive ? 'en_attente' : 'present');
                 if ($signatureActive) {
                     $notif = new Notification();
-                    $notif->setTitle('✏️ Signez votre présence');
+                    $notif->setTitle('Signez votre présence');
                     $notif->setMessage("Votre professeur ".$this->getUser()->getFirstName()." ".$this->getUser()->getLastName()." a lancé l'appel. Signez maintenant !");
                     $notif->setType('appel');
                     $notif->setSender($this->getUser());

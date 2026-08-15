@@ -3,7 +3,7 @@ import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import Signature from '../../pages/student/Signature'
-import { ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy } from 'lucide-react'
+import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck } from 'lucide-react'
 
 const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
 
@@ -14,7 +14,7 @@ const NAV_ITEMS = [
   { id:'conversations', label:'Messages',       icon:MessageSquare },
   { id:'espaces',       label:'Espaces',        icon:LayoutGrid },
   { id:'assiduite',     label:'Assiduité',       icon:Edit3 },
-  { id:'revision',  label:'Révision',        icon:Edit3 },
+  { id:'revision',  label:'Mira',        icon:ScanFace },
   { id:'params',    label:'Paramètres',      icon:Settings },
 ]
 
@@ -24,11 +24,12 @@ const TAB_ITEMS = [
   { id:'espaces', label:'Espaces' },
   { id:'notes',   label:'Vos notes' },
   { id:'emploi',  label:'Emploi du temps' },
-  { id:'revision',label:'Mira IA' },
+  { id:'revision',label:'Mira' },
 ]
 
 export function StudentLayout({ children, activePage, onNavChange, userName = 'Ritah' }) {
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  const [collapsed, setCollapsed] = useState(false)
 
   useEffect(() => {
     const handler = () => setIsMobile(window.innerWidth < 768)
@@ -39,12 +40,12 @@ export function StudentLayout({ children, activePage, onNavChange, userName = 'R
   if (isMobile) {
     return <MobileLayout activePage={activePage} onNavChange={onNavChange} userName={userName}>{children}</MobileLayout>
   }
-  return <DesktopLayout activePage={activePage} onNavChange={onNavChange} userName={userName}>{children}</DesktopLayout>
+  return <DesktopLayout collapsed={collapsed} setCollapsed={setCollapsed} activePage={activePage} onNavChange={onNavChange} userName={userName}>{children}</DesktopLayout>
 }
 
 // ─── Desktop ──────────────────────────────────────────────────
 
-function DesktopLayout({ children, activePage, onNavChange, userName }) {
+function DesktopLayout({ children, activePage, onNavChange, userName, collapsed, setCollapsed }) {
   const darkMode = useThemeStore(s => s.darkMode)
   const C        = darkMode ? DARK_THEME : LIGHT_THEME
   const [hasAppel,  setHasAppel]  = useState(false)
@@ -76,8 +77,15 @@ function DesktopLayout({ children, activePage, onNavChange, userName }) {
 
   return (
     <div style={{ fontFamily:ft, background:C.bg, color:C.text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', overflow:'hidden' }}>
-      <div style={{ width:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:'18px 10px', height:'100vh' }}>
-        <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text, padding:'4px 12px', marginBottom:24 }}>Miralabs.</div>
+      <div style={{ width:collapsed?60:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, padding:'4px 12px' }}>
+          {!collapsed && <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text }}>Miralabs.</div>}
+          <button onClick={()=>setCollapsed(s=>!s)} style={{ background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:6, color:C.muted, display:'flex', alignItems:'center', justifyContent:'center', marginLeft:collapsed?'auto':0 }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {collapsed ? <path d="M9 18l6-6-6-6"/> : <path d="M15 18l-6-6 6-6"/>}
+            </svg>
+          </button>
+        </div>
         <nav style={{ flex:1 }}>
           {NAV_ITEMS.map(({ id, label, icon:Icon }) => {
             const active = activePage === id
@@ -86,7 +94,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName }) {
                 style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 12px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?C.text:C.muted, background:active?C.surface2:'transparent', marginBottom:1 }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = C.surface }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
-                <Icon size={15} strokeWidth={1.5}/>{label}
+                <Icon size={15} strokeWidth={1.5}/>{!collapsed && <span style={{transition:'opacity 0.2s'}}>{label}</span>}
               {id==='conversations' && unreadMsg>0 && (
                 <span style={{marginLeft:'auto',minWidth:16,height:16,borderRadius:'50%',background:'#FF3B30',color:'#fff',fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>
                   {unreadMsg}
@@ -110,14 +118,16 @@ function DesktopLayout({ children, activePage, onNavChange, userName }) {
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.sidebar, flexShrink:0 }}>
-          {hasAppel && (
-            <button onClick={() => setShowSign(true)}
-              style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', marginRight:12 }}>
-              ✏️ Signer
-            </button>
-          )}
+          <button onClick={() => hasAppel && setShowSign(true)}
+            style={{ display:'flex', alignItems:'center', gap:6, background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', marginRight:12, transition:'all 0.2s' }}>
+            <Pencil size={13} strokeWidth={2.5}/>
+            Signer
+          </button>
           {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
-          <Bell size={17} strokeWidth={1.5} color={C.muted}/>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <ScanFace size={20} strokeWidth={1.5} color={C.text}/>
+            <Bell size={17} strokeWidth={1.5} color={C.muted}/>
+          </div>
         </div>
         <div style={{ flex:1, overflowY:'auto', background:C.bg }}>{children}</div>
       </div>
@@ -156,8 +166,8 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
       {/* Header */}
       <div style={{ padding:'20px 24px 0', flexShrink:0, background:bg }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:28 }}>
-          {/* Menu */}
-          <button onClick={() => setMenu(m => !m)} style={{ background:'none', border:'none', cursor:'pointer', color:text, display:'flex', alignItems:'center' }}>
+          {/* Menu hamburger gauche */}
+          <button onClick={() => setMenu(m => !m)} style={{ background:'none', border:'none', cursor:'pointer', color:text, display:'flex', alignItems:'center', width:40 }}>
             <Menu size={22}/>
           </button>
 
@@ -183,16 +193,17 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
             )}
           </div>
 
-          {/* Bouton signer */}
-          {hasAppel && (
-            <button onClick={() => setShowSign(true)}
-              style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', fontFamily:ft, animation:'pulse 2s infinite' }}>
-              ✏️ Signer
-            </button>
-          )}
+          {/* Droite : Signer + Profil */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, width:40, justifyContent:'flex-end' }}>
+          <button onClick={() => hasAppel && setShowSign(true)}
+            style={{ background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', fontFamily:ft, display:'flex', alignItems:'center', gap:4, transition:'all 0.2s' }}>
+            <Pencil size={12} strokeWidth={2.5}/>
+            Signer
+          </button>
           {/* Avatar */}
           <div style={{ width:32, height:32, borderRadius:'50%', background:cardBg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:600, color:text }}>
             {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
+          </div>
           </div>
         </div>
 

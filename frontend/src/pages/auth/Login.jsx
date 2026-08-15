@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, ChevronLeft } from 'lucide-react'
 import { useThemeStore } from '../../store/ThemeStore'
 import api from '../../services/api'
 
@@ -48,6 +48,12 @@ export default function Login() {
   return (
     <div style={{ fontFamily:sf, background:bg, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'0 24px' }}>
       <div style={{ width:'100%', maxWidth:380 }}>
+
+        {/* Bouton retour */}
+        <button onClick={() => { localStorage.removeItem('api_url'); localStorage.removeItem('etablissement'); navigate('/') }}
+          style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', color:'#000000ff', fontFamily:sf, fontSize:14, fontWeight:500, padding:0, marginBottom:24 }}>
+          <ChevronLeft size={16} strokeWidth={2}/> Retour
+        </button>
 
         {/* Logo */}
         <div style={{ textAlign:'center', marginBottom:40 }}>

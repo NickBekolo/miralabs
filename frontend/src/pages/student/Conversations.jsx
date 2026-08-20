@@ -145,13 +145,13 @@ function InputBar({ input, setInput, send, dark, replyTo, setReplyTo, contact })
     <div style={{ padding:'8px 12px 24px', background:bg, flexShrink:0 }}>
       {/* Preview réponse */}
       {replyTo && (
-        <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 12px', background:dark?'#1C1C1E':'#f0f0f0', borderRadius:12, marginBottom:8 }}>
-          <div style={{ width:3, borderRadius:2, background:'#007AFF', alignSelf:'stretch' }}/>
+        <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', background:dark?'#1C1C1E':'#f5f5f5', borderRadius:14, marginBottom:8, border:dark?'1px solid #2a2a2a':'1px solid #e5e5e5' }}>
+          <div style={{ width:3, minHeight:36, borderRadius:2, background:'#007AFF', alignSelf:'stretch', flexShrink:0 }}/>
           <div style={{ flex:1 }}>
-            <div style={{ fontSize:11, color:'#007AFF', fontWeight:600, marginBottom:2 }}>Répondre à {replyTo.me ? 'vous-même' : contact?.name}</div>
-            <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{replyTo.text}</div>
+            <div style={{ fontSize:12, color:'#007AFF', fontWeight:700, marginBottom:3 }}>↩ {replyTo.from || contact?.name}</div>
+            <div style={{ fontSize:13, color:dark?'rgba(255,255,255,0.7)':'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{replyTo.text}</div>
           </div>
-          <button onClick={() => setReplyTo(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#8E8E93', padding:4, display:'flex' }}>
+          <button onClick={() => setReplyTo(null)} style={{ background:'none', border:'none', cursor:'pointer', color:'#8E8E93', padding:4, display:'flex', flexShrink:0 }}>
             <X size={16} strokeWidth={2}/>
           </button>
         </div>
@@ -337,11 +337,11 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
                 )}
                 <div style={{ display:'flex', flexDirection:'column', alignItems:msg.me?'flex-end':'flex-start', maxWidth:'72%', paddingBottom:msg.tapback?20:0 }}>
                   {msg.replyTo && (
-                    <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:2, marginLeft:12, opacity:0.75, cursor:'pointer' }}>
-
-                      <div style={{ background:dark?'#2C2C2E':'#E9E9EB', borderRadius:'12px 12px 12px 4px', padding:'5px 10px', maxWidth:160 }}>
-                        <div style={{ fontSize:9, fontWeight:700, color:'#007AFF', marginBottom:1 }}>{msg.replyTo.senderName||msg.replyTo.from||'Message'}</div>
-                        <div style={{ fontSize:11, color:dark?'rgba(255,255,255,0.7)':'rgba(0,0,0,0.6)', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
+                    <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, cursor:'pointer' }}>
+                      <div style={{ width:2, minHeight:28, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
+                      <div>
+                        <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{msg.me?'Vous':msg.from} → {msg.replyTo.senderName||msg.replyTo.from}</span>
+                        <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>{msg.replyTo.text}</div>
                       </div>
                     </div>
                   )}
@@ -550,6 +550,7 @@ function CreateGroupPanel({ users, dark, onCreated }) {
 function GroupChatView({ groupe, onBack, dark, myColor }) {
   const [msgs, setMsgs]   = useState([])
   const [input, setInput] = useState('')
+  const [replyTo, setReplyTo] = useState(null)
   const bg   = dark ? '#000' : '#fff'
   const text = dark ? '#fff' : '#000'
   const sub  = dark ? '#8E8E93' : '#8E8E93'
@@ -602,31 +603,41 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
         {msgs.length === 0 && <div style={{ textAlign:'center', color:sub, fontSize:13, marginTop:40 }}>Aucun message</div>}
         {msgs.map((m, i) => {
           const sameAsPrev = i > 0 && msgs[i-1].isMe === m.isMe
-          const sameAsNext = i < msgs.length-1 && msgs[i+1].isMe === m.isMe
-          const isLast = !sameAsNext
           return (
-            <div key={m.id} style={{ marginTop:sameAsPrev?2:16 }}>
-              <div style={{ display:'flex', alignItems:'flex-end', gap:6, justifyContent:m.isMe?'flex-end':'flex-start' }}>
-                {!m.isMe && (
-                  <div style={{ width:28, flexShrink:0 }}>
-                    {isLast && <Avatar name={(m.sender?.firstName??'?')+' '+(m.sender?.lastName??'')} size={28}/>}
+            <div key={m.id} style={{ display:'flex', gap:12, marginTop:sameAsPrev?8:20 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:dark?'#fff':'#111', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:dark?'#111':'#fff', flexShrink:0, opacity:sameAsPrev?0:1 }}>
+                {m.isMe ? 'V' : m.sender?.firstName?.[0]}
+              </div>
+              <div style={{ flex:1 }}>
+                {!sameAsPrev && (
+                  <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
+                    <span style={{ fontSize:14, fontWeight:700, color:dark?'#fff':'#111' }}>{m.isMe?'Vous':m.sender?.firstName}</span>
+                    <span style={{ fontSize:12, color:sub }}>{m.createdAt}</span>
                   </div>
                 )}
-                <div style={{ display:'flex', flexDirection:'column', alignItems:m.isMe?'flex-end':'flex-start', maxWidth:'72%' }}>
-                  {!m.isMe && !sameAsPrev && <div style={{ fontSize:11, color:'#007AFF', marginBottom:3, paddingLeft:4 }}>{m.sender?.firstName}</div>}
-                  <div style={{
-                    padding:'10px 14px',
-                    borderRadius:m.isMe
-                      ? (sameAsPrev&&sameAsNext?'22px 6px 6px 22px':sameAsPrev?'22px 6px 22px 22px':sameAsNext?'22px 22px 6px 22px':'22px 22px 6px 22px')
-                      : (sameAsPrev&&sameAsNext?'6px 22px 22px 6px':sameAsPrev?'6px 22px 22px 22px':sameAsNext?'22px 22px 22px 6px':'22px 22px 22px 6px'),
-                    background:m.isMe?(dark?'#fff':'#111'):(dark?IMSG_GRAY_D:IMSG_GRAY),
-                    color:m.isMe?(dark?'#111':'#fff'):(dark?'#fff':'#000'),
-                    fontSize:16, lineHeight:1.5, letterSpacing:'-0.2px', fontWeight:400, wordBreak:'break-word',
-                  }}>
-                    {m.content}
+                {m.replyTo && (
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, opacity:0.8 }}>
+                    <div style={{ width:2, minHeight:24, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
+                    <div>
+                      <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{m.replyTo.senderName||m.replyTo.from}</span>
+                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:240 }}>{m.replyTo.text}</div>
+                    </div>
                   </div>
-                  {isLast && <div style={{ fontSize:10, color:sub, marginTop:2, paddingLeft:4, paddingRight:4 }}>{m.createdAt}</div>}
-                </div>
+                )}
+                {m.replyTo && (
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, opacity:0.8 }}>
+                    <div style={{ width:2, minHeight:24, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
+                    <div>
+                      <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{m.replyTo.senderName||m.replyTo.from}</span>
+                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:240 }}>{m.replyTo.text}</div>
+                    </div>
+                  </div>
+                )}
+                <p style={{ margin:0, fontSize:15, lineHeight:1.55, color:dark?'#dcdcdc':'#333', wordBreak:'break-word' }}>{m.content}</p>
+                <button onClick={() => setReplyTo({ id:m.id, text:m.content, from:m.sender?.firstName })}
+                  style={{ background:'none', border:'none', fontSize:12, fontWeight:600, color:sub, cursor:'pointer', padding:'4px 0 0', fontFamily:ft }}>
+                  Répondre
+                </button>
               </div>
             </div>
           )
@@ -634,7 +645,7 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
         <div ref={bottomRef}/>
       </div>
 
-      <InputBar input={input} setInput={setInput} send={send} dark={dark} replyTo={null} setReplyTo={()=>{}} contact={{name:groupe?.nom??'Groupe'}}/>
+      <InputBar input={input} setInput={setInput} send={send} dark={dark} replyTo={replyTo} setReplyTo={setReplyTo} contact={{name:groupe?.nom??'Groupe'}}/>
     </div>
   )
 }

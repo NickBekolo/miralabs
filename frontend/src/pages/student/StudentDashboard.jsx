@@ -8,6 +8,7 @@ import EmploiDuTemps      from './EmploiDuTemps'
 import Notes              from './Notes'
 import Assiduite          from './Assiduite'
 import MiraIA             from './MiraIA'
+import Profil from './Profil'
 import Personnalisation   from './Personnalisation'
 
 // Pages qui ont besoin de toute la hauteur sans padding
@@ -27,6 +28,7 @@ export default function StudentDashboard({ isParent }) {
       case 'assiduite':     return <Assiduite />
       case 'revision':      return <MiraIA />
       case 'params':        return <Personnalisation />
+      case 'profil':        return <Profil onBack={() => setActive('accueil')} onNavigate={setActive}/>
       default:              return <ForYou />
     }
   }

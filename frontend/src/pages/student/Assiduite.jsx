@@ -194,7 +194,7 @@ export default function Assiduite() {
 
       {nonJustified>=5 && (
         <div style={{ background:'rgba(255,85,85,0.1)', border:'1px solid rgba(255,85,85,0.2)', borderRadius:12, padding:'10px 14px', marginBottom:14, display:'flex', gap:10 }}>
-          <span>⚠️</span>
+        
           <div>
             <div style={{ fontSize:12, fontWeight:700, color:'#ff5555' }}>Seuil d'absences atteint</div>
             <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>{nonJustified} absences non justifiées.</div>

@@ -13,7 +13,7 @@ function UserMsg({ text, dark }) {
   const col  = dark ? '#0a0a0a'  : '#fff'
   return (
     <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:28 }}>
-      <div style={{ maxWidth:'72%', padding:'12px 18px', background:bg, color:col, borderRadius:'18px 18px 4px 18px', fontSize:15, lineHeight:1.6, fontFamily:ft, fontWeight:400 }}>
+      <div style={{ maxWidth:'72%', padding:'12px 18px', background:bg, color:col, borderRadius:18, fontSize:15, lineHeight:1.6, fontFamily:ft, fontWeight:400 }}>
         {text}
       </div>
     </div>
@@ -144,7 +144,7 @@ export default function MiraIA() {
         </div>
 
         {/* Zone messages */}
-        <div style={{ flex:1, overflowY:'auto', padding:'32px 20px' }}>
+        <div style={{ flex:1, overflowY:'auto', padding:'32px 20px', background:dark?'#0a0a0a':'#fff' }}>
           {isEmpty ? (
             /* Écran vide style ChatGPT */
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
@@ -179,7 +179,7 @@ export default function MiraIA() {
           <div style={{ maxWidth:680, margin:'0 auto', position:'relative' }}>
             {/* Menu + */}
             {menuOpen && (
-              <div style={{ position:'absolute', bottom:'100%', left:0, marginBottom:12, width:240, borderRadius:20, background:'#fff', boxShadow:'0 8px 30px rgba(0,0,0,0.15)', border:'1px solid #e5e5e5', overflow:'hidden', zIndex:10 }}>
+              <div style={{ position:'absolute', bottom:'100%', left:0, marginBottom:12, width:240, borderRadius:20, background:dark?'#1a1a1a':'#fff', boxShadow:'0 8px 30px rgba(0,0,0,0.15)', border:dark?'1px solid #2a2a2a':'1px solid #e5e5e5', overflow:'hidden', zIndex:10 }}>
                 {[{key:'write',label:'Écrire ou modifier',Icon:Pencil},{key:'search',label:'Rechercher',Icon:Globe}].map(({key,label,Icon},i,arr)=>(
                   <button key={key} onClick={()=>setMenuOpen(false)}
                     style={{ width:'100%', display:'flex', alignItems:'center', gap:12, padding:'12px 16px', background:'none', border:'none', borderBottom:i<arr.length-1?'1px solid #f0f0f0':'none', cursor:'pointer', fontFamily:ft, fontSize:14, color:'#0a0a0a', textAlign:'left' }}
@@ -194,19 +194,19 @@ export default function MiraIA() {
             <div style={{ display:'flex', alignItems:'center', gap:8, padding:'8px 10px' }}>
               {/* Bouton + */}
               <button onClick={()=>setMenuOpen(o=>!o)}
-                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:menuOpen?'#e5e5e5':'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
+                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:menuOpen?'#e5e5e5':'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}
                 onMouseEnter={e=>e.currentTarget.style.background='#f0f0f0'}
-                onMouseLeave={e=>e.currentTarget.style.background=menuOpen?'#e5e5e5':'transparent'}>
+                onMouseLeave={e=>e.currentTarget.style.background=menuOpen?(dark?'#2a2a2a':'#e5e5e5'):'transparent'}>
                 <Plus size={22} color="#0a0a0a" strokeWidth={2}/>
               </button>
               {/* Zone texte */}
-              <div style={{ flex:1, display:'flex', alignItems:'center', background:'#fff', borderRadius:24, border:'1.5px solid #e0e0e0', paddingLeft:16, paddingRight:8, paddingTop:8, paddingBottom:8, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
+              <div style={{ flex:1, display:'flex', alignItems:'center', background:dark?'#1a1a1a':'#fff', borderRadius:24, border:dark?'1.5px solid #2a2a2a':'1.5px solid #e0e0e0', paddingLeft:16, paddingRight:8, paddingTop:8, paddingBottom:8, boxShadow:'0 1px 6px rgba(0,0,0,0.05)' }}>
                 <input
                   value={input}
                   onChange={e=>setInput(e.target.value)}
                   onKeyDown={handleKey}
                   placeholder="Demander à Mira IA..."
-                  style={{ flex:1, background:'transparent', border:'none', outline:'none', fontSize:15, fontFamily:ft, color:'#0a0a0a' }}
+                  style={{ flex:1, background:'transparent', border:'none', outline:'none', fontSize:15, fontFamily:ft, color:dark?'#fff':'#0a0a0a' }}
                 />
                 <button style={{ width:32, height:32, borderRadius:'50%', border:'none', background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   <Mic size={18} color="#888" strokeWidth={1.75}/>
@@ -214,7 +214,7 @@ export default function MiraIA() {
               </div>
               {/* Bouton envoyer */}
               <button onClick={()=>send()} disabled={!input.trim()||loading}
-                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:input.trim()&&!loading?'#007AFF':'#e0e0e0', cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
+                style={{ width:36, height:36, borderRadius:'50%', border:'none', background:input.trim()&&!loading?'#007AFF':(dark?'#2a2a2a':'#e0e0e0'), cursor:input.trim()&&!loading?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, transition:'all 0.2s' }}>
                 <ArrowUp size={17} color="#fff" strokeWidth={2.5}/>
               </button>
             </div>

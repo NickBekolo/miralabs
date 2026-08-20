@@ -3,6 +3,7 @@ import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import Signature from '../../pages/student/Signature'
+import ProfilMenu from '../../pages/student/ProfilMenu'
 import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut } from 'lucide-react'
 
 const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
@@ -50,6 +51,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
   const C        = darkMode ? DARK_THEME : LIGHT_THEME
   const [hasAppel,  setHasAppel]  = useState(false)
   const [showSign,  setShowSign]  = useState(false)
+  const [showProfil, setShowProfil] = useState(false)
   const [unreadMsg, setUnreadMsg] = useState(0)
 
   useEffect(() => {
@@ -77,7 +79,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
 
   return (
     <div style={{ fontFamily:ft, background:C.bg, color:C.text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', overflow:'hidden' }}>
-      <div style={{ width:collapsed?60:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden' }}>
+      <div style={{ width:collapsed?60:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:collapsed?'18px 6px':'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, padding:'4px 12px' }}>
           {!collapsed && <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text }}>Miralabs.</div>}
           <button onClick={()=>setCollapsed(s=>!s)} style={{ background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:6, color:C.muted, display:'flex', alignItems:'center', justifyContent:'center', marginLeft:collapsed?'auto':0 }}>
@@ -86,55 +88,59 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             </svg>
           </button>
         </div>
-        <nav style={{ flex:1 }}>
+        <nav style={{ flex:1, borderTop:`1px solid ${C.surface2}`, borderBottom:`1px solid ${C.surface2}`, padding:'8px 0', marginBottom:8 }}>
           {NAV_ITEMS.map(({ id, label, icon:Icon }) => {
             const active = activePage === id
             return (
               <div key={id} onClick={() => onNavChange(id)}
-                style={{ display:'flex', alignItems:'center', gap:9, padding:'8px 12px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?C.text:C.muted, background:active?C.surface2:'transparent', marginBottom:1 }}
+                style={{ display:'flex', alignItems:'center', justifyContent: collapsed?'center':'flex-start', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?C.text:C.muted, background:active?C.surface2:'transparent', marginBottom:2, width:'100%' }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = C.surface }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
-                <Icon size={15} strokeWidth={1.5}/>{!collapsed && <span style={{transition:'opacity 0.2s'}}>{label}</span>}
+                <div style={{width:20,display:'flex',justifyContent:'center',flexShrink:0}}>
+                <Icon size={20} strokeWidth={1.5} color={active ? C.text : (C.bg === '#fff' ? '#555' : '#aaa')}/>
+              </div>
+              {!collapsed && <span style={{transition:'opacity 0.2s'}}>{label}</span>}
               {id==='conversations' && unreadMsg>0 && (
-                <span style={{marginLeft:'auto',minWidth:16,height:16,borderRadius:'50%',background:'#FF3B30',color:'#fff',fontSize:10,fontWeight:700,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>
-                  {unreadMsg}
-                </span>
+                <span style={{marginLeft:'auto',fontSize:10,fontWeight:700,color:'#FF3B30'}}>{unreadMsg}</span>
               )}
               </div>
             )
           })}
         </nav>
         <div style={{ padding:'8px 12px', borderTop:`1px solid ${C.border}` }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:28, height:28, borderRadius:'50%', background:C.surface3, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:600, color:C.text }}>
-              {userName?.[0] ?? 'R'}
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+              <div onClick={() => setShowProfil(true)} style={{ width:28, cursor:'pointer', height:28, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'#fff', flexShrink:0 }}>
+                {userName?.[0] ?? 'R'}
+              </div>
+              {!collapsed && <div>
+                <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{userName}</div>
+                <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
+              </div>}
             </div>
-            <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
-              style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:6, color:C.muted, fontSize:12, fontFamily:ft, marginTop:8, padding:'4px 0' }}>
-              <LogOut size={14} strokeWidth={1.5}/>
+            <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.reload() }}
+              style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:'#cc0000', fontSize:12, fontFamily:ft, padding:'4px 0', fontWeight:700 }}>
+              <LogOut size={18} strokeWidth={2}/>
               {!collapsed && 'Déconnexion'}
             </button>
-            <div>
-              <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{userName}</div>
-              <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
-            </div>
           </div>
         </div>
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.sidebar, flexShrink:0 }}>
+        <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.bg, borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
           <button onClick={() => hasAppel && setShowSign(true)}
             style={{ display:'flex', alignItems:'center', gap:6, background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', marginRight:12, transition:'all 0.2s' }}>
             <Pencil size={13} strokeWidth={2.5}/>
             Signer
           </button>
           {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
+      {showProfil && <ProfilMenu onClose={() => setShowProfil(false)} onNavigate={(p) => { setShowProfil(false); onNavChange(p) }}/>}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <ScanFace size={20} strokeWidth={1.5} color={C.text}/>
-            <Bell size={17} strokeWidth={1.5} color={C.muted}/>
+            <Bell size={17} strokeWidth={1.5} color={C.text}/>
           </div>
         </div>
-        <div style={{ flex:1, overflowY:'auto', background:C.bg }}>{children}</div>
+        <div style={{ flex:1, overflowY:'auto', background:C.bg, padding:'20px' }}>{children}</div>
       </div>
     </div>
   )
@@ -150,6 +156,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
   const [dropdown, setDropdown] = useState(false)
   const [showSign, setShowSign] = useState(false)
   const [hasAppel, setHasAppel] = useState(false)
+  const [showProfil, setShowProfil] = useState(false)
 
   useEffect(() => {
     const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
@@ -166,7 +173,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
   const promptBg = darkMode ? '#1a1a1a' : '#fafafa'
 
   return (
-    <div style={{ fontFamily:ft, background:'#ffffff', color:text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
+    <div style={{ fontFamily:ft, background:C.bg, color:text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden' }}>
 
       {/* Header */}
       <div style={{ padding:'20px 24px 0', flexShrink:0, background:bg }}>
@@ -206,7 +213,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
             Signer
           </button>
           {/* Avatar */}
-          <div style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0 }}>
+          <div onClick={() => setShowProfil(true)} style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0, cursor:'pointer' }}>
             {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
           </div>
           </div>
@@ -234,7 +241,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
       </div>
 
       {/* Contenu scrollable */}
-      <div style={{ flex:1, overflowY:'auto', background:C.bg }}>
+      <div style={{ flex:1, overflowY:'auto', background:C.bg, padding:'12px 0' }}>
         {children}
       </div>
 

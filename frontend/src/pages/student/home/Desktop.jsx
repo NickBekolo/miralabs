@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
+import Signature from '../Signature'
+import Actualites from '../Actualites'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../../store/ThemeStore'
 import api from '../../../services/api'
 import MoyenneChart from '../../../components/charts/MoyenneChart'
@@ -30,18 +32,18 @@ function buildDatasets(notes) {
   }
 }
 
-function SectionHeader({ title, link, C }) {
+function SectionHeader({ title, link, onLink, C }) {
   return (
     <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
       <span style={{ fontSize:12, fontWeight:600, color:C.text }}>{title}</span>
-      {link && <span style={{ fontSize:11, color:C.muted, cursor:'pointer' }}>{link}</span>}
+      {link && <span onClick={onLink} style={{ fontSize:11, color:C.muted, cursor:onLink?'pointer':'default' }}>{link}</span>}
     </div>
   )
 }
 
 function Card({ children, C, style = {} }) {
   return (
-    <div style={{ background:C.surface, borderRadius:16, padding:'16px 18px', ...style }}>
+    <div style={{ background:C.surface, borderRadius:16, padding:'16px 18px', boxShadow:C.bg==='#ffffff'?'0 2px 12px rgba(0,0,0,0.06)':'none', border:`1px solid ${C.surface2}`, ...style }}>
       {children}
     </div>
   )
@@ -179,10 +181,10 @@ function NotesSection({ notes, loading, C }) {
   )
 }
 
-function ActualitesSection({ notifs, loading, C }) {
+function ActualitesSection({ notifs, loading, C, onSign, onShowActu }) {
   return (
     <Card C={C}>
-      <SectionHeader title="Actualités" link="Voir tout ›" C={C}/>
+      <SectionHeader title="Actualités" link="Voir tout ›" onLink={onShowActu} C={C}/>
       {loading ? (
         <div style={{ fontSize:12, color:C.hint }}>Chargement...</div>
       ) : !notifs.length ? (
@@ -193,8 +195,16 @@ function ActualitesSection({ notifs, loading, C }) {
             <span style={{ fontSize:9, fontWeight:600, color:C.muted, textTransform:'uppercase' }}>{n.type}</span>
             <span style={{ fontSize:9, color:C.hint }}>{n.createdAt}</span>
           </div>
-          <div style={{ fontSize:12, fontWeight:500, color:C.text, marginBottom:1 }}>{n.title}</div>
-          <div style={{ fontSize:10, color:C.muted }}>{n.message}</div>
+          <div style={{ fontSize:12, fontWeight:500, color:n.type==='appel'?'#FF3B30':C.text, marginBottom:1 }}>{n.title}</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
+            <div style={{ fontSize:10, color:C.muted, flex:1 }}>{n.message}</div>
+            {n.type==='appel' && (
+              <button onClick={() => onSign && onSign()}
+                style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'5px 14px', fontSize:11, fontWeight:700, color:'#fff', cursor:'pointer', flexShrink:0 }}>
+                Signer
+              </button>
+            )}
+          </div>
         </div>
       ))}
     </Card>
@@ -211,6 +221,8 @@ export default function HomeScreen() {
   const [notes,    setNotes]    = useState([])
   const [absences, setAbsences] = useState([])
   const [notifs,   setNotifs]   = useState([])
+  const [showSign, setShowSign]  = useState(false)
+  const [showActu, setShowActu]   = useState(false)
   const [cours,    setCours]    = useState([])
   const [devoirs,  setDevoirs]  = useState([])
   const [loadN,    setLoadN]    = useState(true)
@@ -250,10 +262,12 @@ export default function HomeScreen() {
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
         <NotesSection notes={notes} loading={loadN} C={C}/>
-        <ActualitesSection notifs={notifs} loading={loadNt} C={C}/>
+        <ActualitesSection notifs={notifs} loading={loadNt} C={C} onSign={() => setShowSign(true)} onShowActu={() => setShowActu(true)}/>
       </div>
 
       <Library C={C}/>
+      {showSign && <Signature onClose={() => setShowSign(false)}/>}
+      {showActu && <Actualites onClose={() => setShowActu(false)}/>}
     </div>
   )
 }

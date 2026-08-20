@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import Signature from '../Signature'
 import { useAuth } from '../../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../../store/ThemeStore'
 import api from '../../../services/api'
@@ -35,6 +36,7 @@ export default function Mobile() {
   const [notes,   setNotes]   = useState([])
   const [cours,   setCours]   = useState([])
   const [notifs,  setNotifs]  = useState([])
+  const [showSign, setShowSign] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -157,17 +159,23 @@ export default function Mobile() {
           <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>Actualités</div>
           <div style={{ background:C.surface, borderRadius:16, overflow:'hidden' }}>
             {notifs.slice(0,3).map((n, i) => (
-              <div key={n.id} style={{
-                padding:'12px 16px',
-                borderBottom: i < Math.min(notifs.length,3)-1 ? `1px solid ${C.surface2}` : 'none',
-              }}>
-                <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:2 }}>{n.title}</div>
-                <div style={{ fontSize:11, color:C.muted }}>{n.message}</div>
+              <div key={n.id} onClick={() => n.type==='appel' && setShowSign(true)}
+                style={{ padding:'12px 16px', borderBottom: i < Math.min(notifs.length,3)-1 ? `1px solid ${C.surface2}` : 'none', cursor:n.type==='appel'?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:600, color:n.type==='appel'?'#FF3B30':C.text, marginBottom:2 }}>{n.title}</div>
+                  <div style={{ fontSize:11, color:C.muted }}>{n.message}</div>
+                </div>
+                {n.type==='appel' && (
+                  <div style={{ background:'#FF3B30', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0, whiteSpace:'nowrap' }}>
+                    Signer
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
+      {showSign && <Signature onClose={() => setShowSign(false)}/>}
     </div>
   )
 }

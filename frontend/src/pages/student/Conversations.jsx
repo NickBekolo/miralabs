@@ -335,6 +335,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
         {msgs.map((msg, i) => {
           const sameAsPrev = i > 0 && msgs[i-1].me === msg.me
           const sameAsNext = i < msgs.length-1 && msgs[i+1].me === msg.me
+          const sameMinute = sameAsNext && msgs[i+1].time?.slice(0,16) === msg.time?.slice(0,16)
           const msgDate = formatMsgDate(msg.time)
           const prevDate = i > 0 ? formatMsgDate(msgs[i-1].time) : null
           const showDate = msgDate && msgDate !== prevDate
@@ -353,7 +354,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
               <div style={{ display:'flex', alignItems:'center', gap:6, flexDirection:msg.me?'row-reverse':'row', position:'relative' }}
                 onMouseEnter={e=>{const m=e.currentTarget.querySelector('.msg-actions');if(m)m.style.opacity='1'}}
                 onMouseLeave={e=>{const m=e.currentTarget.querySelector('.msg-actions');if(m)m.style.opacity='0'}}>
-                <div style={{ padding:'12px 16px', borderRadius:18, background:msg.me?sentBg:(dark?'#2F2F2F':'#f5f5f5'), color:msg.me?'#fff':(dark?'#fff':'#0a0a0a'), fontSize:15, lineHeight:1.5, maxWidth:280, overflowWrap:'break-word', wordBreak:'break-word' }}>
+                <div style={{ padding:'12px 16px', borderRadius:14, background:msg.me?sentBg:(dark?'#2F2F2F':'#f5f5f5'), color:msg.me?'#fff':(dark?'#fff':'#0a0a0a'), fontSize:15, lineHeight:1.5, maxWidth:280, overflowWrap:'break-word', wordBreak:'break-word' }}>
                   {msg.replyTo && (
                     <div style={{ marginBottom:2, padding:'6px 10px', borderRadius:8, margin:'0 -8px 2px', background:dark?'#3f3f3f':'#ebebeb', borderLeft:'3px solid #888', border:'none' }}>
                       <div style={{ fontSize:11, fontWeight:700, color:dark?'#ffffff':'#333', fontSize:13, fontWeight:700, marginBottom:2 }}>{msg.replyTo.senderName||msg.replyTo.from}</div>
@@ -369,9 +370,9 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
                     style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#FF3B30', padding:'2px 4px' }}>✕</button>}
                 </div>
               </div>
-              {!sameAsNext && (
-                <div style={{ fontSize:10, color:sub, marginTop:2, textAlign:msg.me?'right':'left', paddingLeft:4, paddingRight:4 }}>
-                  {msg.me?'Vous':(msg.from||contact.name)} · {formatMsgTime(msg.time)}
+              {!sameMinute && (
+                <div style={{ fontSize:10, color:sub, marginTop:3, marginBottom:2, textAlign:msg.me?'right':'left', paddingLeft:4, paddingRight:4 }}>
+                  {formatMsgTime(msg.time)}
                 </div>
               )}
             </div>
@@ -581,6 +582,13 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
   const text = dark ? '#fff' : '#000'
   const sub  = dark ? '#8E8E93' : '#8E8E93'
   const bottomRef = useRef(null)
+  const groupScrollRef = useRef(null)
+  const groupAtBottom = useRef(true)
+  const handleGroupScroll = () => {
+    if (!groupScrollRef.current) return
+    const { scrollTop, scrollHeight, clientHeight } = groupScrollRef.current
+    groupAtBottom.current = scrollHeight - scrollTop - clientHeight < 60
+  }
 
   useEffect(() => {
     // Marquer notifs groupe comme lues
@@ -599,7 +607,7 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
     return () => clearInterval(iv)
   }, [groupe.id])
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [msgs])
+  useEffect(() => { if (groupAtBottom.current) bottomRef.current?.scrollIntoView({ behavior:'smooth' }) }, [msgs])
 
   const send = () => {
     if (!input.trim()) return
@@ -625,46 +633,40 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
       </div>
 
       {/* Messages */}
-      <div style={{ flex:1, overflowY:'auto', padding:'16px 12px' }}>
+      <div ref={groupScrollRef} onScroll={handleGroupScroll} style={{ flex:1, overflowY:'auto', padding:'16px 12px' }}>
         {msgs.length === 0 && <div style={{ textAlign:'center', color:sub, fontSize:13, marginTop:40 }}>Aucun message</div>}
         {msgs.map((m, i) => {
           const sameAsPrev = i > 0 && msgs[i-1].isMe === m.isMe
+          const sameAsNext = i < msgs.length-1 && msgs[i+1].isMe === m.isMe
+          const sameMinute = sameAsNext && msgs[i+1].createdAt?.slice(0,16) === m.createdAt?.slice(0,16)
+          const sentBg = dark?'#2F2F2F':'#111'
+          const recvBg = dark?'#3a3a3a':'#E9E9EB'
           return (
-            <div key={m.id} style={{ display:'flex', gap:12, marginTop:sameAsPrev?8:20 }}>
-              <div style={{ width:36, height:36, borderRadius:'50%', background:dark?'#fff':'#111', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:dark?'#111':'#fff', flexShrink:0, opacity:sameAsPrev?0:1 }}>
-                {m.isMe ? 'V' : m.sender?.firstName?.[0]}
-              </div>
-              <div style={{ flex:1 }}>
-                {!sameAsPrev && (
-                  <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:4 }}>
-                    <span style={{ fontSize:14, fontWeight:700, color:dark?'#fff':'#111' }}>{m.isMe?'Vous':m.sender?.firstName}</span>
-                    <span style={{ fontSize:12, color:sub }}>{m.createdAt}</span>
+            <div key={m.id} style={{ display:'flex', flexDirection:'column', alignItems:m.isMe?'flex-end':'flex-start', marginTop:sameAsPrev?2:16 }}>
+              {!sameAsPrev && !m.isMe && (
+                <div style={{ fontSize:11, color:sub, marginBottom:2, paddingLeft:4 }}>{m.sender?.firstName}</div>
+              )}
+              <div style={{ display:'flex', alignItems:'flex-end', gap:6, flexDirection:m.isMe?'row-reverse':'row' }}>
+                {!m.isMe && (
+                  <div style={{ width:28, height:28, borderRadius:'50%', background:dark?'#444':'#a0a0a0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'#fff', flexShrink:0, visibility:sameAsPrev?'hidden':'visible' }}>
+                    {m.sender?.firstName?.[0]}
                   </div>
                 )}
-                {m.replyTo && (
-                  <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, opacity:0.8 }}>
-                    <div style={{ width:2, minHeight:24, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
-                    <div>
-                      <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{m.replyTo.senderName||m.replyTo.from}</span>
-                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:240 }}>{m.replyTo.text}</div>
+                <div style={{ padding:'12px 16px', borderRadius:14, background:m.isMe?sentBg:recvBg, color:m.isMe?'#fff':(dark?'#fff':'#000'), fontSize:15, lineHeight:1.5, maxWidth:280, wordBreak:'break-word' }}>
+                  {m.replyTo && (
+                    <div style={{ marginBottom:6, padding:'6px 10px', borderRadius:8, background:m.isMe?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.07)', borderLeft:m.isMe?'3px solid rgba(255,255,255,0.5)':'3px solid #888' }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:m.isMe?'#fff':(dark?'#fff':'#111'), marginBottom:2 }}>{m.replyTo.senderName||m.replyTo.from}</div>
+                      <div style={{ fontSize:11, color:m.isMe?'rgba(255,255,255,0.6)':(dark?'rgba(255,255,255,0.5)':'#666'), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.replyTo.text}</div>
                     </div>
-                  </div>
-                )}
-                {m.replyTo && (
-                  <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, opacity:0.8 }}>
-                    <div style={{ width:2, minHeight:24, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
-                    <div>
-                      <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{m.replyTo.senderName||m.replyTo.from}</span>
-                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:240 }}>{m.replyTo.text}</div>
-                    </div>
-                  </div>
-                )}
-                <p style={{ margin:0, fontSize:15, lineHeight:1.55, color:dark?'#dcdcdc':'#333', wordBreak:'break-word' }}>{m.content}</p>
-                <button onClick={() => setReplyTo({ id:m.id, text:m.content, from:m.sender?.firstName })}
-                  style={{ background:'none', border:'none', fontSize:12, fontWeight:600, color:sub, cursor:'pointer', padding:'4px 0 0', fontFamily:ft }}>
-                  Répondre
-                </button>
+                  )}
+                  {m.content}
+                </div>
               </div>
+              {!sameMinute && (
+                <div style={{ fontSize:10, color:sub, marginTop:2, textAlign:m.isMe?'right':'left', paddingLeft:m.isMe?0:36, paddingRight:4 }}>
+                  {formatMsgTime(m.createdAt)}
+                </div>
+              )}
             </div>
           )
         })}

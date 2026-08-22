@@ -36,7 +36,7 @@ class GroupeController extends AbstractController
             'unread'        => $g->getMessages()->filter(fn($m) => !$m->getSender() || $m->getSender()->getId() !== $user->getId())->count() > 0 ? 1 : 0,
             'lastMessage'   => $g->getMessages()->last() ? [
                 'content'   => $g->getMessages()->last()->getContent(),
-                'createdAt' => $g->getMessages()->last()->getCreatedAt()->format('H:i'),
+                'createdAt' => $g->getMessages()->last()->getCreatedAt()->format('Y-m-d H:i:s'),
                 'datetime'  => $g->getMessages()->last()->getCreatedAt()->format('Y-m-d H:i:s'),
                 'isMe'      => $g->getMessages()->last()->getSender()?->getId() === $user->getId(),
             ] : null,

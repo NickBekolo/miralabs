@@ -18,7 +18,7 @@ export default function Login() {
   const bg     = dark ? '#0a0a0a' : '#ffffff'
   const text   = dark ? '#ffffff' : '#0a0a0a'
   const muted  = dark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.35)'
-  const inputBg = dark ? '#111' : '#f9f9f9'
+  const inputBg = dark ? '#111' : '#fff'
   const border  = dark ? '#2a2a2a' : '#e5e5e5'
 
   const login = async () => {
@@ -51,7 +51,7 @@ export default function Login() {
 
         {/* Bouton retour */}
         <button onClick={() => { localStorage.removeItem('api_url'); localStorage.removeItem('etablissement'); navigate('/') }}
-          style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', color:'#000000ff', fontFamily:sf, fontSize:14, fontWeight:500, padding:0, marginBottom:24 }}>
+          style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', color:text, fontFamily:sf, fontSize:14, fontWeight:500, padding:0, marginBottom:24 }}>
           <ChevronLeft size={16} strokeWidth={2}/> Retour
         </button>
 
@@ -66,12 +66,16 @@ export default function Login() {
 
           <input type="email" value={email} onChange={e=>setEmail(e.target.value)}
             onKeyDown={e=>e.key==='Enter'&&login()} placeholder="Email"
-            style={{ width:'100%', boxSizing:'border-box', border:`1.5px solid ${border}`, background:inputBg, borderRadius:980, padding:'14px 20px', fontSize:15, fontFamily:sf, color:text, outline:'none' }}/>
+            style={{ width:'100%', boxSizing:'border-box', border:`1.5px solid ${border}`, background:inputBg, borderRadius:980, padding:'14px 20px', fontSize:15, fontFamily:sf, color:dark?'#fff':'#0a0a0a', outline:'none' }}
+            onFocus={e=>e.target.style.border='1.5px solid #2F2F2F'}
+            onBlur={e=>e.target.style.border=`1.5px solid ${border}`}/>
 
           <div style={{ position:'relative' }}>
             <input type={showPw?'text':'password'} value={pass} onChange={e=>setPass(e.target.value)}
               onKeyDown={e=>e.key==='Enter'&&login()} placeholder="Mot de passe"
-              style={{ width:'100%', boxSizing:'border-box', border:`1.5px solid ${border}`, background:inputBg, borderRadius:980, padding:'14px 48px 14px 20px', fontSize:15, fontFamily:sf, color:text, outline:'none' }}/>
+              style={{ width:'100%', boxSizing:'border-box', border:`1.5px solid ${border}`, background:inputBg, borderRadius:980, padding:'14px 48px 14px 20px', fontSize:15, fontFamily:sf, color:dark?'#fff':'#0a0a0a', outline:'none' }}
+              onFocus={e=>e.target.style.border='1.5px solid #2F2F2F'}
+              onBlur={e=>e.target.style.border=`1.5px solid ${border}`}/>
             <button onClick={()=>setShowPw(s=>!s)}
               style={{ position:'absolute', right:16, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', display:'flex' }}>
               {showPw ? <EyeOff size={17} color={muted}/> : <Eye size={17} color={muted}/>}

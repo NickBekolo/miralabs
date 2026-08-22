@@ -46,6 +46,11 @@ export default function Login() {
   }
 
   return (
+    <>
+      <style>{`
+        input:focus { outline: none !important; box-shadow: none !important; border-color: #2F2F2F !important; }
+        input:-webkit-autofill { -webkit-box-shadow: 0 0 0 30px ${inputBg} inset !important; -webkit-text-fill-color: ${dark?'#fff':'#0a0a0a'} !important; }
+      `}</style>
     <div style={{ fontFamily:sf, background:bg, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', padding:'0 24px' }}>
       <div style={{ width:'100%', maxWidth:380 }}>
 
@@ -95,5 +100,6 @@ export default function Login() {
         </div>
       </div>
     </div>
+    </>
   )
 }

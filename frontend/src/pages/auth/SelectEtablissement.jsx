@@ -115,12 +115,12 @@ export default function SelectEtablissement() {
               const sel = selected?.id === e.id
               return (
                 <button key={e.id} onClick={() => setSelected(sel ? null : e)}
-                  style={{ display:'flex', alignItems:'center', gap:12, padding:'18px 20px', background:sel?'#2F2F2F':(dark?'#1a1a1a':'#f9f9f9'), border:'none', borderRadius:16, cursor:'pointer', fontFamily:sf, width:'100%', textAlign:'left', boxSizing:'border-box', transition:'all 0.25s ease' }}>
+                  style={{ display:'flex', alignItems:'center', gap:12, padding:'18px 20px', background:sel?(dark?'#2F2F2F':'#0a0a0a'):(dark?'#1a1a1a':'#f9f9f9'), border:'none', borderRadius:16, cursor:'pointer', fontFamily:sf, width:'100%', textAlign:'left', boxSizing:'border-box', transition:'all 0.25s ease' }}>
                   <div style={{ flex:1 }}>
                     <div style={{ fontSize:16, fontWeight:sel?600:400, color:sel?'#fff':text, transition:'all 0.2s' }}>{e.name}</div>
                     <div style={{ fontSize:13, color:sel?'rgba(255,255,255,0.6)':muted, marginTop:2 }}>{e.type}</div>
                   </div>
-                  <div style={{ width:sel?28:0, height:28, borderRadius:'50%', background:'#2F2F2F', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', opacity:sel?1:0, transition:'all 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}>
+                  <div style={{ width:sel?28:0, height:28, borderRadius:'50%', background:dark?'#2F2F2F':'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0, overflow:'hidden', opacity:sel?1:0, transition:'all 0.25s cubic-bezier(0.34,1.56,0.64,1)' }}>
                     <Check size={14} color='#fff' strokeWidth={3}/>
                   </div>
                 </button>
@@ -134,7 +134,7 @@ export default function SelectEtablissement() {
       {step === 'etab' && (
         <div style={{ position:'fixed', bottom:0, left:'50%', transform:'translateX(-50%)', width:'100%', maxWidth:480, padding:'16px 24px 32px', background:`linear-gradient(to top, ${bg} 80%, transparent)`, boxSizing:'border-box' }}>
           <button onClick={confirm} disabled={!selected}
-            style={{ width:'100%', padding:'16px 0', fontSize:16, fontWeight:600, fontFamily:sf, color:selected?'#fff':(dark?'#555':'#aaa'), background:selected?'#2F2F2F':(dark?'#2a2a2a':'#d1d1d1'), border:'none', borderRadius:980, cursor:selected?'pointer':'not-allowed', transition:'background 0.2s' }}>
+            style={{ width:'100%', padding:'16px 0', fontSize:16, fontWeight:600, fontFamily:sf, color:selected?'#fff':(dark?'#555':'#aaa'), background:selected?(dark?'#2F2F2F':'#0a0a0a'):(dark?'#2a2a2a':'#d1d1d1'), border:'none', borderRadius:980, cursor:selected?'pointer':'not-allowed', transition:'background 0.2s' }}>
             {selected ? `Continuer avec ${selected.name.split(' ').slice(0,3).join(' ')}` : 'Sélectionne un établissement'}
           </button>
         </div>

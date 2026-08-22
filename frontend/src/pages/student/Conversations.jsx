@@ -6,7 +6,7 @@ import { ft } from '../../constants/theme'
 import MessageInputBar from '../../components/MessageInputBar'
 import {
   Paperclip, Image, Camera, Mic, ChevronLeft,
-  Send, Plus, X, Search
+  Send, Plus, X, Search, CornerUpLeft
 } from 'lucide-react'
 
 const IMSG_BLUE   = '#007AFF'
@@ -338,8 +338,8 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
           const msgDate = formatMsgDate(msg.time)
           const prevDate = i > 0 ? formatMsgDate(msgs[i-1].time) : null
           const showDate = msgDate && msgDate !== prevDate
-          const sentBg = dark?'#fff':'#111'
-          const recvBg = dark?'#2C2C2E':'#E9E9EB'
+          const sentBg = dark?'#2F2F2F':'#111'
+          const recvBg = dark?'#2F2F2F':'#E9E9EB'
           const radius = 18
           return (
             <div key={msg.id}>
@@ -355,16 +355,16 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
                 onMouseLeave={e=>{const m=e.currentTarget.querySelector('.msg-actions');if(m)m.style.opacity='0'}}>
                 <div style={{ padding:'10px 16px', borderRadius:radius, background:msg.me?sentBg:(dark?'#2a2a2a':'#f5f5f5'), color:msg.me?(dark?'#111':'#fff'):(dark?'#fff':'#0a0a0a'), fontSize:15, lineHeight:1.5, maxWidth:280, overflowWrap:'break-word', wordBreak:'break-word' }}>
                   {msg.replyTo && (
-                    <div style={{ marginBottom:8, padding:'6px 10px', borderRadius:8, background:msg.me?(dark?'rgba(0,0,0,0.15)':'rgba(0,0,0,0.12)'):(dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)') }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:msg.me?(dark?'rgba(0,0,0,0.6)':'rgba(255,255,255,0.7)'):(dark?'rgba(255,255,255,0.6)':'rgba(0,0,0,0.5)'), marginBottom:2 }}>↩ {msg.replyTo.senderName||msg.replyTo.from}</div>
-                      <div style={{ fontSize:12, color:msg.me?(dark?'rgba(0,0,0,0.5)':'rgba(255,255,255,0.6)'):(dark?'rgba(255,255,255,0.5)':'rgba(0,0,0,0.45)'), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
+                    <div style={{ marginBottom:2, padding:'6px 10px', borderRadius:8, margin:'0 -8px 2px', background:dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.07)', border:dark?'none':'1px solid #e0e0e0' }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:dark?'rgba(255,255,255,0.8)':'#333', marginBottom:2 }}>{msg.replyTo.senderName||msg.replyTo.from}</div>
+                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
                     </div>
                   )}
                   {msg.text}
                 </div>
                 <div className="msg-actions" style={{ opacity:0, transition:'opacity 0.15s', display:'flex', alignItems:'center', gap:4 }}>
                   <button onClick={() => setReplyTo({ id:msg.id, text:msg.text, from:msg.me?'Vous':(msg.from||contact.name) })}
-                    style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:sub, padding:'2px 4px', fontFamily:ft }}>↩</button>
+                    style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:sub, padding:'2px 4px', fontFamily:ft }}><CornerUpLeft size={13} strokeWidth={2}/></button>
                   {msg.me && <button onClick={() => setMsgs(m => m.filter(x => x.id !== msg.id))}
                     style={{ background:'none', border:'none', cursor:'pointer', fontSize:13, color:'#FF3B30', padding:'2px 4px' }}>✕</button>}
                 </div>

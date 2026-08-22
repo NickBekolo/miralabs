@@ -59,8 +59,9 @@ class CoursController extends AbstractController
     #[Route('/today', name: 'cours_today', methods: ['GET'])]
     public function today(#[CurrentUser] User $user): JsonResponse
     {
-        $jourSemaine = (int) date('N'); // 1=lundi, 7=dimanche
-        $cours = $this->coursRepo->findBy(['jourSemaine' => $jourSemaine]);
+        $jourSemaine = (int) date('N');
+        $etab = $user->getEtablissement();
+        $cours = $this->coursRepo->findBy(['jourSemaine' => $jourSemaine, 'etablissement' => $etab]);
         return $this->json(array_map([$this, 'serialize'], $cours));
     }
 
@@ -70,7 +71,10 @@ class CoursController extends AbstractController
     #[Route('/edt', name: 'cours_edt', methods: ['GET'])]
     public function edt(): JsonResponse
     {
-        $cours = $this->coursRepo->findBy([], ['jourSemaine' => 'ASC', 'heureDebut' => 'ASC']);
+        $user = $this->getUser();
+        $etab = $user?->getEtablissement();
+        $criteria = $etab ? ['etablissement' => $etab] : [];
+        $cours = $this->coursRepo->findBy($criteria, ['jourSemaine' => 'ASC', 'heureDebut' => 'ASC']);
         return $this->json(array_map([$this, 'serialize'], $cours));
     }
 

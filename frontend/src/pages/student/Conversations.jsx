@@ -311,55 +311,44 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
         )}
         {msgs.map((msg, i) => {
           const sameAsPrev = i > 0 && msgs[i-1].me === msg.me
-          const sameAsNext = i < msgs.length-1 && msgs[i+1].me === msg.me
-          const isLast     = !sameAsNext
-          const showAvatar = !msg.me && isLast
+          const nom = msg.me ? 'Vous' : (msg.from || contact.name)
           return (
-            <div key={msg.id} style={{ marginTop:msg.replyTo?(sameAsPrev?8:24):(sameAsPrev?2:16), marginBottom:msg.replyTo?4:0 }}>
-              {i===0 && (
-                <div style={{ textAlign:'center', margin:'0 0 16px' }}>
-                  <span style={{ fontSize:11, color:sub, background:dark?'#1C1C1E':'#F2F2F7', padding:'3px 12px', borderRadius:980, fontFamily:ft }}>
-                    {"Aujourd'hui"}{msg.time ? " · "+msg.time : ""}
-                  </span>
-                </div>
-              )}
-              <div style={{ display:'flex', alignItems:'flex-end', gap:6, justifyContent:msg.me?'flex-end':'flex-start', position:'relative' }}
-                onMouseEnter={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='1'}}
-                onMouseLeave={e=>{const b=e.currentTarget.querySelector('.reply-btn');if(b)b.style.opacity='0'}}>
-                <button className="reply-btn" onClick={()=>setReplyTo({id:msg.id,text:msg.text,me:msg.me,senderName:msg.me?'Moi':(msg.from||contact?.name||''),senderColor:msg.me?(myColor||'#111'):(contact?.color||'#007AFF')})}
-                  style={{opacity:0,transition:'opacity 0.15s',background:'none',border:'none',cursor:'pointer',fontSize:16,color:'#8E8E93',padding:'0 4px',flexShrink:0,alignSelf:'center',order:msg.me?-1:2}}>
-                  ↩
-                </button>
-                {!msg.me && (
-                  <div style={{ width:28, flexShrink:0 }}>
-                    {showAvatar && <Avatar name={contact.name??'?'} color={contact.color??'#007AFF'} size={28}/>}
+            <div key={msg.id} style={{ display:'flex', gap:12, marginTop:sameAsPrev?4:20 }}>
+              <div style={{ width:36, height:36, borderRadius:'50%', background:dark?'#fff':'#111', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:dark?'#111':'#fff', flexShrink:0, visibility:sameAsPrev?'hidden':'visible' }}>
+                {nom[0]?.toUpperCase()}
+              </div>
+              <div style={{ flex:1 }}>
+                {!sameAsPrev && (
+                  <div style={{ display:'flex', alignItems:'baseline', gap:8, marginBottom:3 }}>
+                    <span style={{ fontSize:14, fontWeight:700, color:dark?'#fff':'#111' }}>{nom}</span>
+                    <span style={{ fontSize:11, color:sub }}>{msg.time}</span>
                   </div>
                 )}
-                <div style={{ display:'flex', flexDirection:'column', alignItems:msg.me?'flex-end':'flex-start', maxWidth:'72%', paddingBottom:msg.tapback?20:0 }}>
-                  {msg.replyTo && (
-                    <div style={{ display:'flex', alignItems:'flex-start', gap:6, marginBottom:6, cursor:'pointer' }}>
-                      <div style={{ width:2, minHeight:28, borderRadius:2, background:'#007AFF', flexShrink:0 }}/>
-                      <div>
-                        <span style={{ fontSize:12, fontWeight:700, color:'#007AFF' }}>{msg.me?'Vous':msg.from} → {msg.replyTo.senderName||msg.replyTo.from}</span>
-                        <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#666', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:200 }}>{msg.replyTo.text}</div>
-                      </div>
+                {msg.replyTo && (
+                  <div style={{ display:'flex', alignItems:'flex-start', gap:8, marginBottom:6, padding:'6px 10px', background:dark?'rgba(255,255,255,0.05)':'rgba(0,0,0,0.04)', borderRadius:10, borderLeft:'3px solid #007AFF' }}>
+                    <div>
+                      <div style={{ fontSize:12, fontWeight:700, color:'#007AFF', marginBottom:2 }}>{msg.replyTo.senderName||msg.replyTo.from}</div>
+                      <div style={{ fontSize:12, color:sub, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap', maxWidth:260 }}>{msg.replyTo.text}</div>
                     </div>
-                  )}
-                  <Bubble msg={msg} dark={dark} myColor={myColor} onTapback={tapback} sameAsPrev={sameAsPrev} sameAsNext={sameAsNext}/>
-                  {isLast && <div style={{ fontSize:10, color:dark?'rgba(255,255,255,0.35)':'#8E8E93', marginTop:msg.tapback?20:2, paddingLeft:4, paddingRight:4 }}>{msg.time}</div>}
-                </div>
+                  </div>
+                )}
+                <p style={{ margin:'0 0 4px', fontSize:15, lineHeight:1.6, color:dark?'#e8e8e8':'#1a1a1a', wordBreak:'break-word' }}>{msg.text}</p>
+                <button onClick={() => setReplyTo({ id:msg.id, text:msg.text, from:nom })}
+                  style={{ background:'none', border:'none', fontSize:12, color:sub, cursor:'pointer', padding:0, fontFamily:ft }}>
+                  Répondre
+                </button>
               </div>
             </div>
           )
         })}
         <div ref={bottomRef}/>
       </div>
-
       <MessageInputBar
           onSend={({ content, replyToId, replyToText }) => {
             const convId = contact?.convId || contact?.id
             if (!content.trim()) return
-            const newMsg = { id:Date.now(), me:true, text:content, time:'Maintenant', tapback:null, replyTo:replyTo??null }
+            const currentReplyTo = replyTo
+            const newMsg = { id:Date.now(), me:true, text:content, time:'Maintenant', tapback:null, replyTo:currentReplyTo ? { text:currentReplyTo.text, senderName:currentReplyTo.from, from:currentReplyTo.from } : null }
             setMsgs(m => [...m, newMsg])
             setReplyTo(null)
             if (convId) api.post('/api/conversations/'+convId+'/messages', { content, replyToId, replyToText }).catch(()=>{})
@@ -454,7 +443,7 @@ function ContactList({ contacts, onSelect, dark, myColor }) {
               {c.time && <span style={{ fontSize:12, color:sub }}>{c.time}</span>}
             </div>
             <div style={{ fontSize:13, color:c.unread>0?text:sub, fontWeight:c.unread>0?600:400, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-              {c.last||'Nouvelle conversation'}
+              {c.unread>1 ? `${c.unread} nouveaux messages` : (c.last||'Nouvelle conversation')}
             </div>
           </div>
         </div>

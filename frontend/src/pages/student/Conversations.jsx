@@ -339,7 +339,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
           const prevDate = i > 0 ? formatMsgDate(msgs[i-1].time) : null
           const showDate = msgDate && msgDate !== prevDate
           const sentBg = dark?'#2F2F2F':'#111'
-          const recvBg = dark?'#2F2F2F':'#E9E9EB'
+          const recvBg = dark?'#3a3a3a':'#E9E9EB'
           const radius = 18
           return (
             <div key={msg.id}>
@@ -353,11 +353,11 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
               <div style={{ display:'flex', alignItems:'center', gap:6, flexDirection:msg.me?'row-reverse':'row', position:'relative' }}
                 onMouseEnter={e=>{const m=e.currentTarget.querySelector('.msg-actions');if(m)m.style.opacity='1'}}
                 onMouseLeave={e=>{const m=e.currentTarget.querySelector('.msg-actions');if(m)m.style.opacity='0'}}>
-                <div style={{ padding:'10px 16px', borderRadius:radius, background:msg.me?sentBg:(dark?'#2a2a2a':'#f5f5f5'), color:msg.me?(dark?'#111':'#fff'):(dark?'#fff':'#0a0a0a'), fontSize:15, lineHeight:1.5, maxWidth:280, overflowWrap:'break-word', wordBreak:'break-word' }}>
+                <div style={{ padding:'12px 16px', borderRadius:18, background:msg.me?sentBg:(dark?'#2F2F2F':'#f5f5f5'), color:msg.me?'#fff':(dark?'#fff':'#0a0a0a'), fontSize:15, lineHeight:1.5, maxWidth:280, overflowWrap:'break-word', wordBreak:'break-word' }}>
                   {msg.replyTo && (
-                    <div style={{ marginBottom:2, padding:'6px 10px', borderRadius:8, margin:'0 -8px 2px', background:dark?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.07)', border:dark?'none':'1px solid #e0e0e0' }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:dark?'rgba(255,255,255,0.8)':'#333', marginBottom:2 }}>{msg.replyTo.senderName||msg.replyTo.from}</div>
-                      <div style={{ fontSize:12, color:dark?'rgba(255,255,255,0.6)':'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
+                    <div style={{ marginBottom:2, padding:'6px 10px', borderRadius:8, margin:'0 -8px 2px', background:dark?'#3f3f3f':'#ebebeb', borderLeft:'3px solid #888', border:'none' }}>
+                      <div style={{ fontSize:11, fontWeight:700, color:dark?'#ffffff':'#333', fontSize:13, fontWeight:700, marginBottom:2 }}>{msg.replyTo.senderName||msg.replyTo.from}</div>
+                      <div style={{ fontSize:12, color:dark?'#b0b0b0':'#555', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{msg.replyTo.text}</div>
                     </div>
                   )}
                   {msg.text}

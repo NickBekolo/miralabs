@@ -667,7 +667,7 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
                 <div style={{ position:'relative' }}
                   onMouseEnter={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='1'}}
                   onMouseLeave={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='0'}}>
-                  <button className="grp-reply" onClick={() => setReplyTo({ id:m.id, text:m.content, from:nom })}
+                  <button className="grp-reply" onClick={() => setReplyTo({ id:m.id, text:m.content, from:nom, senderName:nom })}
                     style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', [m.isMe?'left':'right']:'-28px', background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
                     <CornerUpLeft size={14} strokeWidth={2}/>
                   </button>

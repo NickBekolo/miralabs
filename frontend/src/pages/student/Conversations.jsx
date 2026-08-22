@@ -601,9 +601,12 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
 
   useEffect(() => {
     api.get('/api/groupes/'+groupe.id+'/messages').then(r => setMsgs(r.data)).catch(()=>{})
+    groupAtBottom.current = true
     const iv = setInterval(() => {
-      api.get('/api/groupes/'+groupe.id+'/messages').then(r => setMsgs(r.data)).catch(()=>{})
-    }, 3000)
+      api.get('/api/groupes/'+groupe.id+'/messages').then(r => {
+        setMsgs(r.data)
+      }).catch(()=>{})
+    }, 5000)
     return () => clearInterval(iv)
   }, [groupe.id])
 
@@ -611,10 +614,12 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
 
   const send = () => {
     if (!input.trim()) return
-    const newMsg = { id:Date.now(), isMe:true, content:input.trim(), createdAt:'Maintenant', sender:{ firstName:'Vous' } }
+    const currentReplyTo = replyTo
+    const newMsg = { id:Date.now(), isMe:true, content:input.trim(), createdAt:'Maintenant', sender:{ firstName:'Vous' }, replyTo:currentReplyTo ? { text:currentReplyTo.text, senderName:currentReplyTo.from } : null }
     setMsgs(m => [...m, newMsg])
+    setReplyTo(null)
     setInput('')
-    api.post('/api/groupes/'+groupe.id+'/messages', { content:newMsg.content }).catch(()=>{})
+    api.post('/api/groupes/'+groupe.id+'/messages', { content:newMsg.content, replyToId:currentReplyTo?.id??null, replyToText:currentReplyTo?.text??null }).catch(()=>{})
   }
 
   if (!groupe) return <div/>  
@@ -641,32 +646,47 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
           const sameMinute = sameAsNext && msgs[i+1].createdAt?.slice(0,16) === m.createdAt?.slice(0,16)
           const sentBg = dark?'#2F2F2F':'#111'
           const recvBg = dark?'#3a3a3a':'#E9E9EB'
+          const nom = m.isMe ? 'Vous' : (m.sender?.firstName || '?')
           return (
-            <div key={m.id} style={{ display:'flex', flexDirection:'column', alignItems:m.isMe?'flex-end':'flex-start', marginTop:sameAsPrev?2:16 }}>
-              {!sameAsPrev && !m.isMe && (
-                <div style={{ fontSize:11, color:sub, marginBottom:2, paddingLeft:4 }}>{m.sender?.firstName}</div>
+            <div key={m.id} style={{ display:'flex', gap:10, marginTop:sameAsPrev?6:18, alignSelf:m.isMe?'flex-end':'flex-start', flexDirection:'row', width:'100%', justifyContent:m.isMe?'flex-end':'flex-start' }}>
+              {/* Avatar gauche en bas */}
+              {!m.isMe && (
+                <div style={{ flexShrink:0, width:24, display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+                  {!sameAsNext && (
+                    <div style={{ width:24, height:24, borderRadius:'50%', background:dark?'#444':'#bbb', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:'#fff' }}>
+                      {m.sender?.firstName?.[0]}
+                    </div>
+                  )}
+                </div>
               )}
-              <div style={{ display:'flex', alignItems:'flex-end', gap:6, flexDirection:m.isMe?'row-reverse':'row' }}>
-                {!m.isMe && (
-                  <div style={{ width:28, height:28, borderRadius:'50%', background:dark?'#444':'#a0a0a0', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'#fff', flexShrink:0, visibility:sameAsPrev?'hidden':'visible' }}>
-                    {m.sender?.firstName?.[0]}
-                  </div>
+              {/* Colonne bulles */}
+              <div style={{ display:'flex', flexDirection:'column', maxWidth:'82%', alignItems:m.isMe?'flex-end':'flex-start' }}>
+                {!sameAsPrev && !m.isMe && (
+                  <div style={{ fontSize:13, fontWeight:500, color:dark?'#ccc':'#555', marginBottom:4, paddingLeft:4 }}>{nom}</div>
                 )}
-                <div style={{ padding:'12px 16px', borderRadius:14, background:m.isMe?sentBg:recvBg, color:m.isMe?'#fff':(dark?'#fff':'#000'), fontSize:15, lineHeight:1.5, maxWidth:280, wordBreak:'break-word' }}>
+                <div style={{ position:'relative' }}
+                  onMouseEnter={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='1'}}
+                  onMouseLeave={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='0'}}>
+                  <button className="grp-reply" onClick={() => setReplyTo({ id:m.id, text:m.content, from:nom })}
+                    style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', [m.isMe?'left':'right']:'-28px', background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
+                    <CornerUpLeft size={14} strokeWidth={2}/>
+                  </button>
+                <div style={{ padding:'12px 16px', borderRadius:12, background:m.isMe?sentBg:recvBg, color:m.isMe?'#fff':(dark?'#fff':'#000'), fontSize:15, lineHeight:1.4, wordBreak:'break-word', width:'fit-content' }}>
                   {m.replyTo && (
-                    <div style={{ marginBottom:6, padding:'6px 10px', borderRadius:8, background:m.isMe?'rgba(255,255,255,0.1)':'rgba(0,0,0,0.07)', borderLeft:m.isMe?'3px solid rgba(255,255,255,0.5)':'3px solid #888' }}>
-                      <div style={{ fontSize:11, fontWeight:700, color:m.isMe?'#fff':(dark?'#fff':'#111'), marginBottom:2 }}>{m.replyTo.senderName||m.replyTo.from}</div>
-                      <div style={{ fontSize:11, color:m.isMe?'rgba(255,255,255,0.6)':(dark?'rgba(255,255,255,0.5)':'#666'), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.replyTo.text}</div>
+                    <div style={{ marginBottom:8, padding:'6px 10px', borderRadius:8, background:m.isMe?'rgba(255,255,255,0.12)':(dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'), borderLeft:`3px solid ${m.isMe?'rgba(255,255,255,0.5)':'#888'}` }}>
+                      <div style={{ fontSize:13, fontWeight:600, color:m.isMe?'rgba(255,255,255,0.9)':(dark?'#fff':'#111'), marginBottom:2 }}>{m.replyTo.senderName==='Vous'||m.replyTo.isMe?'Vous':(m.replyTo.senderName||m.replyTo.from||'?')}</div>
+                      <div style={{ fontSize:13, color:m.isMe?'rgba(255,255,255,0.6)':(dark?'rgba(255,255,255,0.5)':'#666'), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.replyTo.text}</div>
                     </div>
                   )}
                   {m.content}
                 </div>
-              </div>
-              {!sameMinute && (
-                <div style={{ fontSize:10, color:sub, marginTop:2, textAlign:m.isMe?'right':'left', paddingLeft:m.isMe?0:36, paddingRight:4 }}>
-                  {formatMsgTime(m.createdAt)}
                 </div>
-              )}
+                {!sameMinute && (
+                  <div style={{ fontSize:10, color:sub, marginTop:3, textAlign:m.isMe?'right':'left', width:'100%', paddingLeft:4, paddingRight:4 }}>
+                    {formatMsgTime(m.createdAt)}
+                  </div>
+                )}
+              </div>
             </div>
           )
         })}

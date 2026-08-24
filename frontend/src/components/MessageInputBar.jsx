@@ -78,9 +78,10 @@ export default function MessageInputBar({ onSend, replyTo, onCancelReply }) {
 
       {/* Bandeau réponse */}
       {replyTo && (
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:surface, borderRadius:12, padding:'8px 12px', marginBottom:8, fontSize:13 }}>
-          <div style={{ color:placeholderColor, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
-            Réponse à : <span style={{ color:textColor }}>{replyTo.text}</span>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', background:darkMode?'#1a1a1a':'#f0f0f0', borderRadius:12, padding:'8px 12px', marginBottom:8, fontSize:13, borderLeft:'3px solid #888' }}>
+          <div style={{ overflow:'hidden', flex:1 }}>
+            <div style={{ fontSize:12, fontWeight:600, color:textColor, marginBottom:2 }}>{replyTo.from||replyTo.senderName||'Message'}</div>
+            <div style={{ fontSize:12, color:placeholderColor, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{replyTo.text}</div>
           </div>
           <button onClick={onCancelReply} style={{ background:'none', border:'none', cursor:'pointer', color:placeholderColor, display:'flex' }}>
             <X size={16}/>

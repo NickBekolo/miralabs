@@ -394,7 +394,7 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
           replyTo={replyTo}
           onCancelReply={() => setReplyTo(null)}
         />
-    </div>
+      </div>
   )
 }
 
@@ -575,6 +575,7 @@ function CreateGroupPanel({ users, dark, onCreated }) {
 }
 
 function GroupChatView({ groupe, onBack, dark, myColor }) {
+  const { user } = useAuth()
   const [msgs, setMsgs]   = useState([])
   const [input, setInput] = useState('')
   const [replyTo, setReplyTo] = useState(null)
@@ -668,13 +669,13 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
                   onMouseEnter={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='1'}}
                   onMouseLeave={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='0'}}>
                   <button className="grp-reply" onClick={() => setReplyTo({ id:m.id, text:m.content, from:nom, senderName:nom })}
-                    style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', [m.isMe?'left':'right']:'-28px', background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
+                    style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', ...(m.isMe?{left:'-28px'}:{right:'-28px'}), background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
                     <CornerUpLeft size={14} strokeWidth={2}/>
                   </button>
                 <div style={{ padding:'12px 16px', borderRadius:12, background:m.isMe?sentBg:recvBg, color:m.isMe?'#fff':(dark?'#fff':'#000'), fontSize:15, lineHeight:1.4, wordBreak:'break-word', width:'fit-content' }}>
                   {m.replyTo && (
                     <div style={{ marginBottom:8, padding:'6px 10px', borderRadius:8, background:m.isMe?'rgba(255,255,255,0.12)':(dark?'rgba(255,255,255,0.08)':'rgba(0,0,0,0.06)'), borderLeft:`3px solid ${m.isMe?'rgba(255,255,255,0.5)':'#888'}` }}>
-                      <div style={{ fontSize:13, fontWeight:600, color:m.isMe?'rgba(255,255,255,0.9)':(dark?'#fff':'#111'), marginBottom:2 }}>{m.replyTo.senderName==='Vous'||m.replyTo.isMe?'Vous':(m.replyTo.senderName||m.replyTo.from||'?')}</div>
+                      <div style={{ fontSize:13, fontWeight:600, color:m.isMe?'rgba(255,255,255,0.9)':(dark?'#fff':'#111'), marginBottom:2 }}>{m.replyTo.senderId===user?.id?'Vous':(m.replyTo.senderName||m.replyTo.from||'?')}</div>
                       <div style={{ fontSize:13, color:m.isMe?'rgba(255,255,255,0.6)':(dark?'rgba(255,255,255,0.5)':'#666'), overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{m.replyTo.text}</div>
                     </div>
                   )}

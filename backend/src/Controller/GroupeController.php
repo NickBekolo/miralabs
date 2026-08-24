@@ -80,7 +80,7 @@ class GroupeController extends AbstractController
             'isMe'      => $m->getSender()?->getId() === $user->getId(),
             'sender'    => ['id'=>$m->getSender()?->getId(),'firstName'=>$m->getSender()?->getFirstName(),'lastName'=>$m->getSender()?->getLastName()],
             'createdAt' => $m->getCreatedAt()->format('H:i'),
-            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText(),'senderName'=>($em->getRepository(\App\Entity\GroupeMessage::class)->find($m->getReplyToId())?->getSender()?->getFirstName()??'?')] : null,
+            'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText(),'senderName'=>($em->getRepository(\App\Entity\GroupeMessage::class)->find($m->getReplyToId())?->getSender()?->getFirstName()??'?'),'senderId'=>($em->getRepository(\App\Entity\GroupeMessage::class)->find($m->getReplyToId())?->getSender()?->getId())] : null,
         ], $groupe->getMessages()->toArray()));
     }
 

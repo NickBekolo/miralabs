@@ -56,7 +56,7 @@ export default function SelectEtablissement() {
   const fe = etabs.filter(e => e.name?.toLowerCase().includes(search.toLowerCase()))
 
   return (
-    <div style={{ fontFamily:sf, background:dark?'#0a0a0a':'#f5f5f5', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', boxSizing:'border-box' }}>
+    <div style={{ fontFamily:sf, background:bg, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', boxSizing:'border-box' }}>
 
       <div style={{ background:bg, width:'100%', maxWidth:480, minHeight:'100vh', display:'flex', flexDirection:'column', boxSizing:'border-box' }}>
       {/* Header */}

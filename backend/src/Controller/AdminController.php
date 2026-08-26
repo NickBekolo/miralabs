@@ -79,6 +79,8 @@ class AdminController extends AbstractController
             'isActive'         => $u->isActive(),
             'mustChangePassword' => $u->isMustChangePassword(),
             'createdAt'        => $u->getCreatedAt()?->format('d/m/Y'),
+            'classe'           => $u->getClasse() ? ['id'=>$u->getClasse()->getId(),'nom'=>$u->getClasse()->getName()] : null,
+            'genre'            => $u->getGenre(),
         ];
     }
 

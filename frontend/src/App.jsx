@@ -17,6 +17,8 @@ import PlatformDashboard from './pages/platform/PlatformDashboard'
 
 // Superadmin
 import SuperAdminDashboard   from './pages/superadmin/Dashboard'
+import AdminDashboard        from './pages/admin/AdminDashboard'
+import DirecteurDashboard    from './pages/directeur/DirecteurDashboard'
 
 // Étudiant
 import StudentDashboard      from './pages/student/StudentDashboard'
@@ -77,8 +79,8 @@ function App() {
           <Route path="/parent/dashboard"      element={<ParentDashboard />} />
 
           {/* Placeholders */}
-          <Route path="/directeur/dashboard"    element={<Placeholder title="Directeur" />} />
-          <Route path="/admin/dashboard"        element={<Placeholder title="Administrateur" />} />
+          <Route path="/directeur/dashboard"    element={<DirecteurDashboard />} />
+          <Route path="/admin/dashboard"        element={<AdminDashboard />} />
           <Route path="/pedagogique/dashboard"  element={<Placeholder title="Service Pédagogique" />} />
           <Route path="/cpe/dashboard"          element={<Placeholder title="CPE" />} />
           <Route path="/secretariat/dashboard"  element={<Placeholder title="Secrétariat" />} />

@@ -84,7 +84,7 @@ export default function Espaces() {
           return (
             <button key={e.id} onClick={() => { setEspaceId(e.id); setCanalId(e.canaux[0].id); setShowCanaux(false) }}
               style={{ display:'flex', alignItems:'center', gap:14, padding:'16px 18px', background:C.surface, border:`1px solid ${border}`, borderRadius:16, cursor:'pointer', textAlign:'left', fontFamily:ft, width:'100%', transition:'border-color 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.borderColor=text}
+              onMouseEnter={e => e.currentTarget.style.borderColor=C.surface2}
               onMouseLeave={e => e.currentTarget.style.borderColor=border}>
               <div style={{ width:44, height:44, borderRadius:12, background:text, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                 <TypeIcon type={e.type} color={bg} size={20}/>

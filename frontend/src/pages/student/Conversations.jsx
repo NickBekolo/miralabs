@@ -418,7 +418,7 @@ function NewConvPanel({ users, dark, onSelect }) {
     return matchSearch && matchFiltre
   })
   const color = u => u.roles?.includes('ROLE_TEACHER')?'#FF6B35':u.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF'
-  const role  = u => u.roles?.includes('ROLE_TEACHER')?'Enseignant':u.roles?.includes('ROLE_ADMIN')?'Admin':'Camarade'
+  const role  = u => { const r = u.roles||[]; if(r.includes('ROLE_SUPER_ADMIN_PLATEFORME')) return 'Équipe Miralabs'; if(r.includes('ROLE_SUPER_ADMIN')) return 'Responsable Informatique'; if(r.includes('ROLE_DIRECTEUR')) return 'Directeur'; if(r.includes('ROLE_ADMIN')) return 'Administration'; if(r.includes('ROLE_TEACHER')) return 'Enseignant'; return 'Étudiant' }
   return (
     <div style={{ background:bg, borderRadius:16, margin:'0 12px 12px', overflow:'hidden' }}>
       <div style={{ padding:'10px 14px', borderBottom:`0.5px solid ${dark?'#2C2C2E':'#E5E5EA'}` }}>
@@ -798,7 +798,15 @@ export default function Conversations() {
                   setShowNewConv(false)
                   loadConvs()
                   const color = u.roles?.includes('ROLE_TEACHER')?'#FF6B35':u.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF'
-                  setSelected({ id:r.data.id, convId:r.data.id, name:u.firstName+' '+u.lastName, avatar:(u.firstName?.[0]??'')+(u.lastName?.[0]??''), color, online:false, role:u.roles?.includes('ROLE_TEACHER')?'Enseignant':'Étudiant' })
+                  setSelected({ id:r.data.id, convId:r.data.id, name:u.firstName+' '+u.lastName, avatar:(u.firstName?.[0]??'')+(u.lastName?.[0]??''), color, online:false, role:((roles) => {
+  if (!roles) return 'Étudiant'
+  if (roles.includes('ROLE_SUPER_ADMIN_PLATEFORME')) return 'Équipe Miralabs'
+  if (roles.includes('ROLE_SUPER_ADMIN')) return 'Responsable Informatique'
+  if (roles.includes('ROLE_DIRECTEUR')) return 'Directeur'
+  if (roles.includes('ROLE_ADMIN')) return 'Administration'
+  if (roles.includes('ROLE_TEACHER')) return 'Enseignant'
+  return 'Étudiant'
+})(u.roles) })
                 }).catch(() => {})
               }}/>
             )}
@@ -845,7 +853,15 @@ export default function Conversations() {
               contacts={convs.map(cv => ({
                 id:cv.id, convId:cv.id,
                 name:(cv.other?.firstName??'')+' '+(cv.other?.lastName??''),
-                role:cv.other?.roles?.includes('ROLE_TEACHER')?'Enseignant':'Étudiant',
+                role:((roles) => {
+  if (!roles) return 'Étudiant'
+  if (roles.includes('ROLE_SUPER_ADMIN_PLATEFORME')) return 'Équipe Miralabs'
+  if (roles.includes('ROLE_SUPER_ADMIN')) return 'Responsable Informatique'
+  if (roles.includes('ROLE_DIRECTEUR')) return 'Directeur'
+  if (roles.includes('ROLE_ADMIN')) return 'Administration'
+  if (roles.includes('ROLE_TEACHER')) return 'Enseignant'
+  return 'Étudiant'
+})(cv.other?.roles),
                 avatar:(cv.other?.firstName?.[0]??'')+(cv.other?.lastName?.[0]??''),
                 color:cv.other?.roles?.includes('ROLE_TEACHER')?'#FF6B35':cv.other?.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF',
                 last:cv.lastMessage?(cv.lastMessage.isMe?'Vous : ':'')+cv.lastMessage.content:'Nouvelle conversation',

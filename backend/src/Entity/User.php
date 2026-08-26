@@ -31,6 +31,30 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(length: 255)]
     private ?string $lastName = null;
 
+    #[ORM\Column(nullable: true)]
+    private ?string $genre = null;
+
+    #[ORM\Column(type: 'date', nullable: true)]
+    private ?\DateTimeInterface $dateNaissance = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $telephone = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $adresse = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $photoUrl = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $parentNom = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $parentEmail = null;
+
+    #[ORM\Column(nullable: true)]
+    private ?string $parentTelephone = null;
+
     #[ORM\Column]
     private ?bool $isActive = null;
 
@@ -107,6 +131,94 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getLastName(): ?string
     {
         return $this->lastName;
+    }
+
+    public function getGenre(): ?string
+    {
+        return $this->genre;
+    }
+
+    public function getDateNaissance(): ?\DateTimeInterface
+    {
+        return $this->dateNaissance;
+    }
+
+    public function setDateNaissance(?\DateTimeInterface $dateNaissance): static
+    {
+        $this->dateNaissance = $dateNaissance;
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): static
+    {
+        $this->telephone = $telephone;
+        return $this;
+    }
+
+    public function getAdresse(): ?string
+    {
+        return $this->adresse;
+    }
+
+    public function setAdresse(?string $adresse): static
+    {
+        $this->adresse = $adresse;
+        return $this;
+    }
+
+    public function getPhotoUrl(): ?string
+    {
+        return $this->photoUrl;
+    }
+
+    public function setPhotoUrl(?string $photoUrl): static
+    {
+        $this->photoUrl = $photoUrl;
+        return $this;
+    }
+
+    public function getParentNom(): ?string
+    {
+        return $this->parentNom;
+    }
+
+    public function setParentNom(?string $parentNom): static
+    {
+        $this->parentNom = $parentNom;
+        return $this;
+    }
+
+    public function getParentEmail(): ?string
+    {
+        return $this->parentEmail;
+    }
+
+    public function setParentEmail(?string $parentEmail): static
+    {
+        $this->parentEmail = $parentEmail;
+        return $this;
+    }
+
+    public function getParentTelephone(): ?string
+    {
+        return $this->parentTelephone;
+    }
+
+    public function setParentTelephone(?string $parentTelephone): static
+    {
+        $this->parentTelephone = $parentTelephone;
+        return $this;
+    }
+
+    public function setGenre(?string $genre): static
+    {
+        $this->genre = $genre;
+        return $this;
     }
 
     public function setLastName(string $lastName): static

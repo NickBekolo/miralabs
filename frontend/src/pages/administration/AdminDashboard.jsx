@@ -135,7 +135,7 @@ function ElevesView({ C }) {
                 <div style={{ fontSize:18, fontWeight:700, color:C.text }}>{selected.firstName} {selected.lastName}</div>
                 <div style={{ fontSize:13, color:C.muted }}>{selected.classe?.nom||'Aucune classe'} · {selected.genre==='F'?'Fille':selected.genre==='M'?'Garçon':'Genre non renseigné'}</div>
               </div>
-              <button onClick={() => setSelected(null)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:20 }}>✕</button>
+              <button onClick={() => setSelected(null)} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:20 }}></button>
             </div>
             {ficheLoading && <div style={{ textAlign:'center', color:C.muted }}>Chargement...</div>}
             {fiche && !ficheLoading && (
@@ -203,7 +203,7 @@ function ElevesView({ C }) {
                   </div>
                 )}
                 <button style={{ width:'100%', padding:'12px 0', borderRadius:10, border:`1px solid ${C.surface2}`, background:'none', color:C.muted, fontSize:13, cursor:'not-allowed' }}>
-                  📄 Bulletin scolaire — pas encore disponible
+                   Bulletin scolaire — pas encore disponible
                 </button>
               </div>
             )}
@@ -317,7 +317,7 @@ export default function AdminDashboard() {
         <div style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 16px', borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <button onClick={() => setMobileOpen(true)} style={{ display:'none', background:'none', border:'none', cursor:'pointer', color:C.text }} className="mobile-menu-btn">
-              ☰
+              
             </button>
             <div style={{ fontSize:16, fontWeight:600, color:C.text }}>
               {NAV.find(n => n.id===active)?.label || 'Accueil'}
@@ -335,7 +335,7 @@ export default function AdminDashboard() {
         <div style={{ flex:1, overflowY:'auto', padding:24 }}>
           {active === 'accueil' && (
             <div>
-              <h1 style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:'-0.4px', marginBottom:4 }}>Bonjour, {user?.firstName} 👋</h1>
+              <h1 style={{ fontSize:22, fontWeight:700, color:C.text, letterSpacing:'-0.4px', marginBottom:4 }}>Bonjour, {user?.firstName} </h1>
               <p style={{ fontSize:13, color:C.muted, marginBottom:24 }}>{new Date().toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' })}</p>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(160px, 1fr))', gap:16, marginBottom:24 }}>
                 {[

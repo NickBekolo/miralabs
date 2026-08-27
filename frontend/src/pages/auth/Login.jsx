@@ -32,9 +32,9 @@ export default function Login() {
       const roles = r.data.user?.roles || []
       if (roles.includes('ROLE_SUPER_ADMIN_PLATEFORME')) navigate('/platform/dashboard')
       else if (roles.includes('ROLE_SUPER_ADMIN'))       navigate('/superadmin/dashboard')
-      else if (roles.includes('ROLE_DIRECTEUR'))         navigate('/directeur/dashboard')
-      else if (roles.includes('ROLE_ADMIN'))             navigate('/admin/dashboard')
-      else if (roles.includes('ROLE_TEACHER'))           navigate('/enseignant/home')
+      else if (roles.includes('ROLE_DIRECTEUR'))         navigate('/direction/dashboard')
+      else if (roles.includes('ROLE_ADMIN'))             navigate('/administration/dashboard')
+      else if (roles.includes('ROLE_TEACHER'))           navigate('/pedagogique/dashboard')
       else navigate('/student/dashboard')
     } catch (err) {
       const msg = err?.response?.data?.message

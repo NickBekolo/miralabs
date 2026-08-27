@@ -13,22 +13,23 @@ import ResetPassword         from './pages/auth/ResetPassword'
 import ChangePassword        from './pages/auth/ChangePassword'
 
 // Platform (éditeur Miralabs)
-import PlatformDashboard from './pages/platform/PlatformDashboard'
+import PlatformDashboard     from './pages/technique/PlatformDashboard'
 
 // Superadmin
-import SuperAdminDashboard   from './pages/superadmin/Dashboard'
-import AdminDashboard        from './pages/admin/AdminDashboard'
-import DirecteurDashboard    from './pages/directeur/DirecteurDashboard'
+import SuperAdminDashboard   from './pages/technique/SuperAdminDashboard'
+import AdminDashboard        from './pages/administration/AdminDashboard'
+import DirectionDashboard    from './pages/direction/DirectionDashboard'
 
 // Étudiant
 import StudentDashboard      from './pages/student/StudentDashboard'
 import Notes                 from './pages/student/Notes'
 
 // Enseignant
-import EnseignantHome        from './pages/enseignant/EnseignantDashboard'
+import PedagogiqueDashboard  from './pages/pedagogique/PedagogiqueDashboard'
 
 // Parent
 import ParentDashboard       from './pages/parent/ParentDashboard'
+import VieScolaireDashboard  from './pages/vie-scolaire/VieScolaireDashboard'
 
 const Placeholder = ({ title }) => (
   <div style={{ padding:40, fontFamily:'sans-serif' }}>
@@ -73,19 +74,20 @@ function App() {
           <Route path="/student/notes"         element={<Notes />} />
 
           {/* Enseignant */}
-          <Route path="/enseignant/home"       element={<EnseignantHome />} />
+          <Route path="/pedagogique/dashboard" element={<PedagogiqueDashboard />} />
+          <Route path="/enseignant/home" element={<PedagogiqueDashboard />} />
 
           {/* Parent */}
           <Route path="/parent/dashboard"      element={<ParentDashboard />} />
 
           {/* Placeholders */}
-          <Route path="/directeur/dashboard"    element={<DirecteurDashboard />} />
-          <Route path="/admin/dashboard"        element={<AdminDashboard />} />
-          <Route path="/pedagogique/dashboard"  element={<Placeholder title="Service Pédagogique" />} />
-          <Route path="/cpe/dashboard"          element={<Placeholder title="CPE" />} />
-          <Route path="/secretariat/dashboard"  element={<Placeholder title="Secrétariat" />} />
-          <Route path="/comptabilite/dashboard" element={<Placeholder title="Comptabilité" />} />
-          <Route path="/surveillant/dashboard"  element={<Placeholder title="Surveillant" />} />
+          <Route path="/direction/dashboard"    element={<DirectionDashboard />} />
+          <Route path="/administration/dashboard" element={<AdminDashboard />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/vie-scolaire/dashboard" element={<VieScolaireDashboard />} />
+          <Route path="/secretariat/dashboard"  element={<AdminDashboard />} />
+          <Route path="/comptabilite/dashboard" element={<AdminDashboard />} />
+          <Route path="/surveillant/dashboard"  element={<VieScolaireDashboard />} />
           <Route path="*" element={
   <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'100vh', background:'#0a0a0a', color:'rgba(255, 255, 255, 0.63)', fontFamily:'sans-serif', fontSize:22 }}>
     Page introuvable

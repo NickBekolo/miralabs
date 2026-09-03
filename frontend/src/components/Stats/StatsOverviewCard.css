@@ -1,0 +1,171 @@
+.stats-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: 'Poppins', 'Segoe UI', sans-serif;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 12px;
+}
+
+.stats-tile {
+  background: #ffffff;
+  border: 1.5px solid #111111;
+  border-radius: 20px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-tile--profile {
+  grid-column: 1;
+  grid-row: 1;
+  gap: 14px;
+}
+
+.stats-tile--line {
+  grid-column: 1;
+  grid-row: 2;
+  justify-content: flex-end;
+  min-height: 110px;
+}
+
+.stats-tile--bar {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  justify-content: flex-end;
+}
+
+.stats-tile__mini-label {
+  width: 28px;
+  height: 4px;
+  border-radius: 2px;
+  background: #ececec;
+  margin-bottom: 12px;
+}
+
+.stats-tile__value {
+  font-size: 32px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stats-tile__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #8a8a8a;
+}
+
+/* Avatars */
+
+.stats-avatars {
+  display: flex;
+}
+
+.stats-avatars__item {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid #ffffff;
+  margin-left: -10px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.stats-avatars__item:first-child {
+  margin-left: 0;
+}
+
+.stats-avatars__item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.stats-avatars__item span {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: #1c1c1c;
+}
+
+.stats-avatars__more {
+  background: #eeeeee;
+}
+
+.stats-avatars__more span {
+  color: #666666;
+  background: transparent;
+}
+
+/* Line chart */
+
+.stats-line {
+  width: 100%;
+  height: 56px;
+}
+
+/* Bar chart */
+
+.stats-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+  height: 180px;
+}
+
+.stats-bars__col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 8px;
+}
+
+.stats-bars__fill {
+  width: 10px;
+  border-radius: 6px;
+  background: #e8703a;
+}
+
+.stats-bars__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #8a8a8a;
+}
+
+/* Caption */
+
+.stats-caption {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #111111;
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+  }
+
+  .stats-tile--profile,
+  .stats-tile--line,
+  .stats-tile--bar {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}

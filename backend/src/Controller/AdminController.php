@@ -68,7 +68,7 @@ class AdminController extends AbstractController
         return $words[array_rand($words)] . rand(10, 99) . $words[array_rand($words)] . $specials[array_rand($specials)];
     }
 
-    private function serialize(User $u): array
+    private function serialize(User $u, ?\Doctrine\ORM\EntityManagerInterface $em = null): array
     {
         return [
             'id'               => $u->getId(),
@@ -81,6 +81,10 @@ class AdminController extends AbstractController
             'createdAt'        => $u->getCreatedAt()?->format('d/m/Y'),
             'classe'           => $u->getClasse() ? ['id'=>$u->getClasse()->getId(),'nom'=>$u->getClasse()->getName()] : null,
             'genre'            => $u->getGenre(),
+            'matieres'         => array_values(array_unique(array_map(
+                fn($c) => $c->getMatiere()?->getNom(),
+                array_filter($em->getRepository(\App\Entity\Cours::class)->findBy(['enseignant'=>$u]), fn($c) => $c->getMatiere() !== null)
+            ))),
         ];
     }
 
@@ -98,13 +102,13 @@ class AdminController extends AbstractController
     }
 
     #[Route('/users', name: 'admin_users_list', methods: ['GET'])]
-    public function listUsers(): JsonResponse
+    public function listUsers(\Doctrine\ORM\EntityManagerInterface $em): JsonResponse
     {
-        return $this->json(array_map([$this, 'serialize'], $this->userRepo->findAll()));
+        return $this->json(array_map(fn($u) => $this->serialize($u, $em), $this->userRepo->findAll()));
     }
 
     #[Route('/users', name: 'admin_users_create', methods: ['POST'])]
-    public function createUser(Request $request, #[CurrentUser] User $admin): JsonResponse
+    public function createUser(Request $request, #[CurrentUser] User $admin, \Doctrine\ORM\EntityManagerInterface $em): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
 
@@ -191,7 +195,7 @@ class AdminController extends AbstractController
         return $this->json([
             'message'   => 'Compte créé avec succès. Les identifiants ont été envoyés par email.',
             'emailSent' => $emailSent,
-            'user'      => $this->serialize($user),
+            'user'      => $this->serialize($user, $em),
             // tempPassword retiré — le superadmin ne voit jamais le mot de passe
         ], 201);
     }

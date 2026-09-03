@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import { ChevronLeft, ChevronRight, Bell, Moon, Sun, LogOut } from 'lucide-react'
+import AvatarUser from '../shared/AvatarUser'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
@@ -20,7 +21,7 @@ export default function DashboardLayout({ nav, children, role }) {
   const SidebarContent = () => (
     <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:28, padding:'0 4px' }}>
-        {!collapsed && <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text }}>Miralabs.</div>}
+        {!collapsed && <div style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:C.text, fontFamily:"-apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Helvetica Neue', sans-serif" }}>Miralabs.</div>}
         <button onClick={() => setCollapsed(s=>!s)} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, marginLeft:collapsed?'auto':0, padding:4 }}>
           {collapsed ? <ChevronRight size={16}/> : <ChevronLeft size={16}/>}
         </button>
@@ -47,9 +48,7 @@ export default function DashboardLayout({ nav, children, role }) {
           {!collapsed && (darkMode?'Mode clair':'Mode sombre')}
         </button>
         <div style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 12px', marginBottom:8 }}>
-          <div style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0 }}>
-            {initials}
-          </div>
+          {!collapsed && <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={32}/>}
           {!collapsed && (
             <div>
               <div style={{ fontSize:13, fontWeight:500, color:C.text }}>{user?.firstName} {user?.lastName}</div>
@@ -93,7 +92,7 @@ export default function DashboardLayout({ nav, children, role }) {
           </div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <Bell size={18} color={C.muted} strokeWidth={1.5}/>
-            <div style={{ width:30, height:30, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:700, color:'#fff' }}>{initials}</div>
+            <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={30}/>
           </div>
         </div>
 

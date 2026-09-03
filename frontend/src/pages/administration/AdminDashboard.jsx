@@ -748,6 +748,58 @@ function ClasseSection({ C }) {
   )
 }
 
+
+// ─── Section Statistiques ────────────────────────────────────
+function StatsSection({ C }) {
+  const [stats, setStats] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    api.get('/api/admin/stats')
+      .then(r => { setStats(r.data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div style={{ textAlign:'center', color:C.muted, padding:40 }}>Chargement...</div>
+  if (!stats) return null
+
+  return (
+    <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
+
+      {/* Bloc 1 — Effectifs */}
+      <div style={{ background:C.surface, borderRadius:16, padding:20, border:`1px solid ${C.surface2}` }}>
+        <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Effectifs</div>
+        <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Répartition des apprenants par classe</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <ChartCard title="Total par classe" data={stats.effectifs} dataKey="total" type="bar" color="#007AFF" C={C}/>
+          <ChartCard title="Actifs vs Inactifs" data={stats.effectifs} dataKey="actifs" type="bar" color="#22C55E" C={C}/>
+        </div>
+      </div>
+
+      {/* Bloc 2 — Performance */}
+      <div style={{ background:C.surface, borderRadius:16, padding:20, border:`1px solid ${C.surface2}` }}>
+        <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Performance</div>
+        <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Moyennes académiques</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <ChartCard title="Moyenne par classe" data={stats.moyennes} dataKey="moyenne" type="bar" color="#FF9500" C={C}/>
+          <ChartCard title="Moyenne par matière" data={stats.parMatiere} dataKey="moyenne" type="bar" color="#8B5CF6" C={C}/>
+        </div>
+      </div>
+
+      {/* Bloc 3 — Assiduité */}
+      <div style={{ background:C.surface, borderRadius:16, padding:20, border:`1px solid ${C.surface2}` }}>
+        <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Assiduité</div>
+        <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Absences et retards par classe</div>
+        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
+          <ChartCard title="Absences par classe" data={stats.absences} dataKey="absences" type="bar" color="#FF3B30" C={C}/>
+          <ChartCard title="Retards par classe" data={stats.retards} dataKey="retards" type="bar" color="#FF9500" C={C}/>
+        </div>
+      </div>
+
+    </div>
+  )
+}
+
 // ─── Section Accueil ──────────────────────────────────────────
 function AccueilSection({ C }) {
   const [users, setUsers]     = useState([])
@@ -824,7 +876,8 @@ export default function AdminDashboard() {
           {active === 'apprenants'  && <ApprenantSection C={C}/>}
           {active === 'enseignants' && <EnseignantSection C={C}/>}
           {active === 'classes'     && <ClasseSection C={C}/>}
-          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && (
+          {active === 'stats'       && <StatsSection C={C}/>}
+          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && (
             <div style={{ background:C.surface, borderRadius:14, padding:24, border:`1px solid ${C.surface2}` }}>
               <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>En cours de développement</div>
               <div style={{ fontSize:13, color:C.muted }}>Cette section sera disponible prochainement.</div>

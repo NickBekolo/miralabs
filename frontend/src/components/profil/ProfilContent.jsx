@@ -34,13 +34,7 @@ const ROLE_LABEL = {
   ROLE_CPE:'CPE', ROLE_SUPER_ADMIN:'Super Admin', ROLE_SUPER_ADMIN_PLATEFORME:'Plateforme',
 }
 
-const DEMANDE_OPTIONS = [
-  'Modifier ma photo de profil',
-  'Modifier mon nom / prénom',
-  'Modifier ma date de naissance',
-  'Modifier mon email',
-  'Autre demande',
-]
+const DEMANDE_OPTIONS = ['Prénom', 'Nom', 'Date de naissance', 'Email', 'Autre']
 
 export default function ProfilContent({ C }) {
   const { user }       = useAuth()
@@ -74,20 +68,33 @@ export default function ProfilContent({ C }) {
   }
 
   const envoyerDemande = async () => {
-    if (!demande.message.trim()) return showMsg('err', 'Décrivez votre demande.')
+    if (!demande.valeur?.trim()) return showMsg('err', 'Entrez la nouvelle valeur souhaitée.')
+    if (!demande.fichier) return showMsg('err', 'Un justificatif est obligatoire.')
     setSendingDemande(true)
     try {
-      await api.post('/api/support/demande', {
-        type: demande.type,
+      const nouvelleValeur = demande.type === 'Email' ? demande.valeur2 : demande.valeur
+      await api.post('/api/demandes', {
+        champ: demande.type,
+        nouvelleValeur,
         message: demande.message,
-        userId: user?.id,
       })
-      showMsg('ok', 'Demande envoyée au service informatique.')
+      showMsg('ok', 'Demande envoyée. Elle sera traitée par le service informatique.')
       setShowDemande(false)
-      setDemande({ type: DEMANDE_OPTIONS[0], message:'', fichier:null })
-    } catch { showMsg('err', 'Erreur lors de l\'envoi.') }
+      setDemande({ type: DEMANDE_OPTIONS[0], valeur:'', valeur2:'', valeur3:'', message:'', fichier:null })
+      chargerMesDemandes()
+    } catch { showMsg('err', "Erreur lors de l'envoi.") }
     setSendingDemande(false)
   }
+
+  const [mesDemandes, setMesDemandes] = useState([])
+  const chargerMesDemandes = async () => {
+    try {
+      const r = await api.get('/api/demandes/mes-demandes')
+      setMesDemandes(r.data)
+    } catch {}
+  }
+
+  useState(() => { chargerMesDemandes() }, [])
 
   const userRole = user?.roles?.find(r => ROLE_LABEL[r]) || ''
 
@@ -183,76 +190,139 @@ export default function ProfilContent({ C }) {
         </button>
       </div>
 
+      {/* Mes demandes en cours */}
+      {mesDemandes.length > 0 && (
+        <div style={{ marginTop:16 }}>
+          <SectionTitle title="Mes demandes" C={C}/>
+          {mesDemandes.map(d => (
+            <div key={d.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:C.surface, borderRadius:10, border:`1px solid ${C.surface2}`, marginBottom:8 }}>
+              <div>
+                <div style={{ fontSize:13, fontWeight:500, color:C.text }}>{d.champ}</div>
+                <div style={{ fontSize:11, color:C.muted }}>Nouvelle valeur : {d.nouvelleValeur}</div>
+                <div style={{ fontSize:11, color:C.muted }}>{d.createdAt}</div>
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                <span style={{ fontSize:11, fontWeight:600, padding:'3px 10px', borderRadius:20,
+                  background: d.statut==='approuvee'?'#ECFDF5': d.statut==='rejetee'?'#FFF0F0':'#FFF7E6',
+                  color: d.statut==='approuvee'?'#22C55E': d.statut==='rejetee'?'#FF3B30':'#FF9500'
+                }}>
+                  {d.statut==='approuvee'?'Approuvée': d.statut==='rejetee'?'Rejetée':'En attente'}
+                </span>
+                {d.commentaire && <div style={{ fontSize:11, color:C.muted, maxWidth:140, textAlign:'right' }}>{d.commentaire}</div>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Modal demande modification */}
       {showDemande && (
         <div onClick={()=>setShowDemande(false)} style={{ position:'fixed', inset:0, zIndex:400, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, padding:28, width:'90vw', maxWidth:540, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:8 }}>
+          <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, padding:28, width:'90vw', maxWidth:520, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+            <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
               <div style={{ fontSize:16, fontWeight:700, color:'#111' }}>Demande de modification</div>
               <button onClick={()=>setShowDemande(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'#888' }}><X size={18}/></button>
             </div>
-            <div style={{ fontSize:12, color:'#888', marginBottom:20, lineHeight:1.6, padding:'10px 14px', background:'#f9f9f9', borderRadius:10, border:'1px solid #eee' }}>
-              Toute modification est soumise à la validation du service informatique. Sélectionnez le champ à modifier, entrez la nouvelle valeur et joignez un justificatif (carte d'identité, acte de naissance, etc.).
+
+            {/* Onglets champs */}
+            <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:20 }}>
+              {DEMANDE_OPTIONS.map(o => (
+                <button key={o} onClick={()=>setDemande(d=>({...d,type:o,valeur:'',valeur2:'',valeur3:''}))}
+                  style={{ padding:'6px 14px', borderRadius:20, border:`1.5px solid ${demande.type===o?'#111':'#eee'}`, background:demande.type===o?'#111':'#fff', color:demande.type===o?'#fff':'#888', fontSize:12, fontWeight:demande.type===o?600:400, cursor:'pointer', fontFamily:ft }}>
+                  {o}
+                </button>
+              ))}
             </div>
 
-            {/* Champ à modifier */}
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:8 }}>Champ à modifier</label>
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {DEMANDE_OPTIONS.map(o => (
-                  <label key={o} style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 14px', borderRadius:10, border:`1.5px solid ${demande.type===o?'#111':'#eee'}`, cursor:'pointer', background:demande.type===o?'#f5f5f5':'#fff', fontSize:13, color:'#111' }}>
-                    <input type="radio" name="type" value={o} checked={demande.type===o} onChange={()=>setDemande(d=>({...d,type:o}))} style={{ display:'none' }}/>
-                    <div style={{ width:16, height:16, borderRadius:'50%', border:`2px solid ${demande.type===o?'#111':'#ccc'}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                      {demande.type===o && <div style={{ width:8, height:8, borderRadius:'50%', background:'#111' }}/>}
-                    </div>
-                    {o}
-                  </label>
-                ))}
+            {/* Formulaire selon le type */}
+            {demande.type === 'Prénom' && (
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Nouveau prénom</label>
+                <input value={demande.valeur||''} onChange={e=>setDemande(d=>({...d,valeur:e.target.value}))} placeholder="Entrez votre nouveau prénom"
+                  style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
               </div>
-            </div>
+            )}
 
-            {/* Nouvelle valeur */}
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Nouvelle valeur souhaitée</label>
-              <input value={demande.valeur||''} onChange={e=>setDemande(d=>({...d,valeur:e.target.value}))}
-                placeholder="Ex: Jean-Pierre, 01/01/1990, nouveau.email@example.com..."
-                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:13, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
-            </div>
+            {demande.type === 'Nom' && (
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Nouveau nom</label>
+                <input value={demande.valeur||''} onChange={e=>setDemande(d=>({...d,valeur:e.target.value}))} placeholder="Entrez votre nouveau nom"
+                  style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
+              </div>
+            )}
 
-            {/* Message */}
-            <div style={{ marginBottom:16 }}>
-              <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Message (optionnel)</label>
-              <textarea value={demande.message} onChange={e=>setDemande(d=>({...d,message:e.target.value}))}
-                placeholder="Précisez le motif de votre demande..."
-                rows={3}
-                style={{ width:'100%', padding:'10px 12px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:13, fontFamily:ft, outline:'none', resize:'none', boxSizing:'border-box' }}/>
-            </div>
+            {demande.type === 'Date de naissance' && (
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Date de naissance</label>
+                <input type="date" value={demande.valeur||''} onChange={e=>setDemande(d=>({...d,valeur:e.target.value}))}
+                  style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
+              </div>
+            )}
 
-            {/* Justificatif */}
-            <div style={{ marginBottom:24 }}>
-              <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Pièce justificative <span style={{ color:'#FF3B30' }}>*</span></label>
-              <label style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:10, border:`1.5px dashed ${demande.fichier?'#22C55E':'#ddd'}`, cursor:'pointer', background:demande.fichier?'#ECFDF5':'#f9f9f9', color:demande.fichier?'#22C55E':'#888', fontSize:13 }}>
-                <Paperclip size={15}/>
-                {demande.fichier ? demande.fichier.name : 'Joindre un fichier (photo CNI, passeport, PDF...)'}
-                <input type="file" style={{ display:'none' }} onChange={e=>setDemande(d=>({...d,fichier:e.target.files[0]}))} accept="image/*,.pdf"/>
-              </label>
-              {!demande.fichier && <div style={{ fontSize:11, color:'#FF3B30', marginTop:4 }}>Un justificatif est obligatoire.</div>}
-            </div>
+            {demande.type === 'Email' && (
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
+                <div style={{ padding:'12px 14px', borderRadius:10, background:'#FFF7E6', border:'1px solid #FFE4B2', fontSize:12, color:'#FF9500', lineHeight:1.6 }}>
+                  Un email de confirmation sera envoyé à votre nouvelle adresse. La modification sera effective après validation par le service informatique.
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Nouvel email</label>
+                  <input value={demande.valeur2||''} onChange={e=>setDemande(d=>({...d,valeur2:e.target.value}))} placeholder="Votre nouvel email"
+                    style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
+                </div>
+                <div>
+                  <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Confirmer le nouvel email</label>
+                  <input value={demande.valeur3||''} onChange={e=>setDemande(d=>({...d,valeur3:e.target.value}))} placeholder="Confirmez votre nouvel email"
+                    style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', boxSizing:'border-box' }}/>
+                </div>
+                {demande.valeur2 && demande.valeur3 && demande.valeur2 !== demande.valeur3 && (
+                  <div style={{ fontSize:12, color:'#FF3B30' }}>Les emails ne correspondent pas.</div>
+                )}
+                <div>
+                  <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Message explicatif (optionnel)</label>
+                  <textarea value={demande.message} onChange={e=>setDemande(d=>({...d,message:e.target.value}))} rows={3} placeholder="Expliquez pourquoi vous souhaitez changer votre email..."
+                    style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:13, fontFamily:ft, outline:'none', resize:'none', boxSizing:'border-box' }}/>
+                </div>
+              </div>
+            )}
+
+            {demande.type === 'Autre' && (
+              <div>
+                <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>Décrivez votre demande</label>
+                <textarea value={demande.message} onChange={e=>setDemande(d=>({...d,message:e.target.value}))} rows={4} placeholder="Expliquez votre demande en détail..."
+                  style={{ width:'100%', padding:'11px 14px', borderRadius:10, border:'1px solid #eee', background:'#f9f9f9', color:'#111', fontSize:14, fontFamily:ft, outline:'none', resize:'none', boxSizing:'border-box' }}/>
+              </div>
+            )}
+
+            {/* Justificatif — pas requis pour Email */}
+            {demande.type !== 'Email' && (
+              <div style={{ marginTop:16, marginBottom:20 }}>
+                <label style={{ fontSize:11, fontWeight:600, color:'#888', textTransform:'uppercase', letterSpacing:'0.5px', display:'block', marginBottom:6 }}>
+                  Pièce justificative <span style={{ color:'#FF3B30' }}>*</span>
+                </label>
+                <label style={{ display:'flex', alignItems:'center', gap:10, padding:'12px 14px', borderRadius:10, border:`1.5px dashed ${demande.fichier?'#22C55E':'#ddd'}`, cursor:'pointer', background:demande.fichier?'#ECFDF5':'#f9f9f9', color:demande.fichier?'#22C55E':'#888', fontSize:13 }}>
+                  <Paperclip size={15}/>
+                  {demande.fichier ? demande.fichier.name : 'Joindre CNI, passeport ou tout autre justificatif...'}
+                  <input type="file" style={{ display:'none' }} onChange={e=>setDemande(d=>({...d,fichier:e.target.files[0]}))} accept="image/*,.pdf"/>
+                </label>
+              </div>
+            )}
+            {demande.type === 'Email' && <div style={{ marginBottom:20 }}/>}
 
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={()=>setShowDemande(false)}
                 style={{ flex:1, padding:'11px 0', borderRadius:10, border:'1px solid #eee', background:'none', color:'#888', fontSize:13, cursor:'pointer', fontFamily:ft }}>
                 Annuler
               </button>
-              <button onClick={envoyerDemande} disabled={sendingDemande||!demande.fichier||!demande.valeur}
-                style={{ flex:2, padding:'11px 0', borderRadius:10, border:'none', background:(!demande.fichier||!demande.valeur)?'#ccc':'#111', color:'#fff', fontSize:13, fontWeight:600, cursor:(!demande.fichier||!demande.valeur)?'not-allowed':'pointer', fontFamily:ft, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
+              <button onClick={envoyerDemande} disabled={sendingDemande||(demande.type!=='Email'&&!demande.fichier)}
+                style={{ flex:2, padding:'11px 0', borderRadius:10, border:'none', background:(demande.type!=='Email'&&!demande.fichier)?'#ccc':'#111', color:'#fff', fontSize:13, fontWeight:600, cursor:(demande.type!=='Email'&&!demande.fichier)?'not-allowed':'pointer', fontFamily:ft, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
                 <Send size={13}/>
-                {sendingDemande?'Envoi en cours...':'Soumettre la demande'}
+                {sendingDemande?'Envoi...':'Soumettre la demande'}
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   )
 }

@@ -52,7 +52,8 @@ class DemandeModificationController extends AbstractController
             'createdAt'      => $d->getCreatedAt()->format('d/m/Y H:i'),
             'traitePar'      => $d->getTraitePar()?->getFirstName().' '.$d->getTraitePar()?->getLastName(),
             'traiteAt'       => $d->getTraiteAt()?->format('d/m/Y H:i'),
-            'commentaire'    => $d->getCommentaireAdmin(),
+            'commentaire'      => $d->getCommentaireAdmin(),
+            'justificatifPath' => $d->getJustificatifPath(),
         ], $demandes));
     }
 

@@ -96,6 +96,23 @@ function DemandesSection({ C }) {
                   <div style={{ fontSize:13, color:C.text }}>{value}</div>
                 </div>
               ))}
+              {selected.justificatifPath && (
+                <div style={{ background:C.surface, borderRadius:10, padding:'10px 14px', border:`1px solid ${C.surface2}` }}>
+                  <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>Justificatif</div>
+                  {selected.justificatifPath.match(/.(jpg|jpeg|png|webp)$/i)
+                    ? <img src={'http://127.0.0.1:8000'+selected.justificatifPath} alt="justificatif" style={{ width:'100%', borderRadius:8, maxHeight:300, objectFit:'contain' }}/>
+                    : <a href={'http://127.0.0.1:8000'+selected.justificatifPath} target="_blank" rel="noreferrer"
+                        style={{ fontSize:13, color:'#007AFF', textDecoration:'none' }}>
+                        Ouvrir le fichier PDF
+                      </a>
+                  }
+                </div>
+              )}
+              {!selected.justificatifPath && selected.champ !== 'Email' && (
+                <div style={{ background:C.surface, borderRadius:10, padding:'10px 14px', border:`1px solid ${C.surface2}`, color:C.muted, fontSize:13 }}>
+                  Aucun justificatif joint.
+                </div>
+              )}
               <div>
                 <div style={{ fontSize:11, fontWeight:600, color:C.muted, textTransform:'uppercase', letterSpacing:'0.5px', marginBottom:6 }}>Commentaire (optionnel)</div>
                 <textarea value={commentaire} onChange={e=>setCommentaire(e.target.value)} rows={3}

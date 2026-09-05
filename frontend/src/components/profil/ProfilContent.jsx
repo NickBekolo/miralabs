@@ -68,16 +68,34 @@ export default function ProfilContent({ C }) {
   }
 
   const envoyerDemande = async () => {
-    if (!demande.valeur?.trim()) return showMsg('err', 'Entrez la nouvelle valeur souhaitée.')
-    if (!demande.fichier) return showMsg('err', 'Un justificatif est obligatoire.')
+    const valeurPrincipale = demande.type === 'Email' ? demande.valeur2 : demande.type === 'Autre' ? demande.message : demande.valeur
+    if (!valeurPrincipale?.trim()) return showMsg('err', 'Veuillez remplir tous les champs requis.')
+    if (demande.type === 'Email' && demande.valeur2 !== demande.valeur3) return showMsg('err', 'Les emails ne correspondent pas.')
+    if (demande.type !== 'Email' && demande.type !== 'Autre' && !demande.fichier) return showMsg('err', 'Un justificatif est obligatoire.')
     setSendingDemande(true)
     try {
-      const nouvelleValeur = demande.type === 'Email' ? demande.valeur2 : demande.valeur
-      await api.post('/api/demandes', {
+      const nouvelleValeur = demande.type === 'Email'
+        ? demande.valeur2
+        : demande.type === 'Autre'
+        ? demande.message
+        : demande.valeur
+
+      // Créer la demande
+      const res = await api.post('/api/demandes', {
         champ: demande.type,
         nouvelleValeur,
         message: demande.message,
       })
+
+      // Upload justificatif si présent
+      if (demande.fichier && res.data.id) {
+        const formData = new FormData()
+        formData.append('fichier', demande.fichier)
+        await api.post('/api/upload/justificatif/'+res.data.id, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        })
+      }
+
       showMsg('ok', 'Demande envoyée. Elle sera traitée par le service informatique.')
       setShowDemande(false)
       setDemande({ type: DEMANDE_OPTIONS[0], valeur:'', valeur2:'', valeur3:'', message:'', fichier:null })
@@ -87,6 +105,23 @@ export default function ProfilContent({ C }) {
   }
 
   const [mesDemandes, setMesDemandes] = useState([])
+  const [photoPreview, setPhotoPreview] = useState(user?.photoUrl||null)
+  const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const uploadPhoto = async (file) => {
+    if (!file) return
+    setUploadingPhoto(true)
+    const formData = new FormData()
+    formData.append('photo', file)
+    try {
+      const res = await api.post('/api/upload/photo', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+      setPhotoPreview('http://127.0.0.1:8000'+res.data.photoUrl)
+      showMsg('ok', 'Photo mise à jour.')
+    } catch { showMsg('err', 'Erreur lors de l\'upload.') }
+    setUploadingPhoto(false)
+  }
+
   const chargerMesDemandes = async () => {
     try {
       const r = await api.get('/api/demandes/mes-demandes')

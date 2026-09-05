@@ -19,7 +19,6 @@ const NAV_ALL = [
   { id:'classes',     label:'Classes',           icon:ClipboardList,roles:['ROLE_ADMIN'] },
   { id:'edt',         label:'Emploi du temps',   icon:Calendar,     roles:['ROLE_ADMIN'] },
   { id:'stats',       label:'Statistiques',      icon:BarChart2,    roles:['ROLE_ADMIN','ROLE_COMPTABILITE'] },
-  { id:'params',      label:'Paramètres',        icon:Settings,     roles:['ROLE_ADMIN','ROLE_SECRETARIAT','ROLE_COMPTABILITE'] },
 ]
 
 const ROLE_LABEL = {
@@ -749,10 +748,216 @@ function ClasseSection({ C }) {
 }
 
 
+
+// ─── Drill-down Classes ───────────────────────────────────────
+function ClasseDrillDown({ C }) {
+  const [classes, setClasses]         = useState([])
+  const [loading, setLoading]         = useState(true)
+  const [selectedClasse, setSelectedClasse] = useState(null)
+  const [apprenants, setApprenants]   = useState([])
+  const [appLoading, setAppLoading]   = useState(false)
+
+  useEffect(() => {
+    api.get('/api/admin/classes')
+      .then(r => { setClasses(r.data); setLoading(false) })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const openClasse = (cl) => {
+    setSelectedClasse(cl)
+    setAppLoading(true)
+    api.get('/api/admin/classes/'+cl.id)
+      .then(r => { setApprenants(r.data.apprenants||[]); setAppLoading(false) })
+      .catch(() => setAppLoading(false))
+  }
+
+  if (loading) return <div style={{ textAlign:'center', color:'#888', padding:16 }}>Chargement...</div>
+
+  return (
+    <div>
+      <div style={{ fontSize:13, fontWeight:600, color:'#111', marginBottom:12 }}>
+        {selectedClasse ? (
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <button onClick={() => setSelectedClasse(null)}
+              style={{ background:'none', border:'none', cursor:'pointer', color:'#888', fontSize:13, padding:0 }}>
+              Classes
+            </button>
+            <span style={{ color:'#ccc' }}>/</span>
+            <span style={{ color:'#111' }}>{selectedClasse.nom}</span>
+          </div>
+        ) : 'Toutes les classes'}
+      </div>
+
+      {!selectedClasse && (
+        <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+          {classes.map(cl => (
+            <div key={cl.id} onClick={() => openClasse(cl)}
+              style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:'#f9f9f9', borderRadius:10, cursor:'pointer', border:'1px solid #eee' }}
+              onMouseEnter={e => e.currentTarget.style.background='#f0f0f0'}
+              onMouseLeave={e => e.currentTarget.style.background='#f9f9f9'}>
+              <div>
+                <div style={{ fontSize:14, fontWeight:600, color:'#111' }}>{cl.nom}</div>
+                <div style={{ fontSize:12, color:'#888' }}>{cl.niveau}</div>
+              </div>
+              <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+                <span style={{ fontSize:13, fontWeight:600, color:'#111' }}>{cl.nbApprenants} appr.</span>
+                <span style={{ fontSize:16, color:'#ccc' }}>›</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {selectedClasse && (
+        <div>
+          {appLoading && <div style={{ textAlign:'center', color:'#888', padding:16 }}>Chargement...</div>}
+          {!appLoading && apprenants.length === 0 && <div style={{ textAlign:'center', color:'#888', padding:16 }}>Aucun apprenant</div>}
+          {!appLoading && apprenants.map((a,i) => (
+            <div key={a.id} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'10px 14px', background:i%2===0?'#f9f9f9':'#fff', borderRadius:10, marginBottom:4, border:'1px solid #eee' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                <div style={{ width:32, height:32, borderRadius:'50%', background:'#fafafa', border:'1px solid #eee', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  {a.isActive
+                    ? <UserRoundCheck size={15} color={a.genre==='F'?'#FF3B9A':'#007AFF'} strokeWidth={2}/>
+                    : <UserRoundX size={15} color='#FF3B30' strokeWidth={2}/>
+                  }
+                </div>
+                <div>
+                  <div style={{ fontSize:14, fontWeight:500, color:'#111' }}>{a.firstName} {a.lastName}</div>
+                  <div style={{ fontSize:12, color:'#888' }}>{a.email||'—'}</div>
+                </div>
+              </div>
+              <div style={{ fontSize:14, fontWeight:700, color:a.moyenne!=null?(a.moyenne>=10?'#22C55E':'#FF3B30'):'#ccc' }}>
+                {a.moyenne!=null?`${a.moyenne}/20`:'—'}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+
+// ─── Modal détail générique ───────────────────────────────────
+function DetailModal({ title, children, onClose }) {
+  return (
+    <div onClick={onClose} style={{ position:'fixed', inset:0, zIndex:300, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'center', justifyContent:'center' }}>
+      <div onClick={e=>e.stopPropagation()} style={{ background:'#fff', borderRadius:20, padding:28, width:'90vw', maxWidth:700, maxHeight:'85vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:20 }}>
+          <div style={{ fontSize:18, fontWeight:700, color:'#111' }}>{title}</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#888', fontSize:20 }}>✕</button>
+        </div>
+        {children}
+      </div>
+    </div>
+  )
+}
+
+// ─── Détail Effectifs ─────────────────────────────────────────
+function EffectifsDetail({ stats, onClose }) {
+  const [search, setSearch] = useState('')
+  const filtered = stats.effectifs.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+  return (
+    <DetailModal title="Effectifs par classe" onClose={onClose}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, background:'#f9f9f9', borderRadius:10, padding:'8px 12px', marginBottom:16 }}>
+        <Search size={15} color="#888" strokeWidth={1.8}/>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher une classe..."
+          style={{ border:'none', background:'transparent', outline:'none', fontSize:13, width:'100%', fontFamily:ft }}/>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10, marginBottom:16 }}>
+        {[{label:'Total classes',value:stats.effectifs.length},{label:'Total apprenants',value:stats.effectifs.reduce((s,c)=>s+c.total,0)},{label:'Actifs',value:stats.effectifs.reduce((s,c)=>s+c.actifs,0)}].map(({label,value})=>(
+          <div key={label} style={{ background:'#f9f9f9', borderRadius:12, padding:'12px 14px', border:'1px solid #eee' }}>
+            <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{label}</div>
+            <div style={{ fontSize:20, fontWeight:700, color:'#111' }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      {filtered.map((cl,i) => (
+        <div key={cl.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', background:i%2===0?'#f9f9f9':'#fff', borderRadius:10, marginBottom:4, border:'1px solid #eee' }}>
+          <div style={{ fontSize:14, fontWeight:600, color:'#111' }}>{cl.name}</div>
+          <div style={{ display:'flex', gap:16 }}>
+            <span style={{ fontSize:13, color:'#888' }}>Total : <b style={{ color:'#111' }}>{cl.total}</b></span>
+            <span style={{ fontSize:13, color:'#22C55E' }}>Actifs : <b>{cl.actifs}</b></span>
+            <span style={{ fontSize:13, color:'#FF3B30' }}>Inactifs : <b>{cl.inactifs}</b></span>
+          </div>
+        </div>
+      ))}
+    </DetailModal>
+  )
+}
+
+// ─── Détail Moyennes ──────────────────────────────────────────
+function MoyennesDetail({ stats, onClose }) {
+  const [search, setSearch] = useState('')
+  const filtered = [...stats.moyennes].filter(c => c.name.toLowerCase().includes(search.toLowerCase())).sort((a,b)=>b.moyenne-a.moyenne)
+  return (
+    <DetailModal title="Moyennes par classe et matière" onClose={onClose}>
+      <div style={{ display:'flex', alignItems:'center', gap:8, background:'#f9f9f9', borderRadius:10, padding:'8px 12px', marginBottom:16 }}>
+        <Search size={15} color="#888" strokeWidth={1.8}/>
+        <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Rechercher..."
+          style={{ border:'none', background:'transparent', outline:'none', fontSize:13, width:'100%', fontFamily:ft }}/>
+      </div>
+      <div style={{ fontSize:13, fontWeight:600, color:'#111', marginBottom:10 }}>Par classe</div>
+      {filtered.map((cl,i) => (
+        <div key={cl.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background:i%2===0?'#f9f9f9':'#fff', borderRadius:10, marginBottom:4, border:'1px solid #eee' }}>
+          <div style={{ width:100, fontSize:14, fontWeight:600, color:'#111', flexShrink:0 }}>{cl.name}</div>
+          <div style={{ flex:1, height:8, background:'#f0f0f0', borderRadius:4, overflow:'hidden' }}>
+            <div style={{ width:`${(cl.moyenne/20)*100}%`, height:'100%', background:cl.moyenne>=10?'#22C55E':'#FF3B30', borderRadius:4 }}/>
+          </div>
+          <div style={{ fontSize:14, fontWeight:700, color:cl.moyenne>=10?'#22C55E':'#FF3B30', flexShrink:0 }}>{cl.moyenne}/20</div>
+        </div>
+      ))}
+      <div style={{ fontSize:13, fontWeight:600, color:'#111', margin:'16px 0 10px' }}>Par matière</div>
+      {stats.parMatiere.sort((a,b)=>b.moyenne-a.moyenne).map((m,i) => (
+        <div key={m.name} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', background:i%2===0?'#f9f9f9':'#fff', borderRadius:10, marginBottom:4, border:'1px solid #eee' }}>
+          <div style={{ width:160, fontSize:14, fontWeight:500, color:'#111', flexShrink:0 }}>{m.name}</div>
+          <div style={{ flex:1, height:8, background:'#f0f0f0', borderRadius:4, overflow:'hidden' }}>
+            <div style={{ width:`${(m.moyenne/20)*100}%`, height:'100%', background:'#8B5CF6', borderRadius:4 }}/>
+          </div>
+          <div style={{ fontSize:14, fontWeight:700, color:'#8B5CF6', flexShrink:0 }}>{m.moyenne}/20</div>
+        </div>
+      ))}
+    </DetailModal>
+  )
+}
+
+// ─── Détail Assiduité ─────────────────────────────────────────
+function AssiduitéDetail({ stats, onClose }) {
+  const total_abs = stats.absences.reduce((s,c)=>s+c.absences,0)
+  const total_ret = stats.retards.reduce((s,c)=>s+c.retards,0)
+  return (
+    <DetailModal title="Assiduité par classe" onClose={onClose}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(2,1fr)', gap:10, marginBottom:16 }}>
+        {[{label:'Total absences',value:total_abs,color:'#FF3B30'},{label:'Total retards',value:total_ret,color:'#FF9500'}].map(({label,value,color})=>(
+          <div key={label} style={{ background:'#f9f9f9', borderRadius:12, padding:'12px 14px', border:'1px solid #eee' }}>
+            <div style={{ fontSize:11, color:'#888', marginBottom:4 }}>{label}</div>
+            <div style={{ fontSize:20, fontWeight:700, color }}>{value}</div>
+          </div>
+        ))}
+      </div>
+      {stats.absences.map((cl,i) => {
+        const ret = stats.retards.find(r=>r.name===cl.name)
+        return (
+          <div key={cl.name} style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'12px 14px', background:i%2===0?'#f9f9f9':'#fff', borderRadius:10, marginBottom:4, border:'1px solid #eee' }}>
+            <div style={{ fontSize:14, fontWeight:600, color:'#111' }}>{cl.name}</div>
+            <div style={{ display:'flex', gap:16 }}>
+              <span style={{ fontSize:13, color:'#FF3B30' }}>Absences : <b>{cl.absences}</b></span>
+              <span style={{ fontSize:13, color:'#FF9500' }}>Retards : <b>{ret?.retards||0}</b></span>
+            </div>
+          </div>
+        )
+      })}
+    </DetailModal>
+  )
+}
+
 // ─── Section Statistiques ────────────────────────────────────
-function StatsSection({ C }) {
+function StatsSection({ C, onNavigate }) {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [showEffectifs, setShowEffectifs] = useState(false)
+  const [showMoyennes, setShowMoyennes] = useState(false)
+  const [showAssiduite, setShowAssiduite] = useState(false)
 
   useEffect(() => {
     api.get('/api/admin/stats')
@@ -764,6 +969,7 @@ function StatsSection({ C }) {
   if (!stats) return null
 
   return (
+    <>
     <div style={{ display:'flex', flexDirection:'column', gap:24 }}>
 
       {/* Bloc 1 — Effectifs */}
@@ -771,8 +977,8 @@ function StatsSection({ C }) {
         <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Effectifs</div>
         <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Répartition des apprenants par classe</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-          <ChartCard title="Total par classe" data={stats.effectifs} dataKey="total" type="bar" color="#007AFF" C={C}/>
-          <ChartCard title="Actifs vs Inactifs" data={stats.effectifs} dataKey="actifs" type="bar" color="#22C55E" C={C}/>
+          <ChartCard title="Total par classe" data={stats.effectifs} dataKey="total" type="bar" color="#007AFF" C={C} onDetail={() => setShowEffectifs(true)}/>
+          <ChartCard title="Actifs vs Inactifs" data={stats.effectifs} dataKey="actifs" type="bar" color="#22C55E" C={C} onDetail={() => setShowEffectifs(true)}/>
         </div>
       </div>
 
@@ -781,8 +987,8 @@ function StatsSection({ C }) {
         <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Performance</div>
         <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Moyennes académiques</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-          <ChartCard title="Moyenne par classe" data={stats.moyennes} dataKey="moyenne" type="bar" color="#FF9500" C={C}/>
-          <ChartCard title="Moyenne par matière" data={stats.parMatiere} dataKey="moyenne" type="bar" color="#8B5CF6" C={C}/>
+          <ChartCard title="Moyenne par classe" data={stats.moyennes} dataKey="moyenne" type="bar" color="#FF9500" C={C} onDetail={() => setShowMoyennes(true)}/>
+          <ChartCard title="Moyenne par matière" data={stats.parMatiere} dataKey="moyenne" type="bar" color="#8B5CF6" C={C} onDetail={() => setShowMoyennes(true)}/>
         </div>
       </div>
 
@@ -791,12 +997,16 @@ function StatsSection({ C }) {
         <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:4 }}>Assiduité</div>
         <div style={{ fontSize:12, color:C.muted, marginBottom:16 }}>Absences et retards par classe</div>
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14 }}>
-          <ChartCard title="Absences par classe" data={stats.absences} dataKey="absences" type="bar" color="#FF3B30" C={C}/>
-          <ChartCard title="Retards par classe" data={stats.retards} dataKey="retards" type="bar" color="#FF9500" C={C}/>
+          <ChartCard title="Absences par classe" data={stats.absences} dataKey="absences" type="bar" color="#FF3B30" C={C} onDetail={() => setShowAssiduite(true)}/>
+          <ChartCard title="Retards par classe" data={stats.retards} dataKey="retards" type="bar" color="#FF9500" C={C} onDetail={() => setShowAssiduite(true)}/>
         </div>
       </div>
 
     </div>
+    {showEffectifs && <EffectifsDetail stats={stats} onClose={() => setShowEffectifs(false)}/>}
+    {showMoyennes && <MoyennesDetail stats={stats} onClose={() => setShowMoyennes(false)}/>}
+    {showAssiduite && <AssiduitéDetail stats={stats} onClose={() => setShowAssiduite(false)}/>}
+    </>
   )
 }
 
@@ -868,15 +1078,16 @@ export default function AdminDashboard() {
   const nav = NAV_ALL.filter(n => n.roles.some(r => roles.includes(r)))
   const roleLabel = ROLE_LABEL[roles.find(r => ROLE_LABEL[r])] || 'Administration'
 
+  const [activeSection, setActiveSection] = useState(null)
   return (
-    <DashboardLayout nav={nav} role={roleLabel}>
+    <DashboardLayout nav={nav} role={roleLabel} defaultActive={activeSection}>
       {(active, C) => (
         <>
           {active === 'accueil'     && <AccueilSection C={C}/>}
           {active === 'apprenants'  && <ApprenantSection C={C}/>}
           {active === 'enseignants' && <EnseignantSection C={C}/>}
           {active === 'classes'     && <ClasseSection C={C}/>}
-          {active === 'stats'       && <StatsSection C={C}/>}
+          {active === 'stats'       && <StatsSection C={C} onNavigate={(id) => { /* naviguer via layout */ document.querySelector(`[data-nav='${id}']`)?.click() }}/> }
           {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && (
             <div style={{ background:C.surface, borderRadius:14, padding:24, border:`1px solid ${C.surface2}` }}>
               <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>En cours de développement</div>

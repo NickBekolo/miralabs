@@ -17,6 +17,7 @@ import PlatformDashboard     from './pages/technique/PlatformDashboard'
 
 // Superadmin
 import SuperAdminDashboard   from './pages/technique/SuperAdminDashboard'
+import ProfilPage from './pages/profil/ProfilPage'
 import AdminDashboard        from './pages/administration/AdminDashboard'
 import DirectionDashboard    from './pages/direction/DirectionDashboard'
 
@@ -84,6 +85,7 @@ function App() {
           <Route path="/direction/dashboard"    element={<DirectionDashboard />} />
           <Route path="/administration/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/profil" element={<ProfilPage />} />
           <Route path="/vie-scolaire/dashboard" element={<VieScolaireDashboard />} />
           <Route path="/secretariat/dashboard"  element={<AdminDashboard />} />
           <Route path="/comptabilite/dashboard" element={<AdminDashboard />} />

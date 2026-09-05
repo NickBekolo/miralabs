@@ -10,9 +10,8 @@ WORKDIR /app
 COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
-
 RUN mkdir -p public/uploads/justificatifs public/uploads/photos
 RUN chmod -R 775 public/uploads
 
 EXPOSE 8000
-CMD ["php", "-S", "0.0.0.0:8000", "-t", "public"]
+ENTRYPOINT ["./entrypoint.sh"]

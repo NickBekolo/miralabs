@@ -1,6 +1,7 @@
 #!/bin/sh
 echo "=== Démarrage entrypoint.sh ==="
 echo "PORT=$PORT"
+echo "JWT_PASSPHRASE=$JWT_PASSPHRASE"
 
 if [ -n "$JWT_SECRET_KEY_BASE64" ]; then
     mkdir -p config/jwt

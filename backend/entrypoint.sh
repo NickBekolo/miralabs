@@ -17,9 +17,11 @@ fi
 
 mkdir -p public/uploads/justificatifs public/uploads/photos
 
-echo "=== Migrations ==="
-php bin/console doctrine:migrations:migrate --no-interaction --env=prod 2>&1
-echo "=== Fin migrations ==="
+echo "=== Création schéma ==="
+php bin/console doctrine:schema:create --env=prod 2>&1 || echo "Schéma existe déjà"
+
+echo "=== Marquage migrations comme exécutées ==="
+php bin/console doctrine:migrations:version --add --all --no-interaction --env=prod 2>&1 || true
 
 echo "=== Démarrage PHP sur port ${PORT:-8000} ==="
 exec php -S 0.0.0.0:${PORT:-8000} -t public

@@ -18,11 +18,11 @@
         "symfony/framework-bundle": "6.4.*",
         "symfony/mailer": "6.4.*",
         "symfony/runtime": "6.4.*",
+        "symfony/validator": "6.4.*",
         "symfony/yaml": "6.4.*"
     },
     "require-dev": {
         "symfony/maker-bundle": "^1.67",
-        "symfony/validator": "6.4.*",
         "symfonycasts/reset-password-bundle": "^1.25"
     },
     "config": {

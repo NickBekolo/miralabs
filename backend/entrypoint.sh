@@ -5,23 +5,23 @@ echo "JWT_PASSPHRASE=$JWT_PASSPHRASE"
 
 if [ -n "$JWT_SECRET_KEY_BASE64" ]; then
     mkdir -p config/jwt
-    echo "$JWT_SECRET_KEY_BASE64" | base64 -d > config/jwt/private.pem
+    printf '%s' "$JWT_SECRET_KEY_BASE64" | base64 -d > config/jwt/private.pem
     chmod 600 config/jwt/private.pem
-    echo "✅ Clé privée JWT décodée"
+    echo "✅ Clé privée JWT décodée ($(wc -c < config/jwt/private.pem) bytes)"
 fi
 
 if [ -n "$JWT_PUBLIC_KEY_BASE64" ]; then
     mkdir -p config/jwt
-    echo "$JWT_PUBLIC_KEY_BASE64" | base64 -d > config/jwt/public.pem
-    echo "✅ Clé publique JWT décodée"
+    printf '%s' "$JWT_PUBLIC_KEY_BASE64" | base64 -d > config/jwt/public.pem
+    echo "✅ Clé publique JWT décodée ($(wc -c < config/jwt/public.pem) bytes)"
 fi
 
 mkdir -p public/uploads/justificatifs public/uploads/photos
 
-echo "=== Création schéma ==="
+echo "=== Schéma ==="
 php bin/console doctrine:schema:create --env=prod 2>&1 || echo "Schéma existe déjà"
 
-echo "=== Marquage migrations comme exécutées ==="
+echo "=== Migrations ==="
 php bin/console doctrine:migrations:version --add --all --no-interaction --env=prod 2>&1 || true
 
 echo "=== Démarrage PHP sur port ${PORT:-8000} ==="

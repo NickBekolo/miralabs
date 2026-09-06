@@ -12,6 +12,7 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 RUN mkdir -p public/uploads/justificatifs public/uploads/photos
 RUN chmod -R 775 public/uploads
+RUN chmod +x entrypoint.sh
 
 EXPOSE 8000
-ENTRYPOINT ["./entrypoint.sh"]
+CMD ["sh", "entrypoint.sh"]

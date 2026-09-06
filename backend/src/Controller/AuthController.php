@@ -10,8 +10,6 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use SymfonyCasts\Bundle\ResetPassword\Exception\ResetPasswordExceptionInterface;
-use SymfonyCasts\Bundle\ResetPassword\ResetPasswordHelperInterface;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
 
@@ -22,7 +20,6 @@ class AuthController extends AbstractController
         private UserRepository $userRepository,
         private UserPasswordHasherInterface $passwordHasher,
         private JWTTokenManagerInterface $jwtManager,
-        private ResetPasswordHelperInterface $resetPasswordHelper,
         private MailerInterface $mailer,
         private EventLogService $eventLog,
     ) {}
@@ -158,5 +155,16 @@ class AuthController extends AbstractController
         $this->userRepository->save($user, true);
 
         return $this->json(['message' => 'Mot de passe réinitialisé avec succès.']);
+    }
+}        $user = $this->userRepository->findOneBy(['email' => $email]);
+        if (!$user) {
+            return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+        }
+        return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+    }
+    #[Route('/reset-password', name: 'api_reset_password', methods: ['POST'])]
+    public function resetPassword(Request $request): JsonResponse
+    {
+        return $this->json(['message' => 'Fonctionnalité temporairement indisponible.'], 503);
     }
 }

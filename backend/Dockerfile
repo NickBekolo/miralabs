@@ -9,7 +9,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+
 RUN mkdir -p public/uploads/justificatifs public/uploads/photos
 RUN chmod -R 775 public/uploads
 RUN chmod +x entrypoint.sh

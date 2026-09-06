@@ -8,12 +8,14 @@ if [ -n "$JWT_SECRET_KEY_BASE64" ]; then
     printf '%s' "$JWT_SECRET_KEY_BASE64" | base64 -d > config/jwt/private.pem
     chmod 600 config/jwt/private.pem
     echo "✅ Clé privée JWT décodée ($(wc -c < config/jwt/private.pem) bytes)"
+    export JWT_SECRET_KEY=/app/config/jwt/private.pem
 fi
 
 if [ -n "$JWT_PUBLIC_KEY_BASE64" ]; then
     mkdir -p config/jwt
     printf '%s' "$JWT_PUBLIC_KEY_BASE64" | base64 -d > config/jwt/public.pem
     echo "✅ Clé publique JWT décodée ($(wc -c < config/jwt/public.pem) bytes)"
+    export JWT_PUBLIC_KEY=/app/config/jwt/public.pem
 fi
 
 mkdir -p public/uploads/justificatifs public/uploads/photos

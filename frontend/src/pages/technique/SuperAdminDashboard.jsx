@@ -100,8 +100,8 @@ function DemandesSection({ C }) {
                 <div style={{ background:C.surface, borderRadius:10, padding:'10px 14px', border:`1px solid ${C.surface2}` }}>
                   <div style={{ fontSize:11, color:C.muted, marginBottom:6 }}>Justificatif</div>
                   {selected.justificatifPath.match(/.(jpg|jpeg|png|webp)$/i)
-                    ? <img src={'http://127.0.0.1:8000'+selected.justificatifPath} alt="justificatif" style={{ width:'100%', borderRadius:8, maxHeight:300, objectFit:'contain' }}/>
-                    : <a href={'http://127.0.0.1:8000'+selected.justificatifPath} target="_blank" rel="noreferrer"
+                    ? <img src={(import.meta.env.VITE_API_URL || ''+(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+'')+selected.justificatifPath} alt="justificatif" style={{ width:'100%', borderRadius:8, maxHeight:300, objectFit:'contain' }}/>
+                    : <a href={(import.meta.env.VITE_API_URL || ''+(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+'')+selected.justificatifPath} target="_blank" rel="noreferrer"
                         style={{ fontSize:13, color:'#007AFF', textDecoration:'none' }}>
                         Ouvrir le fichier PDF
                       </a>

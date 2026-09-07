@@ -116,7 +116,7 @@ export default function ProfilContent({ C }) {
       const res = await api.post('/api/upload/photo', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       })
-      setPhotoPreview('http://127.0.0.1:8000'+res.data.photoUrl)
+      setPhotoPreview((import.meta.env.VITE_API_URL || ''+(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+'')+res.data.photoUrl)
       showMsg('ok', 'Photo mise à jour.')
     } catch { showMsg('err', 'Erreur lors de l\'upload.') }
     setUploadingPhoto(false)

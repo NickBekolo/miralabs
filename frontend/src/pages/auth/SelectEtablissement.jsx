@@ -4,7 +4,7 @@ import { Search, ChevronLeft, Check } from 'lucide-react'
 import { useThemeStore } from '../../store/ThemeStore'
 
 const sf = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, 'Helvetica Neue', sans-serif"
-const API = 'http://192.168.1.35:8000'
+const API = (import.meta.env.VITE_API_URL || (import.meta.env.VITE_API_URL || ''+(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+''))
 
 export default function SelectEtablissement() {
   const navigate = useNavigate()

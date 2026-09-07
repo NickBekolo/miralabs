@@ -14,21 +14,22 @@ export function AuthProvider({ children }) {
       try { setUser(JSON.parse(stored)) } catch {}
     }
 
-    // Recharger depuis l'API pour avoir les données fraîches
-    api.get('/api/me')
-      .then(r => {
-        setUser(r.data)
-        localStorage.setItem('user', JSON.stringify(r.data))
-      })
-      .catch(() => {
-        // Si 401 — token expiré, on nettoie
-        const token = localStorage.getItem('token')
-        if (!token) {
+    // Recharger depuis l'API seulement si token présent
+    const token = localStorage.getItem('token')
+    if (token) {
+      api.get('/api/me')
+        .then(r => {
+          setUser(r.data)
+          localStorage.setItem('user', JSON.stringify(r.data))
+        })
+        .catch(() => {
           setUser(null)
           localStorage.clear()
-        }
-      })
-      .finally(() => setLoading(false))
+        })
+        .finally(() => setLoading(false))
+    } else {
+      setLoading(false)
+    }
   }, [])
 
   const login = async (email, password, etablissementId) => {

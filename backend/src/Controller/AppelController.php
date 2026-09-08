@@ -22,6 +22,12 @@ class AppelController extends AbstractController
     public function enCours(EntityManagerInterface $em): JsonResponse
     {
         $eleve  = $this->getUser();
+        // Fermer automatiquement les appels de plus de 2h
+        $vieux = $em->createQuery(
+            "UPDATE App\\Entity\\Appel a SET a.statut = 'termine' 
+             WHERE a.statut = 'en_cours' AND a.createdAt < :limit"
+        )->setParameter('limit', new \DateTime('-2 hours'))->execute();
+        
         $appels = $em->getRepository(Appel::class)->findBy(['statut' => 'en_cours']);
         $result = [];
         foreach ($appels as $appel) {

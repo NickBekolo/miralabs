@@ -89,7 +89,7 @@ export const useThemeStore = create(
       resetColors: () => set({ colors: { ...DEFAULT_COLORS }, font: FONTS[0].stack, fontId: 'apple' }),
     }),
     {
-      name: 'miralabs-theme', // clé localStorage
+      name: 'miralabs-theme', // clé sessionStorage
       partialize: (state) => ({
         darkMode: state.darkMode,
         profileColor: state.profileColor,

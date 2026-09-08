@@ -12,8 +12,8 @@ const DEPT_ROLES = {
 
 export function useRole() {
   const { user } = useAuth()
-  // Fallback sur localStorage si user pas encore chargé
-  const storedUser = JSON.parse(localStorage.getItem('user') || '{}')
+  // Fallback sur sessionStorage si user pas encore chargé
+  const storedUser = JSON.parse(sessionStorage.getItem('user') || '{}')
   const roles = user?.roles || storedUser?.roles || []
 
   const hasRole = (role) => roles.includes(role)

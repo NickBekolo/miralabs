@@ -118,7 +118,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
                 <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
               </div>}
             </div>
-            <button onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.reload() }}
+            <button onClick={() => { sessionStorage.clear(); sessionStorage.clear(); window.location.reload() }}
               style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:'#cc0000', fontSize:12, fontFamily:ft, padding:'4px 0', fontWeight:700 }}>
               <LogOut size={18} strokeWidth={2}/>
               {!collapsed && 'Déconnexion'}
@@ -259,7 +259,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
                 <Icon size={18} strokeWidth={1.5}/>{label}
               </div>
             ))}
-            <div onClick={() => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
+            <div onClick={() => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
               style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color:'#FF3B30', fontSize:16, marginTop:8 }}>
               <LogOut size={18} strokeWidth={1.5}/>Déconnexion
             </div>

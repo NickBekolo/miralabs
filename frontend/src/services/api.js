@@ -6,9 +6,9 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' }
 })
 
-// Intercepteur requête — ajoute le token si présent en localStorage (dev)
+// Intercepteur requête — ajoute le token si présent en sessionStorage (dev)
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
@@ -20,7 +20,7 @@ api.interceptors.response.use(
     if (err.response?.status === 401) {
       const url = err.config?.url || ''
       if (!url.includes('/api/auth/login')) {
-        localStorage.clear()
+        sessionStorage.clear()
         sessionStorage.clear()
         window.location.href = '/'
       }

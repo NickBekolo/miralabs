@@ -14,26 +14,26 @@ export async function login(email, password) {
   const data = await res.json()
   if (!res.ok) throw new Error(data.message || 'Erreur de connexion')
   // Sauvegarde le token et les infos user
-  localStorage.setItem('token', data.token)
-  localStorage.setItem('user', JSON.stringify(data.user))
+  sessionStorage.setItem('token', data.token)
+  sessionStorage.setItem('user', JSON.stringify(data.user))
   return data
 }
 
 // ─── Logout ───────────────────────────────────────────────────────────────
 export function logout() {
-  localStorage.removeItem('token')
-  localStorage.removeItem('user')
+  sessionStorage.removeItem('token')
+  sessionStorage.removeItem('user')
 }
 
 // ─── Utilisateur courant ──────────────────────────────────────────────────
 export function getCurrentUser() {
-  const user = localStorage.getItem('user')
+  const user = sessionStorage.getItem('user')
   return user ? JSON.parse(user) : null
 }
 
 // ─── Token ────────────────────────────────────────────────────────────────
 export function getToken() {
-  return localStorage.getItem('token')
+  return sessionStorage.getItem('token')
 }
 
 export function isAuthenticated() {

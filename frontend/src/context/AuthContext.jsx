@@ -7,24 +7,24 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
-  // Au démarrage — charger le user depuis /api/me ou localStorage
+  // Au démarrage — charger le user depuis /api/me ou sessionStorage
   useEffect(() => {
-    const stored = localStorage.getItem('user')
+    const stored = sessionStorage.getItem('user')
     if (stored) {
       try { setUser(JSON.parse(stored)) } catch {}
     }
 
     // Recharger depuis l'API seulement si token présent
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     if (token) {
       api.get('/api/me')
         .then(r => {
           setUser(r.data)
-          localStorage.setItem('user', JSON.stringify(r.data))
+          sessionStorage.setItem('user', JSON.stringify(r.data))
         })
         .catch(() => {
           setUser(null)
-          localStorage.clear()
+          sessionStorage.clear()
         })
         .finally(() => setLoading(false))
     } else {
@@ -35,14 +35,14 @@ export function AuthProvider({ children }) {
   const login = async (email, password, etablissementId) => {
     const res = await api.post('/api/auth/login', { email, password, etablissementId })
     const { token, user: userData } = res.data
-    localStorage.setItem('token', token)
-    localStorage.setItem('user', JSON.stringify(userData))
+    sessionStorage.setItem('token', token)
+    sessionStorage.setItem('user', JSON.stringify(userData))
     setUser(userData)
     return userData
   }
 
   const logout = () => {
-    localStorage.clear()
+    sessionStorage.clear()
     sessionStorage.clear()
     setUser(null)
     window.location.href = '/'
@@ -52,7 +52,7 @@ export function AuthProvider({ children }) {
     try {
       const r = await api.get('/api/me')
       setUser(r.data)
-      localStorage.setItem('user', JSON.stringify(r.data))
+      sessionStorage.setItem('user', JSON.stringify(r.data))
     } catch {}
   }
 

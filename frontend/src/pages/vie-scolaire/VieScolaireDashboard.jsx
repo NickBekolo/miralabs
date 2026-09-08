@@ -15,7 +15,7 @@ export default function VieScolaireDashboard() {
   const isSurveillant  = roles.includes('ROLE_SURVEILLANT')
   const [active, setActive]       = useState('accueil')
   const [collapsed, setCollapsed] = useState(false)
-  const logout = () => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }
+  const logout = () => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }
 
   const NAV = [
     { id:'accueil',    label:'Accueil',     icon:Home },

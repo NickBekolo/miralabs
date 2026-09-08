@@ -25,10 +25,10 @@ export default function Login() {
     if (!email.trim() || !pass.trim()) { setError('Remplis tous les champs.'); return }
     setLoading(true); setError('')
     try {
-      const etab = JSON.parse(localStorage.getItem('etablissement') || '{}')
+      const etab = JSON.parse(sessionStorage.getItem('etablissement') || '{}')
       const r = await api.post('/api/auth/login', { email: email.trim(), password: pass, etablissementId: etab?.id ?? null })
-      localStorage.setItem('token', r.data.token)
-      localStorage.setItem('user', JSON.stringify(r.data.user))
+      sessionStorage.setItem('token', r.data.token)
+      sessionStorage.setItem('user', JSON.stringify(r.data.user))
       const roles = r.data.user?.roles || []
       if (roles.includes('ROLE_SUPER_ADMIN_PLATEFORME')) navigate('/platform/dashboard')
       else if (roles.includes('ROLE_SUPER_ADMIN'))       navigate('/superadmin/dashboard')
@@ -55,7 +55,7 @@ export default function Login() {
       <div style={{ width:'100%', maxWidth:380 }}>
 
         {/* Bouton retour */}
-        <button onClick={() => { localStorage.removeItem('api_url'); localStorage.removeItem('etablissement'); navigate('/') }}
+        <button onClick={() => { sessionStorage.removeItem('api_url'); sessionStorage.removeItem('etablissement'); navigate('/') }}
           style={{ display:'flex', alignItems:'center', gap:4, background:'none', border:'none', cursor:'pointer', color:text, fontFamily:sf, fontSize:14, fontWeight:500, padding:0, marginBottom:24 }}>
           <ChevronLeft size={16} strokeWidth={2}/> Retour
         </button>

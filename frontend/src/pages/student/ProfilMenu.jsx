@@ -24,7 +24,7 @@ export default function ProfilMenu({ onClose, onNavigate }) {
   }
 
   const logout = () => {
-    localStorage.clear(); sessionStorage.clear(); window.location.reload()
+    sessionStorage.clear(); sessionStorage.clear(); window.location.reload()
   }
 
   const initials = `${user?.firstName?.[0]||''}${user?.lastName?.[0]||''}`.toUpperCase() || 'M'

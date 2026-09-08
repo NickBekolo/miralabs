@@ -24,7 +24,7 @@ export default function SelectEtablissement() {
   const [animating, setAnimating] = useState(false)
 
   useEffect(() => {
-    if (localStorage.getItem('api_url')) { navigate('/login'); return }
+    if (sessionStorage.getItem('api_url')) { navigate('/login'); return }
     fetch(`${API}/api/public/villes`)
       .then(r => r.json())
       .then(d => setVilles(Array.isArray(d) ? d.filter(Boolean) : []))
@@ -47,8 +47,8 @@ export default function SelectEtablissement() {
 
   const confirm = () => {
     if (!selected) return
-    localStorage.setItem('api_url', selected.api_url)
-    localStorage.setItem('etablissement', JSON.stringify(selected))
+    sessionStorage.setItem('api_url', selected.api_url)
+    sessionStorage.setItem('etablissement', JSON.stringify(selected))
     navigate('/login')
   }
 

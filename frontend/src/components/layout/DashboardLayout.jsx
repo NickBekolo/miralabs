@@ -19,7 +19,7 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
   const [profileOpen, setProfileOpen] = useState(false)
   const [showProfil, setShowProfil] = useState(false)
 
-  const logout = () => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }
+  const logout = () => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }
 
   const SidebarContent = () => (
     <div style={{ display:'flex', flexDirection:'column', height:'100%' }}>

@@ -320,7 +320,7 @@ function AppelSection({ C }) {
     api.get('/api/classes').then(r=>setClasses(r.data)).catch(()=>{})
     api.get('/api/etablissement/parametres').then(r=>setSigActive(r.data.signatureNumeriqueActive)).catch(()=>{})
     api.get('/api/appels/historique').then(r=>setHistorique(r.data)).catch(()=>{})
-    const saved=localStorage.getItem('appelActif')
+    const saved=sessionStorage.getItem('appelActif')
     if(saved){try{const d=JSON.parse(saved);setAppel(d);if(d.classeId){setClasseId(String(d.classeId));api.get('/api/classes/'+d.classeId+'/eleves').then(r=>setEleves(r.data)).catch(()=>{})}}catch(e){}}
   },[])
 
@@ -349,7 +349,7 @@ function AppelSection({ C }) {
       const absentsIds=eleves.filter(e=>statuts[e.id]==='absent').map(e=>e.id)
       const r=await api.post('/api/appels',{coursId:null,eleveIds:eleves.map(e=>e.id),absentsIds})
       const ad={...r.data,classeId}
-      localStorage.setItem('appelActif',JSON.stringify(ad))
+      sessionStorage.setItem('appelActif',JSON.stringify(ad))
       setAppel(r.data)
       api.get('/api/appels/'+r.data.id).then(res=>setPresences(res.data.presences||[])).catch(()=>{})
       setMsg({ok:true,text:sigActive?'Appel lance ! Code : '+r.data.codeSignature:'Appel lance !'})
@@ -362,7 +362,7 @@ function AppelSection({ C }) {
     if(!appel)return
     const r=await api.patch('/api/appels/'+appel.id+'/terminer')
     setMsg({ok:true,text:'Appel termine. '+r.data.absencesCreees+' absence(s) creee(s).'})
-    localStorage.removeItem('appelActif')
+    sessionStorage.removeItem('appelActif')
     setAppel(null)
     const s={};eleves.forEach(e=>s[e.id]='present');setStatuts(s)
     api.get('/api/appels/historique').then(r=>setHistorique(r.data)).catch(()=>{})

@@ -154,7 +154,7 @@ export default function SuperAdminDashboard() {
   const [active, setActive]       = useState('accueil')
   const [collapsed, setCollapsed] = useState(false)
 
-  const logout = () => { localStorage.clear(); sessionStorage.clear(); window.location.href='/' }
+  const logout = () => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }
   const initials = `${user?.firstName?.[0]||''}${user?.lastName?.[0]||''}`.toUpperCase()
 
   return (

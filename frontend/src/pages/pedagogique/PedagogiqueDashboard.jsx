@@ -471,7 +471,7 @@ function AppelSection({ C }) {
             <div style={{fontSize:16,fontWeight:700,color:C.text,marginBottom:4}}>{detail?.eleve?.firstName} {detail?.eleve?.lastName}</div>
             <div style={{fontSize:12,color:C.muted,marginBottom:16}}>Signe a {detail?.signedAt}</div>
             {detail?.signatureImage
-              ?<img src={(import.meta.env.VITE_API_URL || ''+(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+'')+detail.signatureImage} alt="Signature" style={{width:'100%',borderRadius:12,border:`1px solid ${C.surface2}`,background:'#fff'}}/>
+              ?<img src={(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+detail.signatureImage} alt="Signature" style={{width:'100%',borderRadius:12,border:`1px solid ${C.surface2}`,background:'#fff'}}/>
               :<div style={{padding:24,textAlign:'center',color:C.hint,fontSize:13}}>Aucune image</div>
             }
             <button onClick={()=>setDetail(null)} style={{width:'100%',marginTop:16,padding:10,borderRadius:10,border:'none',background:C.text,color:C.bg,cursor:'pointer',fontFamily:ft}}>Fermer</button>

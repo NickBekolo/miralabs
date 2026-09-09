@@ -46,6 +46,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(nullable: true)]
     private ?string $photoUrl = null;
 
+    #[ORM\Column(type: 'string', length: 500, nullable: true)]
+    private ?string $signatureUrl = null;
+
     #[ORM\Column(nullable: true)]
     private ?string $parentNom = null;
 
@@ -175,6 +178,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     {
         return $this->photoUrl;
     }
+
+    public function getSignatureUrl(): ?string { return $this->signatureUrl; }
+    public function setSignatureUrl(?string $s): static { $this->signatureUrl = $s; return $this; }
 
     public function setPhotoUrl(?string $photoUrl): static
     {

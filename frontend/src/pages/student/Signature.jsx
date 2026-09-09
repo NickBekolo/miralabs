@@ -1,15 +1,19 @@
 import { useState, useRef, useEffect } from 'react'
-import { StickyNoteCheck, Sparkles, X } from 'lucide-react'
+import { StickyNoteCheck, Sparkles, X, Check } from 'lucide-react'
 import api from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
 export default function Signature({ onClose }) {
+  const { user } = useAuth()
   const [step,    setStep]    = useState('code')
   const [code,    setCode]    = useState(['','','','','',''])
   const [loading, setLoading] = useState(false)
   const [msg,     setMsg]     = useState(null)
   const [appel,   setAppel]   = useState(null)
+  const [hasSignature, setHasSignature] = useState(false)
+  const [showCanvas,   setShowCanvas]   = useState(false)
   const canvasRef = useRef(null)
   const inputRefs = [useRef(),useRef(),useRef(),useRef(),useRef(),useRef()]
   const drawing   = useRef(false)
@@ -17,6 +21,12 @@ export default function Signature({ onClose }) {
   useEffect(() => { inputRefs[0].current?.focus() }, [])
 
   useEffect(() => {
+    // Vérifier si l'étudiant a une signature enregistrée
+    api.get('/api/me').then(r => {
+      if (r.data.signatureUrl) setHasSignature(true)
+    }).catch(()=>{})
+
+    // Charger l'appel en cours
     api.get('/api/appels/en-cours').then(r => {
       if (r.data.length > 0) {
         setAppel(r.data[0])
@@ -37,173 +47,128 @@ export default function Signature({ onClose }) {
     if (e.key === 'Backspace' && !code[i] && i > 0) inputRefs[i-1].current?.focus()
   }
 
-  const verifyCode = async () => {
-    if (code.join('').length < 6) return
-    setLoading(true); setMsg(null)
-    try { setStep('sign') }
-    catch { setMsg('Code invalide.') }
-    finally { setLoading(false) }
-  }
-
-  const getPos = (e, canvas) => {
-    const rect = canvas.getBoundingClientRect()
-    const touch = e.touches?.[0] ?? e
-    return { x: touch.clientX - rect.left, y: touch.clientY - rect.top }
-  }
-
-  const startDraw = (e) => {
-    e.preventDefault()
+  const startDraw = (x, y) => {
     drawing.current = true
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const pos = getPos(e, canvas)
-    ctx.beginPath(); ctx.moveTo(pos.x, pos.y)
+    const ctx = canvasRef.current.getContext('2d')
+    ctx.beginPath()
+    ctx.moveTo(x, y)
   }
 
-  const draw = (e) => {
-    e.preventDefault()
+  const draw = (x, y) => {
     if (!drawing.current) return
-    const canvas = canvasRef.current
-    const ctx = canvas.getContext('2d')
-    const pos = getPos(e, canvas)
+    const ctx = canvasRef.current.getContext('2d')
+    ctx.lineTo(x, y)
+    ctx.strokeStyle = '#111'
     ctx.lineWidth = 2.5
     ctx.lineCap = 'round'
-    ctx.strokeStyle = '#0a0a0a'
-    ctx.lineTo(pos.x, pos.y)
     ctx.stroke()
-    ctx.beginPath(); ctx.moveTo(pos.x, pos.y)
   }
 
-  const stopDraw = () => { drawing.current = false }
+  const endDraw = () => { drawing.current = false }
 
-  const clearCanvas = () => {
+  const effacer = () => {
     const canvas = canvasRef.current
-    canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height)
+    const ctx = canvas.getContext('2d')
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
   }
 
-  const submitSignature = async () => {
+  const signer = async () => {
     if (!appel) { setMsg('Aucun appel en cours.'); return }
     setLoading(true); setMsg(null)
     try {
-      const canvas = canvasRef.current
-      const imageData = canvas.toDataURL('image/png')
-      await api.post(`/api/appels/signer`, {
-        code: code.join(''),
-        signature: imageData,
-      })
+      const payload = { code: code.join('') }
+      
+      if (showCanvas || !hasSignature) {
+        const canvas = canvasRef.current
+        payload.signature = canvas.toDataURL('image/png')
+      }
+
+      await api.post(`/api/appels/signer`, payload)
       setStep('done')
-    } catch {
-      setMsg('Erreur lors de la signature.')
+    } catch (e) {
+      setMsg(e?.response?.data?.error || 'Erreur lors de la signature.')
     } finally { setLoading(false) }
   }
 
+  const C = { bg:'#f5f5f7', surface:'#fff', text:'#1d1d1f', muted:'#6e6e73', hint:'#aeaeb2', surface2:'#e5e5ea' }
+
+  if (step === 'done') return (
+    <div style={{ fontFamily:ft, background:C.bg, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', flexDirection:'column', gap:16 }}>
+      <div style={{ width:64, height:64, borderRadius:'50%', background:'#22c55e', display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <Check size={32} color="#fff"/>
+      </div>
+      <div style={{ fontSize:18, fontWeight:500, color:C.text }}>Présence confirmée !</div>
+      <div style={{ fontSize:13, color:C.muted }}>Votre émargement a bien été enregistré.</div>
+      <button onClick={onClose} style={{ marginTop:8, padding:'10px 24px', borderRadius:10, background:'#111', color:'#fff', border:'none', fontSize:14, cursor:'pointer' }}>Fermer</button>
+    </div>
+  )
+
   return (
-    <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.35)', backdropFilter:'blur(10px)', zIndex:1000, display:'flex', alignItems:'center', justifyContent:'center', padding:20 }}>
-      <div style={{ background:'#fff', borderRadius:28, padding:'36px 32px', width:'100%', maxWidth:420, boxShadow:'0 32px 80px rgba(0,0,0,0.18)', fontFamily:ft, position:'relative' }}>
+    <div style={{ fontFamily:ft, background:C.bg, minHeight:'100vh', padding:'28px 20px' }}>
+      <div style={{ maxWidth:420, margin:'0 auto' }}>
 
-        {/* Bouton fermer */}
-        <button onClick={onClose} style={{ position:'absolute', top:16, right:16, width:30, height:30, borderRadius:'50%', background:'#f5f5f5', border:'none', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <X size={15} color="#666" strokeWidth={2}/>
-        </button>
+        {/* Header */}
+        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
+          <div>
+            <div style={{ fontSize:22, fontWeight:500, color:C.text }}>Émargement</div>
+            <div style={{ fontSize:12, color:C.muted }}>Signez votre présence</div>
+          </div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer' }}>
+            <X size={20} color={C.muted}/>
+          </button>
+        </div>
 
-        {/* ÉTAPE 1 — Code */}
-        {step === 'code' && (
-          <>
-            <div style={{ marginBottom:28 }}>
-              <div style={{ fontSize:12, fontWeight:600, color:'#000000ff', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:8 }}>Présence</div>
-              <div style={{ fontSize:22, fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.5px', marginBottom:6 }}>Signer l'appel</div>
-              <div style={{ fontSize:14, color:'#000000ff' }}>Saisissez le code affiché par votre professeur</div>
-            </div>
-
-            <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:24 }}>
-              {code.map((c, i) => (
-                <input key={i} ref={inputRefs[i]}
-                  value={c}
-                  onChange={e => handleCodeInput(e.target.value, i)}
-                  onKeyDown={e => handleKeyDown(e, i)}
-                  maxLength={1}
-                  style={{ width:48, height:56, textAlign:'center', fontSize:24, fontWeight:700, fontFamily:ft, color:'#0a0a0a', background:'#f9f9f9', border:`2px solid ${c?'#0a0a0a':'#e5e5e5'}`, borderRadius:14, outline:'none', textTransform:'uppercase', transition:'border 0.2s' }}
-                />
-              ))}
-            </div>
-
-            {msg && <div style={{ textAlign:'center', fontSize:13, color:'#FF3B30', marginBottom:12 }}>{msg}</div>}
-
-            <button onClick={verifyCode} disabled={code.join('').length < 6 || loading}
-              style={{ width:'100%', padding:'15px 0', borderRadius:980, border:'none', background:code.join('').length===6?'#0a0a0a':'#f0f0f0', color:code.join('').length===6?'#fff':'#aaa', fontSize:15, fontWeight:600, cursor:code.join('').length===6?'pointer':'default', fontFamily:ft, transition:'all 0.2s' }}>
-              {loading ? 'Vérification...' : 'Continuer'}
-            </button>
-
-            {appel && (
-              <div style={{ textAlign:'center', marginTop:16, fontSize:13, color:'#000000ff' }}>
-                {appel.enseignant} · {appel.cours}
-              </div>
-            )}
-          </>
-        )}
-
-        {/* ÉTAPE 2 — Signature */}
-        {step === 'sign' && (
-          <>
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontSize:22, fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.5px', marginBottom:6 }}>Votre signature</div>
-              <div style={{ fontSize:14, color:'#000000ff' }}>Tracez votre signature dans la zone ci-dessous</div>
-            </div>
-
-            <div style={{ position:'relative', marginBottom:20 }}>
-              <canvas ref={canvasRef} width={432} height={180}
-                onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
-                onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw}
-                style={{ width:'100%', height:180, background:'#f9f9f9', borderRadius:16, border:'2px solid #e5e5e5', cursor:'crosshair', display:'block', touchAction:'none' }}
+        {/* Code */}
+        <div style={{ background:C.surface, borderRadius:14, padding:'20px', marginBottom:16 }}>
+          <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>Code de l'appel</div>
+          <div style={{ display:'flex', gap:8, justifyContent:'center' }}>
+            {code.map((c2, i) => (
+              <input key={i} ref={inputRefs[i]} value={c2}
+                onChange={e => handleCodeInput(e.target.value, i)}
+                onKeyDown={e => handleKeyDown(e, i)}
+                maxLength={1}
+                style={{ width:40, height:48, textAlign:'center', fontSize:20, fontWeight:600, borderRadius:10, border:`1.5px solid ${C.surface2}`, background:C.bg, color:C.text, outline:'none' }}
               />
-              <button onClick={clearCanvas}
-                style={{ position:'absolute', top:10, right:10, background:'#fff', border:'1px solid #e5e5e5', borderRadius:8, padding:'4px 12px', fontSize:12, color:'#666', cursor:'pointer', fontFamily:ft }}>
-                Effacer
-              </button>
-            </div>
+            ))}
+          </div>
+        </div>
 
-            {msg && <div style={{ textAlign:'center', fontSize:13, color:'#FF3B30', marginBottom:12 }}>{msg}</div>}
-
-            <div style={{ display:'flex', gap:10 }}>
-              <button onClick={() => setStep('code')}
-                style={{ flex:1, padding:'14px 0', borderRadius:980, border:'1.5px solid #e5e5e5', background:'#fff', color:'#000000ff', fontSize:14, cursor:'pointer', fontFamily:ft }}>
-                Retour
-              </button>
-              <button onClick={submitSignature} disabled={loading}
-                style={{ flex:2, padding:'14px 0', borderRadius:980, border:'none', background:'#0a0a0a', color:'#fff', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:ft, opacity:loading?0.7:1 }}>
-                {loading ? 'Envoi...' : 'Confirmer'}
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* ÉTAPE 3 — Succès */}
-        {step === 'done' && (
-          <div style={{ textAlign:'center', padding:'20px 0' }}>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8, marginBottom:20 }}>
-              <StickyNoteCheck size={52} color="#0a0a0a" strokeWidth={1.5}/>
-              <Sparkles size={20} color="#0a0a0a" strokeWidth={1.5}/>
-            </div>
-            <div style={{ fontSize:22, fontWeight:700, color:'#0a0a0a', letterSpacing:'-0.5px', marginBottom:8 }}>Présence confirmée !</div>
-            <div style={{ fontSize:14, color:'#9ca3af', marginBottom:28 }}>Votre émargement a bien été enregistré.</div>
-            <button onClick={onClose}
-              style={{ padding:'14px 32px', borderRadius:980, border:'none', background:'#0a0a0a', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer', fontFamily:ft }}>
-              Fermer
+        {/* Signature */}
+        {hasSignature && !showCanvas ? (
+          <div style={{ background:C.surface, borderRadius:14, padding:'16px 20px', marginBottom:16 }}>
+            <div style={{ fontSize:13, color:C.text, marginBottom:4 }}>✅ Signature enregistrée</div>
+            <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>Votre signature personnelle sera utilisée automatiquement.</div>
+            <button onClick={() => setShowCanvas(true)} style={{ fontSize:12, color:'#007AFF', background:'none', border:'none', cursor:'pointer', padding:0 }}>
+              Utiliser une nouvelle signature
             </button>
+          </div>
+        ) : (
+          <div style={{ background:C.surface, borderRadius:14, padding:'16px 20px', marginBottom:16 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+              <div style={{ fontSize:13, color:C.text }}>Votre signature</div>
+              <button onClick={effacer} style={{ fontSize:12, color:C.muted, background:'none', border:'none', cursor:'pointer' }}>Effacer</button>
+            </div>
+            <canvas ref={canvasRef} width={360} height={120}
+              style={{ width:'100%', height:120, borderRadius:10, border:`1.5px solid ${C.surface2}`, background:'#fafafa', cursor:'crosshair', touchAction:'none' }}
+              onMouseDown={e => { const r = canvasRef.current.getBoundingClientRect(); startDraw(e.clientX-r.left, e.clientY-r.top) }}
+              onMouseMove={e => { const r = canvasRef.current.getBoundingClientRect(); draw(e.clientX-r.left, e.clientY-r.top) }}
+              onMouseUp={endDraw}
+              onTouchStart={e => { e.preventDefault(); const r = canvasRef.current.getBoundingClientRect(); const t = e.touches[0]; startDraw(t.clientX-r.left, t.clientY-r.top) }}
+              onTouchMove={e => { e.preventDefault(); const r = canvasRef.current.getBoundingClientRect(); const t = e.touches[0]; draw(t.clientX-r.left, t.clientY-r.top) }}
+              onTouchEnd={endDraw}
+            />
+            {!hasSignature && (
+              <div style={{ fontSize:11, color:C.muted, marginTop:8 }}>Cette signature sera enregistrée pour vos prochains émargements.</div>
+            )}
           </div>
         )}
 
-        {/* ÉTAPE erreur */}
-        {step === 'error' && (
-          <div style={{ textAlign:'center', padding:'20px 0' }}>
-            <div style={{ fontSize:22, fontWeight:700, color:'#ff0d00ff', letterSpacing:'-0.5px', marginBottom:8 }}>Erreur</div>
-            <div style={{ fontSize:14, color:'#9ca3af', marginBottom:28 }}>{msg}</div>
-            <button onClick={() => setStep('code')}
-              style={{ padding:'14px 32px', borderRadius:980, border:'none', background:'#0a0a0a', color:'#fff', fontSize:15, fontWeight:600, cursor:'pointer', fontFamily:ft }}>
-              Réessayer
-            </button>
-          </div>
-        )}
+        {msg && <div style={{ color:'#dc2626', fontSize:13, marginBottom:12, textAlign:'center' }}>{msg}</div>}
+
+        <button onClick={signer} disabled={loading}
+          style={{ width:'100%', padding:'14px', borderRadius:12, background:'#111', color:'#fff', border:'none', fontSize:15, fontWeight:500, cursor:'pointer', opacity: loading ? 0.6 : 1 }}>
+          {loading ? 'Signature en cours...' : "Confirmer ma présence"}
+        </button>
       </div>
     </div>
   )

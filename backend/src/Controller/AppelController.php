@@ -57,18 +57,24 @@ class AppelController extends AbstractController
                 }
                 $presence->setSigned(true);
                 $presence->setStatut('present');
-                if (!empty($data['signature'])) {
-                $base64 = $data['signature'];
-                // Extraire les données base64
-                if (str_contains($base64, ',')) {
-                    $base64 = explode(',', $base64)[1];
+                // Utiliser signature enregistrée ou nouvelle signature
+                $signatureBase64 = $data['signature'] ?? null;
+                $signatureUrl    = $eleve->getSignatureUrl();
+
+                if ($signatureBase64) {
+                    // Nouvelle signature — enregistrer et mettre à jour le profil
+                    $base64 = str_contains($signatureBase64, ',') ? explode(',', $signatureBase64)[1] : $signatureBase64;
+                    $imageData = base64_decode($base64);
+                    $filename  = 'signature_'.$eleve->getId().'.png';
+                    $filepath  = $this->getParameter('kernel.project_dir') . '/public/signatures/' . $filename;
+                    if (!is_dir(dirname($filepath))) mkdir(dirname($filepath), 0775, true);
+                    file_put_contents($filepath, $imageData);
+                    $eleve->setSignatureUrl('/signatures/'.$filename);
+                    $presence->setSignatureImage('/signatures/'.$filename);
+                } elseif ($signatureUrl) {
+                    // Utiliser signature enregistrée
+                    $presence->setSignatureImage($signatureUrl);
                 }
-                $imageData = base64_decode($base64);
-                $filename  = 'sig_' . $presence->getAppel()->getId() . '_' . $eleve->getId() . '_' . time() . '.png';
-                $filepath  = $this->getParameter('kernel.project_dir') . '/public/signatures/' . $filename;
-                file_put_contents($filepath, $imageData);
-                $presence->setSignatureImage('/signatures/' . $filename);
-            }
                 $em->flush();
                 return $this->json(['message' => 'Émargement signé avec succès ✓']);
             }

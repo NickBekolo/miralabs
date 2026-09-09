@@ -25,3 +25,4 @@ when@test:
 
     # Configuration upload de fichiers
     http_client: ~
+

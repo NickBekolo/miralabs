@@ -27,6 +27,7 @@ class MeController extends AbstractController
             'createdAt'        => $user->getCreatedAt()?->format('d/m/Y'),
             'etablissement'    => $user->getEtablissement()?->getName(),
             'mustChangePassword' => $user->isMustChangePassword(),
+            'signatureUrl'      => $user->getSignatureUrl(),
         ]);
     }
 }

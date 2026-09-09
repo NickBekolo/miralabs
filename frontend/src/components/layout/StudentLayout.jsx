@@ -133,7 +133,13 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             <Pencil size={13} strokeWidth={2.5}/>
             Signer
           </button>
-          {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
+          {showSign && (
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'stretch' }}>
+      <div style={{ flex:1, background:'#f5f5f7', overflowY:'auto' }}>
+        <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>
+      </div>
+    </div>
+  )}
       {showProfil && <ProfilMenu onClose={() => setShowProfil(false)} onNavigate={(p) => { setShowProfil(false); onNavChange(p) }}/>}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <ScanFace size={20} strokeWidth={1.5} color={C.text}/>
@@ -247,7 +253,13 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
 
 
 
-      {showSign && <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>}
+      {showSign && (
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'stretch' }}>
+      <div style={{ flex:1, background:'#f5f5f7', overflowY:'auto' }}>
+        <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>
+      </div>
+    </div>
+  )}
       {/* Menu latéral */}
       {menu && (
         <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>

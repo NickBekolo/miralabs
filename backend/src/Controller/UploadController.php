@@ -45,6 +45,32 @@ class UploadController extends AbstractController
         return $this->json(['path' => '/uploads/justificatifs/'.$filename]);
     }
 
+    // Enregistrer signature personnelle
+    #[Route('/signature', methods: ['POST'])]
+    public function signature(Request $req, EntityManagerInterface $em, #[CurrentUser] User $user): JsonResponse
+    {
+        $data = json_decode($req->getContent(), true);
+        $base64 = $data['signature'] ?? null;
+        if (!$base64) return $this->json(['message' => 'Signature manquante.'], 400);
+
+        if (str_contains($base64, ',')) {
+            $base64 = explode(',', $base64)[1];
+        }
+        $imageData = base64_decode($base64);
+        $filename  = 'signature_'.$user->getId().'.png';
+        $filepath  = $this->uploadDir.'/../signatures/'.$filename;
+
+        if (!is_dir(dirname($filepath))) {
+            mkdir(dirname($filepath), 0775, true);
+        }
+
+        file_put_contents($filepath, $imageData);
+        $user->setSignatureUrl('/signatures/'.$filename);
+        $em->flush();
+
+        return $this->json(['signatureUrl' => '/signatures/'.$filename]);
+    }
+
     // Upload photo de profil
     #[Route('/photo', methods: ['POST'])]
     public function photo(Request $req, EntityManagerInterface $em, #[CurrentUser] User $user): JsonResponse

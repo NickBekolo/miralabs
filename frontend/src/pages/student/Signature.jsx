@@ -87,7 +87,7 @@ export default function Signature({ onClose }) {
     try {
       const canvas = canvasRef.current
       const imageData = canvas.toDataURL('image/png')
-      await api.post(`/api/appels/${appel.id}/signer`, {
+      await api.post(`/api/appels/signer`, {
         code: code.join(''),
         signature: imageData,
       })

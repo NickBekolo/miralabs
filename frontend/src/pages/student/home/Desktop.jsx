@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import Signature from '../Signature'
@@ -262,11 +263,18 @@ export default function HomeScreen() {
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
         <NotesSection notes={notes} loading={loadN} C={C}/>
-        <ActualitesSection notifs={notifs} loading={loadNt} C={C} onSign={() => setShowSign(true)} onShowActu={() => setShowActu(true)}/>
+        <ActualitesSection notifs={notifs} loading={loadNt} C={C} onSign={(notifId) => { if(notifId) sessionStorage.setItem('signed_'+notifId, '1'); setShowSign(true) }} onShowActu={() => setShowActu(true)}/>
       </div>
 
       <Library C={C}/>
-      {showSign && <Signature onClose={() => setShowSign(false)}/>}
+      {showSign && createPortal(
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+        <Signature onClose={() => setShowSign(false)}/>
+      </div>
+    </div>,
+    document.body
+  )}
       {showActu && <Actualites onClose={() => setShowActu(false)}/>}
     </div>
   )

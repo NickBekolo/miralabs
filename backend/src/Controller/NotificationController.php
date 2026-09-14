@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Notification;
+use App\Entity\Appel;
 use App\Repository\NotificationRepository;
 use App\Repository\UserRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -33,6 +34,10 @@ class NotificationController extends AbstractController
             ['createAt' => 'DESC'],
             20
         );
+
+        // Supprimer les notifications d'appel s'il n'y a plus d'appel en cours
+        $hasAppelEnCours = count($this->notifRepo->getEntityManager()->getRepository(Appel::class)->findBy(['statut' => 'en_cours'])) > 0;
+        $notifs = array_values(array_filter($notifs, fn(Notification $n) => $n->getType() !== 'appel' || $hasAppelEnCours));
 
         return $this->json(array_map(fn(Notification $n) => [
             'id'        => $n->getId(),

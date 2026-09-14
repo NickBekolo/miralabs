@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Signature from '../Signature'
@@ -165,7 +166,7 @@ export default function Mobile() {
                   <div style={{ fontSize:12, fontWeight:600, color:n.type==='appel'?'#FF3B30':C.text, marginBottom:2 }}>{n.title}</div>
                   <div style={{ fontSize:11, color:C.muted }}>{n.message}</div>
                 </div>
-                {n.type==='appel' && (
+                {n.type==='appel' && !sessionStorage.getItem('signed_'+n.id) && (
                   <div style={{ background:'#FF3B30', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0, whiteSpace:'nowrap' }}>
                     Signer
                   </div>
@@ -175,7 +176,14 @@ export default function Mobile() {
           </div>
         </div>
       )}
-      {showSign && <Signature onClose={() => setShowSign(false)}/>}
+      {showSign && createPortal(
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+        <Signature onClose={() => setShowSign(false)}/>
+      </div>
+    </div>,
+    document.body
+  )}
     </div>
   )
 }

@@ -80,7 +80,7 @@ export default function Signature({ onClose }) {
   )
 
   return (
-    <div style={{ fontFamily:ft, padding:'28px 24px 24px' }}>
+    <div style={{ fontFamily:ft, padding:'20px 24px 24px', background:'#fff' }}>
 
       {/* Header */}
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
@@ -102,14 +102,14 @@ export default function Signature({ onClose }) {
 
       {/* Code */}
       <div style={{ marginBottom:20 }}>
-        <div style={{ fontSize:11, fontWeight:600, color:'#aeaeb2', letterSpacing:'0.5px', textTransform:'uppercase', marginBottom:10 }}>Code de l'appel</div>
+        <div style={{ fontSize:11, fontWeight:600, color:'#aeaeb2', letterSpacing:'0.5px', marginBottom:10 }}>Code de l'appel</div>
         <div style={{ display:'flex', gap:8 }}>
           {code.map((c2, i) => (
             <input key={i} ref={inputRefs[i]} value={c2}
               onChange={e => handleCodeInput(e.target.value, i)}
               onKeyDown={e => handleKeyDown(e, i)}
               maxLength={1}
-              style={{ flex:1, height:48, textAlign:'center', fontSize:20, fontWeight:700, borderRadius:10, border:'1.5px solid #e5e5ea', background:'#f5f5f7', color:'#1d1d1f', outline:'none' }}
+              style={{ flex:1, height:44, textAlign:'center', fontSize:18, fontWeight:700, borderRadius:8, border:'1.5px solid #e5e5ea', background:'#f5f5f7', color:'#1d1d1f', outline:'none', minWidth:0 }}
             />
           ))}
         </div>

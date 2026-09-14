@@ -75,6 +75,11 @@ class AppelController extends AbstractController
                     // Utiliser signature enregistrée
                     $presence->setSignatureImage($signatureUrl);
                 }
+                // Supprimer la notification d'appel pour cet élève
+                $notifRepo = $em->getRepository(\App\Entity\Notification::class);
+                $notifAppel = $notifRepo->findOneBy(['recipient' => $eleve, 'type' => 'appel']);
+                if ($notifAppel) $em->remove($notifAppel);
+                
                 $em->flush();
                 return $this->json(['message' => 'Émargement signé avec succès ✓']);
             }
@@ -125,17 +130,7 @@ class AppelController extends AbstractController
                 $presence->setStatut('absent');
             } else {
                 $presence->setStatut($signatureActive ? 'en_attente' : 'present');
-                if ($signatureActive) {
-                    $notif = new Notification();
-                    $notif->setTitle('Signez votre présence');
-                    $notif->setMessage("Votre professeur ".$this->getUser()->getFirstName()." ".$this->getUser()->getLastName()." a lancé l'appel. Signez maintenant !");
-                    $notif->setType('appel');
-                    $notif->setSender($this->getUser());
-                    $notif->setRecipient($eleve);
-                    $notif->setIsRead(false);
-                    $notif->setCreateAt(new \DateTimeImmutable());
-                    $em->persist($notif);
-                }
+                
             }
             $em->persist($presence);
         }

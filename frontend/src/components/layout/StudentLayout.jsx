@@ -131,13 +131,12 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
         <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.bg, borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
           <button onClick={() => hasAppel && setShowSign(true)}
             style={{ display:'flex', alignItems:'center', gap:6, background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', marginRight:12, transition:'all 0.2s' }}>
-            <Pencil size={13} strokeWidth={2.5}/>
             Signer
           </button>
           {showSign && createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-        <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>
+      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+        <Signature onClose={() => setShowSign(false)}/>
       </div>
     </div>,
     document.body
@@ -217,7 +216,6 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
           <div style={{ display:'flex', alignItems:'center', gap:8, width:40, justifyContent:'flex-end' }}>
           <button onClick={() => hasAppel && setShowSign(true)}
             style={{ background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', fontFamily:ft, display:'flex', alignItems:'center', gap:4, transition:'all 0.2s' }}>
-            <Pencil size={12} strokeWidth={2.5}/>
             Signer
           </button>
           {/* Avatar */}
@@ -255,13 +253,14 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
 
 
 
-      {showSign && (
-    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'stretch' }}>
-      <div style={{ flex:1, background:'#f5f5f7', overflowY:'auto' }}>
-        <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>
-      </div>
-    </div>
-  )}
+      {showSign && createPortal(
+        <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+          <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+            <Signature onClose={() => setShowSign(false)}/>
+          </div>
+        </div>,
+        document.body
+      )}
       {/* Menu latéral */}
       {menu && (
         <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>

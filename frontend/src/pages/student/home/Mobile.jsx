@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Signature from '../Signature'
@@ -28,7 +27,7 @@ function buildDatasets(notes) {
   }
 }
 
-export default function Mobile() {
+export default function Mobile({ onSign }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const darkMode = useThemeStore(s => s.darkMode)
@@ -37,7 +36,6 @@ export default function Mobile() {
   const [notes,   setNotes]   = useState([])
   const [cours,   setCours]   = useState([])
   const [notifs,  setNotifs]  = useState([])
-  const [showSign, setShowSign] = useState(false)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -160,13 +158,13 @@ export default function Mobile() {
           <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:8 }}>Actualités</div>
           <div style={{ background:C.surface, borderRadius:16, overflow:'hidden' }}>
             {notifs.slice(0,3).map((n, i) => (
-              <div key={n.id} onClick={() => n.type==='appel' && setShowSign(true)}
+              <div key={n.id} onClick={() => n.type==='appel' && onSign && onSign()}
                 style={{ padding:'12px 16px', borderBottom: i < Math.min(notifs.length,3)-1 ? `1px solid ${C.surface2}` : 'none', cursor:n.type==='appel'?'pointer':'default', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
                 <div>
-                  <div style={{ fontSize:12, fontWeight:600, color:n.type==='appel'?'#FF3B30':C.text, marginBottom:2 }}>{n.title}</div>
+                  <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:2 }}>{n.title}</div>
                   <div style={{ fontSize:11, color:C.muted }}>{n.message}</div>
                 </div>
-                {n.type==='appel' && !sessionStorage.getItem('signed_'+n.id) && (
+                {n.type==='appel' && (
                   <div style={{ background:'#FF3B30', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', flexShrink:0, whiteSpace:'nowrap' }}>
                     Signer
                   </div>
@@ -176,14 +174,7 @@ export default function Mobile() {
           </div>
         </div>
       )}
-      {showSign && createPortal(
-    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-        <Signature onClose={() => setShowSign(false)}/>
-      </div>
-    </div>,
-    document.body
-  )}
+      
     </div>
   )
 }

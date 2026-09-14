@@ -3,6 +3,7 @@ import { useThemeStore } from './store/ThemeStore'
 import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { AppelProvider } from './context/AppelContext'
 
 // Auth
 import SplashScreen          from './pages/auth/SplashScreen'
@@ -54,6 +55,7 @@ function App() {
 
   return (
     <AuthProvider>
+      <AppelProvider>
       <BrowserRouter>
         <Routes>
           {/* Sélection établissement — page d'accueil */}
@@ -97,6 +99,7 @@ function App() {
 } />
         </Routes>
       </BrowserRouter>
+    </AppelProvider>
     </AuthProvider>
   )
 }

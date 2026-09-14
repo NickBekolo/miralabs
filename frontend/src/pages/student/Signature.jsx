@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, ShieldCheck, Check, Eye, EyeOff } from 'lucide-react'
+import { X, PenLine, Check, Eye, EyeOff } from 'lucide-react'
 import api from '../../services/api'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
@@ -60,7 +60,12 @@ export default function Signature({ onClose }) {
       const payload = { code: code.join('') }
       if (showCanvas || !hasSignature) payload.signature = canvasRef.current.toDataURL('image/png')
       await api.post('/api/appels/signer', payload)
+      // Supprimer notifs appel
+      await api.post('/api/notifications/read-all').catch(()=>{})
+      // Rafraîchir la page après fermeture
       setDone(true)
+      // Recharger la page pour rafraîchir les notifications
+      setTimeout(() => { onClose(); window.location.reload() }, 1500)
     } catch (e) {
       setMsg(e?.response?.data?.error || 'Erreur lors de la signature.')
     } finally { setLoading(false) }
@@ -80,20 +85,17 @@ export default function Signature({ onClose }) {
   )
 
   return (
-    <div style={{ fontFamily:ft, padding:'20px 24px 24px', background:'#fff' }}>
+    <div style={{ fontFamily:ft, padding:'16px 20px 20px', background:'#fff' }}>
 
       {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', marginBottom:20 }}>
-        <div style={{ width:48, height:48, borderRadius:14, border:'2px solid #1d1d1f', display:'flex', alignItems:'center', justifyContent:'center' }}>
-          <ShieldCheck size={24} color="#1d1d1f" strokeWidth={1.5}/>
-        </div>
+        <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:8 }}>
         <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', color:'#aeaeb2', padding:4 }}>
           <X size={18}/>
         </button>
       </div>
 
       {/* Titre */}
-      <div style={{ fontSize:18, fontWeight:700, color:'#1d1d1f', marginBottom:6, lineHeight:1.3 }}>
+      <div style={{ fontSize:20, fontWeight:700, color:'#1d1d1f', marginBottom:4, lineHeight:1.3 }}>
         Signez votre présence
       </div>
       <div style={{ fontSize:14, color:'#6e6e73', marginBottom:24, lineHeight:1.5 }}>
@@ -140,7 +142,7 @@ export default function Signature({ onClose }) {
       ) : (
         <div style={{ marginBottom:20 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:8 }}>
-            <div style={{ fontSize:11, fontWeight:600, color:'#aeaeb2', letterSpacing:'0.5px', textTransform:'uppercase' }}>
+            <div style={{ fontSize:13, fontWeight:600, color:'#6e6e73' }}>
               {hasSignature ? 'Nouvelle signature' : 'Votre signature'}
             </div>
             <button onClick={effacer} style={{ fontSize:12, color:'#aeaeb2', background:'none', border:'none', cursor:'pointer' }}>Effacer</button>
@@ -164,7 +166,7 @@ export default function Signature({ onClose }) {
 
       <button onClick={signer} disabled={loading}
         style={{ width:'100%', padding:'14px', borderRadius:14, background:'#1d1d1f', color:'#fff', border:'none', fontSize:15, fontWeight:600, cursor:'pointer', opacity: loading ? 0.6 : 1 }}>
-        {loading ? 'En cours...' : 'Confirmer ma présence'}
+        {loading ? 'En cours...' : <span style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><PenLine size={16}/> Signer</span>}
       </button>
     </div>
   )

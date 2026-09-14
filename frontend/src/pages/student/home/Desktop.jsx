@@ -1,4 +1,3 @@
-import { createPortal } from 'react-dom'
 import { useState, useEffect } from 'react'
 import { useAuth } from '../../../context/AuthContext'
 import Signature from '../Signature'
@@ -182,7 +181,7 @@ function NotesSection({ notes, loading, C }) {
   )
 }
 
-function ActualitesSection({ notifs, loading, C, onSign, onShowActu }) {
+function ActualitesSection({ notifs, loading, C, onShowActu }) {
   return (
     <Card C={C}>
       <SectionHeader title="Actualités" link="Voir tout ›" onLink={onShowActu} C={C}/>
@@ -196,15 +195,10 @@ function ActualitesSection({ notifs, loading, C, onSign, onShowActu }) {
             <span style={{ fontSize:9, fontWeight:600, color:C.muted, textTransform:'uppercase' }}>{n.type}</span>
             <span style={{ fontSize:9, color:C.hint }}>{n.createdAt}</span>
           </div>
-          <div style={{ fontSize:12, fontWeight:500, color:n.type==='appel'?'#FF3B30':C.text, marginBottom:1 }}>{n.title}</div>
+          <div style={{ fontSize:12, fontWeight:500, color:C.text, marginBottom:1 }}>{n.title}</div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:8 }}>
             <div style={{ fontSize:10, color:C.muted, flex:1 }}>{n.message}</div>
-            {n.type==='appel' && (
-              <button onClick={() => onSign && onSign()}
-                style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'5px 14px', fontSize:11, fontWeight:700, color:'#fff', cursor:'pointer', flexShrink:0 }}>
-                Signer
-              </button>
-            )}
+            
           </div>
         </div>
       ))}
@@ -222,7 +216,6 @@ export default function HomeScreen() {
   const [notes,    setNotes]    = useState([])
   const [absences, setAbsences] = useState([])
   const [notifs,   setNotifs]   = useState([])
-  const [showSign, setShowSign]  = useState(false)
   const [showActu, setShowActu]   = useState(false)
   const [cours,    setCours]    = useState([])
   const [devoirs,  setDevoirs]  = useState([])
@@ -263,18 +256,11 @@ export default function HomeScreen() {
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:8, marginBottom:8 }}>
         <NotesSection notes={notes} loading={loadN} C={C}/>
-        <ActualitesSection notifs={notifs} loading={loadNt} C={C} onSign={(notifId) => { if(notifId) sessionStorage.setItem('signed_'+notifId, '1'); setShowSign(true) }} onShowActu={() => setShowActu(true)}/>
+        <ActualitesSection notifs={notifs} loading={loadNt} C={C} onShowActu={() => setShowActu(true)}/>
       </div>
 
       <Library C={C}/>
-      {showSign && createPortal(
-    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-        <Signature onClose={() => setShowSign(false)}/>
-      </div>
-    </div>,
-    document.body
-  )}
+      
       {showActu && <Actualites onClose={() => setShowActu(false)}/>}
     </div>
   )

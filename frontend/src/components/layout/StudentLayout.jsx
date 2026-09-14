@@ -52,6 +52,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
   const C        = darkMode ? DARK_THEME : LIGHT_THEME
   const [hasAppel,  setHasAppel]  = useState(false)
   const [showSign,  setShowSign]  = useState(false)
+  const [signed,    setSigned]    = useState(false)
   const [showProfil, setShowProfil] = useState(false)
   const [unreadMsg, setUnreadMsg] = useState(0)
 
@@ -129,14 +130,14 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.bg, borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
-          <button onClick={() => hasAppel && setShowSign(true)}
+          {!signed && <button onClick={() => hasAppel && setShowSign(true)}
             style={{ display:'flex', alignItems:'center', gap:6, background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', marginRight:12, transition:'all 0.2s' }}>
             Signer
-          </button>
+          </button>}
           {showSign && createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
       <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-        <Signature onClose={() => setShowSign(false)}/>
+        <Signature onClose={() => { setShowSign(false); setSigned(true) }}/>
       </div>
     </div>,
     document.body
@@ -164,6 +165,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
   const [showSign, setShowSign] = useState(false)
   const [hasAppel, setHasAppel] = useState(false)
   const [showProfil, setShowProfil] = useState(false)
+  const [signed, setSigned] = useState(false)
 
   useEffect(() => {
     const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
@@ -214,10 +216,10 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
 
           {/* Droite : Signer + Profil */}
           <div style={{ display:'flex', alignItems:'center', gap:8, width:40, justifyContent:'flex-end' }}>
-          <button onClick={() => hasAppel && setShowSign(true)}
+          {!signed && <button onClick={() => hasAppel && setShowSign(true)}
             style={{ background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', fontFamily:ft, display:'flex', alignItems:'center', gap:4, transition:'all 0.2s' }}>
             Signer
-          </button>
+          </button>}
           {/* Avatar */}
           <div onClick={() => setShowProfil(true)} style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0, cursor:'pointer' }}>
             {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
@@ -256,7 +258,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
       {showSign && createPortal(
         <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
           <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
-            <Signature onClose={() => setShowSign(false)}/>
+            <Signature onClose={() => { setShowSign(false); setSigned(true) }}/>
           </div>
         </div>,
         document.body

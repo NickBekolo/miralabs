@@ -133,12 +133,13 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             <Pencil size={13} strokeWidth={2.5}/>
             Signer
           </button>
-          {showSign && (
-    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.5)', display:'flex', alignItems:'stretch' }}>
-      <div style={{ flex:1, background:'#f5f5f7', overflowY:'auto' }}>
+          {showSign && createPortal(
+    <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
+      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, maxHeight:'90vh', overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
         <Signature onClose={() => { setShowSign(false); setHasAppel(false) }}/>
       </div>
-    </div>
+    </div>,
+    document.body
   )}
       {showProfil && <ProfilMenu onClose={() => setShowProfil(false)} onNavigate={(p) => { setShowProfil(false); onNavChange(p) }}/>}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { StickyNoteCheck, Sparkles, X, Check } from 'lucide-react'
+import { X, Check, PenLine, ShieldCheck } from 'lucide-react'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 
@@ -104,8 +104,8 @@ export default function Signature({ onClose }) {
   )
 
   return (
-    <div style={{ fontFamily:ft, background:C.bg, minHeight:'100vh', padding:'28px 20px' }}>
-      <div style={{ maxWidth:420, margin:'0 auto' }}>
+    <div style={{ fontFamily:ft, background:'#fff', padding:'24px 20px 20px' }}>
+      <div style={{ maxWidth:'100%' }}>
 
         {/* Header */}
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
@@ -136,7 +136,10 @@ export default function Signature({ onClose }) {
         {/* Signature */}
         {hasSignature && !showCanvas ? (
           <div style={{ background:C.surface, borderRadius:14, padding:'16px 20px', marginBottom:16 }}>
-            <div style={{ fontSize:13, color:C.text, marginBottom:4 }}>✅ Signature enregistrée</div>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
+              <ShieldCheck size={16} color="#22c55e"/>
+              <div style={{ fontSize:13, color:C.text }}>Signature enregistrée</div>
+            </div>
             <div style={{ fontSize:12, color:C.muted, marginBottom:12 }}>Votre signature personnelle sera utilisée automatiquement.</div>
             <button onClick={() => setShowCanvas(true)} style={{ fontSize:12, color:'#007AFF', background:'none', border:'none', cursor:'pointer', padding:0 }}>
               Utiliser une nouvelle signature

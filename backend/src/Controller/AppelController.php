@@ -168,6 +168,13 @@ class AppelController extends AbstractController
         $appel = $em->getRepository(Appel::class)->find($id);
         if (!$appel) return $this->json(['error' => 'Non trouvé'], 404);
         $appel->setStatut('termine');
+
+        // Supprimer les notifications d'appel liées
+        $notifs = $em->getRepository(\App\Entity\Notification::class)->findBy(['type' => 'appel']);
+        foreach ($notifs as $notif) {
+            $em->remove($notif);
+        }
+
         $absencesCreees = 0;
         foreach ($appel->getPresences() as $presence) {
             if ($presence->getStatut() === 'absent' || (!$presence->isSigned() && $presence->getStatut() === 'en_attente')) {

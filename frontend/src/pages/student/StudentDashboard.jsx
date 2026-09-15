@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { StudentLayout }  from '../../components/layout/StudentLayout'
 import ForYou             from './ForYou'
 import HomeScreen         from './home'
+import Calendrier         from './Calendrier'
 import Conversations      from './Conversations'
 import Espaces            from './Espaces'
 import EmploiDuTemps      from './EmploiDuTemps'
@@ -20,6 +21,7 @@ export default function StudentDashboard({ isParent, onSign }) {
 
   const renderPage = () => {
     switch (active) {
+      case 'calendrier':    return <Calendrier/>
       case 'accueil':       return <HomeScreen onSign={onSign}/>
       case 'conversations': return <Conversations />
       case 'espaces':       return <Espaces />

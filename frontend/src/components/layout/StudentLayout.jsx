@@ -5,11 +5,12 @@ import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import Signature from '../../pages/student/Signature'
 import ProfilMenu from '../../pages/student/ProfilMenu'
-import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut } from 'lucide-react'
+import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut, CalendarDays } from 'lucide-react'
 
 const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
 
 const NAV_ITEMS = [
+  { id:'calendrier', label:'Calendrier',     icon:CalendarDays, color:'#FF3B30' },
   { id:'accueil',   label:'Accueil',        icon:Home },
   { id:'notes',     label:'Notes',           icon:BarChart2 },
   { id:'emploi',    label:'Emploi du temps', icon:Calendar },
@@ -91,15 +92,15 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
           </button>
         </div>
         <nav style={{ flex:1, borderTop:`1px solid ${C.surface2}`, borderBottom:`1px solid ${C.surface2}`, padding:'8px 0', marginBottom:8 }}>
-          {NAV_ITEMS.map(({ id, label, icon:Icon }) => {
+          {NAV_ITEMS.map(({ id, label, icon:Icon, color:itemColor }) => {
             const active = activePage === id
             return (
               <div key={id} onClick={() => onNavChange(id)}
-                style={{ display:'flex', alignItems:'center', justifyContent: collapsed?'center':'flex-start', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?C.text:C.muted, background:active?C.surface2:'transparent', marginBottom:2, width:'100%' }}
+                style={{ display:'flex', alignItems:'center', justifyContent: collapsed?'center':'flex-start', gap:8, padding:'8px 10px', borderRadius:8, cursor:'pointer', fontSize:13, fontWeight:active?500:400, color:active?(itemColor||C.text):C.muted, background:active?C.surface2:'transparent', marginBottom:2, width:'100%' }}
                 onMouseEnter={e => { if (!active) e.currentTarget.style.background = C.surface }}
                 onMouseLeave={e => { if (!active) e.currentTarget.style.background = 'transparent' }}>
                 <div style={{width:20,display:'flex',justifyContent:'center',flexShrink:0}}>
-                <Icon size={20} strokeWidth={1.5} color={active ? C.text : (C.bg === '#fff' ? '#555' : '#aaa')}/>
+                <Icon size={20} strokeWidth={1.5} color={active ? (itemColor||C.text) : (C.bg === '#fff' ? '#555' : '#aaa')}/>
               </div>
               {!collapsed && <span style={{transition:'opacity 0.2s'}}>{label}</span>}
               {id==='conversations' && unreadMsg>0 && (
@@ -268,10 +269,10 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
         <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>
           <div onClick={e => e.stopPropagation()} style={{ width:260, background:bg, height:'100%', padding:'48px 20px 32px', display:'flex', flexDirection:'column' }}>
             <div style={{ fontSize:18, fontWeight:700, color:text, marginBottom:32 }}>Miralabs.</div>
-            {NAV_ITEMS.map(({ id, label, icon:Icon }) => (
+            {NAV_ITEMS.map(({ id, label, icon:Icon, color:iColor }) => (
               <div key={id} onClick={() => { onNavChange(id); setMenu(false) }}
                 style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color: activePage===id ? text : muted, fontWeight: activePage===id ? 600 : 400, fontSize:16, borderBottom:`1px solid ${darkMode ? 'rgba(255,255,255,0.06)' : '#f0f0f0'}` }}>
-                <Icon size={18} strokeWidth={1.5}/>{label}
+                <Icon size={18} strokeWidth={1.5} color={activePage===id ? (iColor||text) : muted}/>{label}
               </div>
             ))}
             <div onClick={() => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }}

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react'
-import { X, PenLine, Check, Eye, EyeOff } from 'lucide-react'
+import { X, Check, Eye, EyeOff } from 'lucide-react'
 import api from '../../services/api'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
@@ -58,7 +58,12 @@ export default function Signature({ onClose }) {
     setLoading(true); setMsg(null)
     try {
       const payload = { code: code.join('') }
-      if (showCanvas || !hasSignature) payload.signature = canvasRef.current.toDataURL('image/png')
+      console.log('showCanvas:', showCanvas, 'hasSignature:', hasSignature)
+      if (showCanvas || !hasSignature) {
+        const sig = canvasRef.current.toDataURL('image/png')
+        console.log('signature length:', sig.length)
+        payload.signature = sig
+      }
       await api.post('/api/appels/signer', payload)
       // Supprimer notifs appel
       await api.post('/api/notifications/read-all').catch(()=>{})
@@ -78,7 +83,7 @@ export default function Signature({ onClose }) {
       </div>
       <div style={{ fontSize:17, fontWeight:700, color:'#1d1d1f', marginBottom:6 }}>Présence confirmée</div>
       <div style={{ fontSize:14, color:'#6e6e73', marginBottom:24, lineHeight:1.5 }}>Votre émargement a bien été enregistré.</div>
-      <button onClick={onClose} style={{ width:'100%', padding:'14px', borderRadius:14, background:'#1d1d1f', color:'#fff', border:'none', fontSize:15, fontWeight:600, cursor:'pointer' }}>
+      <button onClick={onClose} style={{ width:'100%', padding:'14px', borderRadius:999, background:'#1d1d1f', color:'#fff', border:'none', fontSize:15, fontWeight:600, cursor:'pointer' }}>
         Fermer
       </button>
     </div>
@@ -111,7 +116,7 @@ export default function Signature({ onClose }) {
               onChange={e => handleCodeInput(e.target.value, i)}
               onKeyDown={e => handleKeyDown(e, i)}
               maxLength={1}
-              style={{ flex:1, height:44, textAlign:'center', fontSize:18, fontWeight:700, borderRadius:8, border:'1.5px solid #e5e5ea', background:'#f5f5f7', color:'#1d1d1f', outline:'none', minWidth:0 }}
+              style={{ flex:1, height:44, textAlign:'center', fontSize:18, fontWeight:700, borderRadius:12, border:'1px solid #1d1d1f', background:'#fff', color:'#1d1d1f', outline:'none', minWidth:0 }}
             />
           ))}
         </div>
@@ -119,7 +124,7 @@ export default function Signature({ onClose }) {
 
       {/* Signature */}
       {hasSignature && !showCanvas ? (
-        <div style={{ background:'#f5f5f7', borderRadius:12, padding:'14px 16px', marginBottom:20 }}>
+        <div style={{ background:'#f5f5f7', borderRadius:16, padding:'14px 16px', marginBottom:20 }}>
           <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: showPreview ? 10 : 0 }}>
             <div style={{ fontSize:13, fontWeight:500, color:'#1d1d1f' }}>Signature enregistrée</div>
             <div style={{ display:'flex', gap:12, alignItems:'center' }}>
@@ -136,7 +141,7 @@ export default function Signature({ onClose }) {
           </div>
           {showPreview && signatureUrl && (
             <img src={baseUrl + signatureUrl} alt="signature"
-              style={{ width:'100%', height:60, objectFit:'contain', borderRadius:8, background:'#fff', border:'1px solid #e5e5ea' }}/>
+              style={{ width:'100%', height:60, objectFit:'contain', borderRadius:14, background:'#fff', border:'1px solid #e5e5ea' }}/>
           )}
         </div>
       ) : (
@@ -148,7 +153,7 @@ export default function Signature({ onClose }) {
             <button onClick={effacer} style={{ fontSize:12, color:'#aeaeb2', background:'none', border:'none', cursor:'pointer' }}>Effacer</button>
           </div>
           <canvas ref={canvasRef} width={400} height={100}
-            style={{ width:'100%', height:100, borderRadius:10, border:'1.5px solid #e5e5ea', background:'#fafafa', cursor:'crosshair', touchAction:'none', display:'block' }}
+            style={{ width:'100%', height:100, borderRadius:16, border:'1.5px solid #e5e5ea', background:'#fafafa', cursor:'crosshair', touchAction:'none', display:'block' }}
             onMouseDown={e => { const r = canvasRef.current.getBoundingClientRect(); startDraw(e.clientX-r.left, e.clientY-r.top) }}
             onMouseMove={e => { const r = canvasRef.current.getBoundingClientRect(); draw(e.clientX-r.left, e.clientY-r.top) }}
             onMouseUp={endDraw}
@@ -165,8 +170,8 @@ export default function Signature({ onClose }) {
       {msg && <div style={{ color:'#dc2626', fontSize:12, marginBottom:12, textAlign:'center' }}>{msg}</div>}
 
       <button onClick={signer} disabled={loading}
-        style={{ width:'100%', padding:'14px', borderRadius:14, background:'#1d1d1f', color:'#fff', border:'none', fontSize:15, fontWeight:600, cursor:'pointer', opacity: loading ? 0.6 : 1 }}>
-        {loading ? 'En cours...' : <span style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}><PenLine size={16}/> Signer</span>}
+        style={{ width:'100%', padding:'14px', borderRadius:999, background:'#1d1d1f', color:'#fff', border:'none', fontSize:15, fontWeight:600, cursor:'pointer', opacity: loading ? 0.6 : 1 }}>
+        {loading ? 'En cours...' : 'Signer'}
       </button>
     </div>
   )

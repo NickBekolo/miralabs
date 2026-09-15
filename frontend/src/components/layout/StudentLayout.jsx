@@ -130,13 +130,13 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ height:48, display:'flex', alignItems:'center', justifyContent:'flex-end', padding:'0 20px', background:C.bg, borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
-          {!signed && <button onClick={() => hasAppel && setShowSign(true)}
-            style={{ display:'flex', alignItems:'center', gap:6, background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', marginRight:12, transition:'all 0.2s' }}>
+          {!signed && hasAppel && <button onClick={() => setShowSign(true)}
+            style={{ display:'flex', alignItems:'center', gap:6, background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', marginRight:12, transition:'all 0.2s' }}>
             Signer
           </button>}
           {showSign && createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-      <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+      <div style={{ background:'#fff', borderRadius:36, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
         <Signature onClose={() => { setShowSign(false); setSigned(true) }}/>
       </div>
     </div>,
@@ -198,7 +198,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
               <ChevronDown size={18} color={muted} style={{ transform: dropdown ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
             </button>
             {dropdown && (
-              <div onClick={() => setDropdown(false)} style={{ position:'absolute', top:36, left:'50%', transform:'translateX(-50%)', background: darkMode ? '#1a1a1a' : '#fff', borderRadius:20, padding:8, minWidth:200, boxShadow:'0 8px 32px rgba(0,0,0,0.15)', zIndex:300 }}>
+              <div onClick={() => setDropdown(false)} style={{ position:'absolute', top:36, left:'50%', transform:'translateX(-50%)', background: darkMode ? '#1a1a1a' : '#fff', borderRadius:36, padding:8, minWidth:200, boxShadow:'0 8px 32px rgba(0,0,0,0.15)', zIndex:300 }}>
                 {[{label:'Mira School',Icon:School,desc:'Gestion scolaire'},{label:'Mira Learn',Icon:BookOpen,desc:'Réseau collaboratif'},{label:'Mira IA',Icon:Sparkles,desc:'Assistant intelligent'},{label:'Mira Challenge',Icon:Trophy,desc:'Compétitions'}].map(({ label, Icon: PIcon, desc }) => (
                   <div key={label} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:14, cursor:'pointer' }}
                     onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#242424' : '#f5f5f5'}
@@ -216,8 +216,8 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
 
           {/* Droite : Signer + Profil */}
           <div style={{ display:'flex', alignItems:'center', gap:8, width:40, justifyContent:'flex-end' }}>
-          {!signed && <button onClick={() => hasAppel && setShowSign(true)}
-            style={{ background:hasAppel?'#FF3B30':'#e5e5e5', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:hasAppel?'#fff':'#aaa', cursor:hasAppel?'pointer':'default', fontFamily:ft, display:'flex', alignItems:'center', gap:4, transition:'all 0.2s' }}>
+          {!signed && hasAppel && <button onClick={() => setShowSign(true)}
+            style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', fontFamily:ft, transition:'all 0.2s' }}>
             Signer
           </button>}
           {/* Avatar */}
@@ -257,7 +257,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
 
       {showSign && createPortal(
         <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
-          <div style={{ background:'#fff', borderRadius:20, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
+          <div style={{ background:'#fff', borderRadius:36, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
             <Signature onClose={() => { setShowSign(false); setSigned(true) }}/>
           </div>
         </div>,

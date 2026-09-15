@@ -469,7 +469,7 @@ function AppelSection({ C }) {
         <div onClick={()=>setDetail(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(8px)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center'}}>
           <div onClick={e=>e.stopPropagation()} style={{background:C.bg,borderRadius:20,padding:24,maxWidth:420,width:'90%'}}>
             <div style={{fontSize:16,fontWeight:700,color:C.text,marginBottom:4}}>{detail?.eleve?.firstName} {detail?.eleve?.lastName}</div>
-            <div style={{fontSize:12,color:C.muted,marginBottom:16}}>Signe a {detail?.signedAt}</div>
+            <div style={{fontSize:12,color:C.muted,marginBottom:16}}>Signe a {detail?.signedAt ? new Date(new Date().toDateString()+' '+detail.signedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
             {detail?.signatureImage
               ?<img src={(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+detail.signatureImage} alt="Signature" style={{width:'100%',borderRadius:12,border:`1px solid ${C.surface2}`,background:'#fff'}}/>
               :<div style={{padding:24,textAlign:'center',color:C.hint,fontSize:13}}>Aucune image</div>
@@ -489,7 +489,7 @@ function AppelSection({ C }) {
                 <div style={{width:8,height:8,borderRadius:'50%',background:p.signed?'#34C759':p.statut==='absent'?'#FF3B30':'#FF9500',flexShrink:0}}/>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,color:C.text}}>{p.eleve?.firstName} {p.eleve?.lastName}</div>
-                  {p.signedAt&&<div style={{fontSize:11,color:C.muted}}>Signe a {p.signedAt}</div>}
+                  {p.signedAt&&<div style={{fontSize:11,color:C.muted}}>Signe a {p.signedAt ? new Date(new Date().toDateString()+' '+p.signedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</div>}
                 </div>
                 <span style={{fontSize:12,fontWeight:600,color:p.signed?'#34C759':p.statut==='absent'?'#FF3B30':'#FF9500'}}>{p.signed?'Signe':p.statut==='absent'?'Absent':'En attente'}</span>
                 {p.signatureImage&&<button onClick={()=>setDetail(p)} style={{fontSize:11,padding:'3px 8px',borderRadius:8,border:'none',background:C.surface2,color:C.muted,cursor:'pointer',fontFamily:ft}}>Image</button>}

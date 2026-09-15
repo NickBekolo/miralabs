@@ -150,7 +150,7 @@ class AppelController extends AbstractController
             'eleve'          => ['id'=>$p->getEleve()->getId(),'firstName'=>$p->getEleve()->getFirstName(),'lastName'=>$p->getEleve()->getLastName()],
             'statut'         => $p->getStatut(),
             'signed'         => $p->isSigned(),
-            'signedAt'       => $p->getSignedAt()?->format('H:i'),
+            'signedAt'       => $p->getSignedAt() ? (clone $p->getSignedAt())->setTimezone(new \DateTimeZone('Europe/Paris'))->format('H:i') : null,
             'signatureImage' => $p->getSignatureImage(),
         ], $appel->getPresences()->toArray());
         return $this->json(['id'=>$appel->getId(),'statut'=>$appel->getStatut(),'codeSignature'=>$appel->getCodeSignature(),'dateHeure'=>$appel->getDateHeure()?->format('Y-m-d H:i'),'presences'=>$presences]);

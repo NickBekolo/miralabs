@@ -144,4 +144,8 @@ class Cours
     public function getEtablissement(): ?Etablissement { return $this->etablissement; }
     public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
 
+    #[ORM\Column(length: 20, nullable: true)]
+    private ?string $couleur = null;
+    public function getCouleur(): ?string { return $this->couleur; }
+    public function setCouleur(?string $couleur): static { $this->couleur = $couleur; return $this; }
 }

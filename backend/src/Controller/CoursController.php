@@ -37,6 +37,7 @@ class CoursController extends AbstractController
             'jourSemaine' => $c->getJourSemaine(),
             'salle'       => $c->getSalle(),
             'isAnnule'    => $c->isAnnule(),
+            'couleur'     => $c->getCouleur(),
             'matiere'     => [
                 'id'  => $c->getMatiere()->getId(),
                 'nom' => $c->getMatiere()->getNom(),
@@ -102,6 +103,7 @@ class CoursController extends AbstractController
         $cours->setJourSemaine((int)$data['jourSemaine']);
         $cours->setSalle($data['salle'] ?? null);
         $cours->setIsAnnule(false);
+        if (!empty($data['couleur'])) $cours->setCouleur($data['couleur']);
 
         if (!empty($data['classeId'])) {
             $classe = $this->classeRepo->find($data['classeId']);
@@ -147,5 +149,43 @@ class CoursController extends AbstractController
         $this->em->flush();
 
         return $this->json(['message' => 'Cours supprimé.']);
+    }
+
+    #[Route('/admin/all', name: 'cours_admin_all', methods: ['GET'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function adminAll(EntityManagerInterface $em, #[CurrentUser] User $user): JsonResponse
+    {
+        $etab = $user->getEtablissement();
+        $cours = $em->getRepository(Cours::class)->findBy(['etablissement' => $etab]);
+        return $this->json(array_map(fn(Cours $c) => [
+            'id'          => $c->getId(),
+            'heureDebut'  => $c->getHeureDebut(),
+            'heureFin'    => $c->getHeureFin(),
+            'jourSemaine' => $c->getJourSemaine(),
+            'salle'       => $c->getSalle(),
+            'isAnnule'    => $c->isAnnule(),
+            'couleur'     => $c->getCouleur(),
+            'matiere'     => ['id'=>$c->getMatiere()->getId(),'nom'=>$c->getMatiere()->getNom()],
+            'classe'      => $c->getClasse() ? ['id'=>$c->getClasse()->getId(),'name'=>$c->getClasse()->getName()] : null,
+            'enseignant'  => $c->getEnseignant() ? ['id'=>$c->getEnseignant()->getId(),'firstName'=>$c->getEnseignant()->getFirstName(),'lastName'=>$c->getEnseignant()->getLastName()] : null,
+        ], $cours));
+    }
+
+    #[Route('/{id}', name: 'cours_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function update(int $id, Request $req, EntityManagerInterface $em): JsonResponse
+    {
+        $cours = $em->getRepository(Cours::class)->find($id);
+        if (!$cours) return $this->json(['error' => 'Cours introuvable'], 404);
+        
+        $data = json_decode($req->getContent(), true);
+        if (isset($data['heureDebut']))  $cours->setHeureDebut($data['heureDebut']);
+        if (isset($data['heureFin']))    $cours->setHeureFin($data['heureFin']);
+        if (isset($data['jourSemaine'])) $cours->setJourSemaine($data['jourSemaine']);
+        if (isset($data['salle']))       $cours->setSalle($data['salle']);
+        if (isset($data['couleur']))     $cours->setCouleur($data['couleur']);
+        
+        $em->flush();
+        return $this->json(['message' => 'Cours mis à jour']);
     }
 }

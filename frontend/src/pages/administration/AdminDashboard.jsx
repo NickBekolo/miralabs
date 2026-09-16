@@ -3,6 +3,7 @@ import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import { useRole } from '../../hooks/useRole'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import api from '../../services/api'
+import EdtSection from './EdtSection'
 import ChartCard from '../../components/shared/ChartCard'
 import {
   Home, Users, BookOpen, ClipboardList, Calendar,
@@ -1088,7 +1089,8 @@ export default function AdminDashboard() {
           {active === 'enseignants' && <EnseignantSection C={C}/>}
           {active === 'classes'     && <ClasseSection C={C}/>}
           {active === 'stats'       && <StatsSection C={C} onNavigate={(id) => { /* naviguer via layout */ document.querySelector(`[data-nav='${id}']`)?.click() }}/> }
-          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && (
+          {active === 'edt' && <EdtSection C={C}/>}
+          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && active !== 'edt' && (
             <div style={{ background:C.surface, borderRadius:14, padding:24, border:`1px solid ${C.surface2}` }}>
               <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>En cours de développement</div>
               <div style={{ fontSize:13, color:C.muted }}>Cette section sera disponible prochainement.</div>

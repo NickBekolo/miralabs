@@ -221,8 +221,15 @@ export default function Calendrier() {
 
                   {/* Ligne heure actuelle */}
                   {isCurrentDay && (
-                    <div style={{position:'absolute',top:nowTop,left:0,right:0,height:2,background:RED,zIndex:10,pointerEvents:'none'}}>
-                      <div style={{width:8,height:8,borderRadius:'50%',background:RED,marginTop:-3,marginLeft:-4}}/>
+                    <div style={{position:'absolute',top:nowTop-10,left:-48,right:0,zIndex:10,pointerEvents:'none',display:'flex',alignItems:'center'}}>
+                      <div style={{
+                        background:RED,color:'#fff',borderRadius:999,
+                        padding:'2px 6px',fontSize:10,fontWeight:700,
+                        flexShrink:0,whiteSpace:'nowrap'
+                      }}>
+                        {String(new Date().getHours()).padStart(2,'0')}:{String(new Date().getMinutes()).padStart(2,'0')}
+                      </div>
+                      <div style={{flex:1,height:2,background:RED}}/>
                     </div>
                   )}
 

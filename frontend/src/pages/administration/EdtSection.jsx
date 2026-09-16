@@ -145,11 +145,15 @@ export default function EdtSection({ C }) {
     <div style={{fontFamily:ft, height:'calc(100vh - 120px)', display:'flex', flexDirection:'column'}}>
 
       {/* Header */}
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16,flexShrink:0}}>
-        <div>
-          <div style={{fontSize:20,fontWeight:700,color:text}}>Emploi du temps</div>
-          <div style={{fontSize:12,color:muted}}>{cours.length} cours · {classes.length} classes</div>
+      <div style={{marginBottom:20,flexShrink:0}}>
+        <div style={{fontSize:22,fontWeight:700,letterSpacing:'-0.4px',color:text,marginBottom:4}}>
+          Emploi du temps
         </div>
+        <div style={{fontSize:12,color:muted,marginBottom:16}}>
+          {new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div style={{fontSize:12,color:muted}}>{cours.length} cours · {classes.length} classes</div>
         <div style={{display:'flex',gap:8,alignItems:'center'}}>
           {/* Filtre classe */}
           <div style={{position:'relative'}}>
@@ -161,6 +165,7 @@ export default function EdtSection({ C }) {
             <svg style={{position:'absolute',right:10,top:'50%',transform:'translateY(-50%)',pointerEvents:'none'}} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#aeaeb2" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           {selectedDay && <button onClick={()=>setSelectedDay(null)} style={{fontSize:13,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:500}}>← Semaine</button>}
+          </div>
           <button onClick={()=>{setShowForm(true);setEditCours(null)}}
             style={{display:'flex',alignItems:'center',gap:6,background:RED,color:'#fff',border:'none',borderRadius:12,padding:'9px 16px',fontSize:13,fontWeight:600,cursor:'pointer'}}>
             <Plus size={14}/> Ajouter

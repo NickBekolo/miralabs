@@ -42,7 +42,7 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
               onMouseEnter={e => !isActive && (e.currentTarget.style.background=C.surface)}
               onMouseLeave={e => !isActive && (e.currentTarget.style.background='transparent')}>
               <Icon size={18} strokeWidth={1.8} color={isActive?C.text:C.muted}/>
-              {!collapsed && <span>{label}</span>}
+              {!collapsed && <span style={{fontWeight:400}}>{label}</span>}
             </button>
           )
         })}
@@ -139,8 +139,8 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
 
       {/* Contenu */}
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
-        <div style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', borderBottom:`1px solid ${C.surface2}`, flexShrink:0 }}>
-          <div style={{ fontSize:16, fontWeight:600, color:C.text }}>{activeItem?.label}</div>
+        <div style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', borderBottom:active==='edt'?'none':`1px solid ${C.surface2}`, flexShrink:0 }}>
+          <div>{active !== 'edt' && <div style={{ fontSize:16, fontWeight:600, color:C.text }}>{activeItem?.label}</div>}</div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <Bell size={18} color={C.muted} strokeWidth={1.5}/>
             <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={30}/>

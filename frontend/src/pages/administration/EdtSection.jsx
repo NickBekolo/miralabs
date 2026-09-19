@@ -60,6 +60,7 @@ export default function EdtSection({ C }) {
   const [calYear,      setCalYear]      = useState(today.getFullYear())
   const [calMonth,     setCalMonth]     = useState(today.getMonth())
   const [selectedDay,  setSelectedDay]  = useState(null)
+  const [animating,    setAnimating]    = useState(false)
   const [filtreClasse, setFiltreClasse] = useState('')
   const [calCollapsed, setCalCollapsed] = useState(false)
   const [showForm,     setShowForm]     = useState(false)
@@ -223,10 +224,15 @@ export default function EdtSection({ C }) {
       <div style={{ marginBottom: 16, flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.4px', color: text }}>Emploi du temps</div>
-            <div style={{ fontSize: 12, color: muted, marginTop: 2 }}>
-              {new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
-              &nbsp;·&nbsp;{cours.length} cours&nbsp;·&nbsp;{classes.length} classes
+            <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.4px', color: text, marginBottom: 6 }}>Emploi du temps</div>
+            <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:muted }}>
+              <span style={{ color:RED, fontWeight:600 }}>
+                {new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}
+              </span>
+              <span>·</span>
+              <span style={{ fontWeight:600, color:text }}>{cours.length} cours</span>
+              <span>·</span>
+              <span style={{ fontWeight:600, color:text }}>{classes.length} classes</span>
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
@@ -250,7 +256,8 @@ export default function EdtSection({ C }) {
       </div>
 
       {/* Corps */}
-      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', border: `1px solid ${border}`, borderRadius: 16 }}>
+      <div style={{ flex: 1, display: 'flex', overflow: 'hidden', border: `1px solid ${border}`, borderRadius: 16, position:'relative' }}>
+
 
         {/* Mini calendrier */}
         <div style={{ width: calCollapsed ? 32 : 196, borderRight: `1px solid ${border}`, flexShrink: 0, transition: 'width 0.2s', overflow: 'hidden', position: 'relative', padding: calCollapsed ? '12px 0' : '12px 10px' }}>
@@ -304,7 +311,7 @@ export default function EdtSection({ C }) {
             <div style={{ display: 'grid', gridTemplateColumns: `44px repeat(${displayDates.length},1fr)` }}>
               <div />
               {displayDates.map((date, i) => (
-                <div key={i} onClick={() => setSelectedDay(date)} style={{ textAlign: 'center', padding: '4px 0', cursor: 'pointer', borderLeft: `1px solid ${border}` }}>
+                <div key={i} onClick={() => { setAnimating(true); setTimeout(()=>{ setSelectedDay(date); setAnimating(false) }, 200) }} style={{ textAlign: 'center', padding: '4px 0', cursor: 'pointer', borderLeft: `1px solid ${border}` }}>
                   <div style={{ fontSize: 10, color: isToday(date) ? RED : muted }}>{JOURS[(date.getDay()+6)%7]}</div>
                   <div style={{ width: 26, height: 26, borderRadius: '50%', margin: '2px auto', background: isToday(date) ? RED : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: isToday(date) ? 700 : 400, color: isToday(date) ? '#fff' : text }}>
                     {date.getDate()}
@@ -315,11 +322,13 @@ export default function EdtSection({ C }) {
           </div>
 
           {/* Grille heures */}
-          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto' }}>
+          <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', position:'relative', transition:'all 0.2s ease', opacity: animating ? 0 : 1, transform: animating ? 'scale(0.97)' : 'scale(1)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: `44px repeat(${displayDates.length},1fr)` }}>
 
+
               {/* Colonne heures */}
-              <div>
+              <div style={{position:'relative'}}>
+                {expandedId && <div style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.6)',backdropFilter:'blur(2px)',zIndex:50,pointerEvents:'none'}}/>}
                 {SLOTS.map((h, i) => (
                   <div key={i} style={{ height: SLOT_H, display: 'flex', alignItems: 'flex-start', justifyContent: 'flex-end', paddingRight: 6, paddingTop: 1 }}>
                     {Number.isInteger(h) && <span style={{ fontSize: 9, color: muted }}>{String(h).padStart(2, '0')}:00</span>}
@@ -327,7 +336,6 @@ export default function EdtSection({ C }) {
                   </div>
                 ))}
               </div>
-
               {/* Colonnes jours */}
               {displayDates.map((date, di) => {
                 const jsDay = (date.getDay() + 6) % 7 + 1
@@ -341,6 +349,10 @@ export default function EdtSection({ C }) {
                     onMouseMove={onColMouseMove}
                     onMouseUp={onColMouseUp}
                   >
+                    {/* Overlay si autre cours expandé */}
+                    {expandedId && !daysCours.find(c=>c.id===expandedId) && (
+                      <div style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.6)',backdropFilter:'blur(2px)',zIndex:50,pointerEvents:'none'}}/>
+                    )}
                     {/* Lignes slots */}
                     {SLOTS.map((h, i) => (
                       <div key={i} style={{ position: 'absolute', top: i * SLOT_H, left: 0, right: 0, height: SLOT_H, borderBottom: Number.isInteger(h) ? `1px solid ${border}` : h % 0.5 === 0 ? `1px dashed ${border}55` : 'none', pointerEvents: 'none' }} />
@@ -366,7 +378,7 @@ export default function EdtSection({ C }) {
                       const height = expandedId===cr.id ? Math.max(naturalH, 120) : naturalH
                       const color  = cr.couleur || matColors[cr.matiere?.nom] || COLORS[0]
                       return (
-                        <div key={cr.id} style={{ position: 'absolute', top, left: 2, right: 2, height, background: color, borderRadius: 8, padding: '6px 8px', overflow: 'hidden', cursor: 'pointer', opacity: cr.isAnnule ? 0.5 : 1, zIndex: 2, boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }} onClick={e=>{e.stopPropagation();setExpandedId(expandedId===cr.id?null:cr.id)}} onMouseDown={e=>e.stopPropagation()} onMouseUp={e=>e.stopPropagation()}>
+                        <div key={cr.id} style={{ position: 'absolute', top, left: 2, right: 2, height, background: color, borderRadius: 8, padding: '6px 8px', overflow: 'hidden', cursor: 'pointer', opacity: cr.isAnnule ? 0.5 : 1, zIndex: expandedId===cr.id ? 100 : 2, boxShadow: expandedId===cr.id ? '0 8px 32px rgba(0,0,0,0.25)' : '0 2px 8px rgba(0,0,0,0.15)', transition:'all 0.2s', left: expandedId===cr.id ? 4 : 2, right: expandedId===cr.id ? 4 : 2 }} onClick={e=>{e.stopPropagation();setExpandedId(expandedId===cr.id?null:cr.id)}} onMouseDown={e=>e.stopPropagation()} onMouseUp={e=>e.stopPropagation()}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', height:'100%' }}>
                             <div style={{ overflow: 'hidden', flex: 1, display:'flex', flexDirection:'column', gap:2 }}>
                               <div style={{ fontSize: 13, fontWeight: 700, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', lineHeight:1.2 }}>{cr.matiere?.nom}</div>

@@ -192,3 +192,38 @@ class CoursController extends AbstractController
         return $this->json(['message' => 'Cours mis à jour']);
     }
 }
+
+    #[Route('/enseignant', name: 'cours_enseignant', methods: ['GET'])]
+    public function enseignant(#[CurrentUser] User $user): JsonResponse
+    {
+        $cours = $this->coursRepo->findBy(['enseignant' => $user], ['jourSemaine' => 'ASC', 'heureDebut' => 'ASC']);
+        return $this->json(array_map(fn(Cours $c) => [
+            'id'          => $c->getId(),
+            'heureDebut'  => $c->getHeureDebut(),
+            'heureFin'    => $c->getHeureFin(),
+            'jourSemaine' => $c->getJourSemaine(),
+            'salle'       => $c->getSalle(),
+            'isAnnule'    => $c->isAnnule(),
+            'couleur'     => $c->getCouleur(),
+            'matiere'     => $c->getMatiere() ? ['id'=>$c->getMatiere()->getId(),'nom'=>$c->getMatiere()->getNom()] : null,
+            'classe'      => $c->getClasse() ? ['id'=>$c->getClasse()->getId(),'name'=>$c->getClasse()->getName()] : null,
+        ], $cours));
+    
+    #[Route('/enseignant', name: 'cours_enseignant', methods: ['GET'])]
+    public function enseignant(#[CurrentUser] User $user): JsonResponse
+    {
+        $cours = $this->coursRepo->findBy(['enseignant' => $user], ['jourSemaine' => 'ASC', 'heureDebut' => 'ASC']);
+        return $this->json(array_map(fn(Cours $c) => [
+            'id'          => $c->getId(),
+            'heureDebut'  => $c->getHeureDebut(),
+            'heureFin'    => $c->getHeureFin(),
+            'jourSemaine' => $c->getJourSemaine(),
+            'salle'       => $c->getSalle(),
+            'isAnnule'    => $c->isAnnule(),
+            'couleur'     => $c->getCouleur(),
+            'matiere'     => $c->getMatiere() ? ['id'=>$c->getMatiere()->getId(),'nom'=>$c->getMatiere()->getNom()] : null,
+            'classe'      => $c->getClasse() ? ['id'=>$c->getClasse()->getId(),'name'=>$c->getClasse()->getName()] : null,
+        ], $cours));
+    }
+
+}

@@ -4,6 +4,7 @@ import { useRole } from '../../hooks/useRole'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import api from '../../services/api'
 import EdtSection from './EdtSection'
+import CalendarWidget from './CalendarWidget'
 import ChartCard from '../../components/shared/ChartCard'
 import {
   Home, Users, BookOpen, ClipboardList, Calendar,
@@ -1045,6 +1046,8 @@ function AccueilSection({ C }) {
 
   return (
     <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
+
+      <CalendarWidget C={C}/>
 
       {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px,1fr))', gap:14 }}>

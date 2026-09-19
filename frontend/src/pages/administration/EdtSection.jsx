@@ -304,7 +304,7 @@ export default function EdtSection({ C }) {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: text }}>{MOIS[weekDates[0].getMonth()]} {weekDates[0].getFullYear()}</div>
               <div style={{ display: 'flex', gap: 6 }}>
-                <button onClick={() => { setBaseDate(new Date()); setSelectedDay(null) }} style={{ fontSize: 11, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Aujourd'hui</button>
+                <button onClick={()=>{ setBaseDate(new Date()); setSelectedDay(null); setTimeout(()=>{ if(scrollRef.current) scrollRef.current.scrollTop = Math.max(0, nowTop-120) },100) }} style={{ fontSize: 11, color: RED, background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }}>Aujourd'hui</button>
                 <button onClick={() => { const d = new Date(baseDate); d.setDate(d.getDate() - 7); setBaseDate(d) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted }}><ChevronLeft size={14} /></button>
                 <button onClick={() => { const d = new Date(baseDate); d.setDate(d.getDate() + 7); setBaseDate(d) }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: muted }}><ChevronRight size={14} /></button>
               </div>
@@ -361,7 +361,7 @@ export default function EdtSection({ C }) {
 
                     {/* Indicateur heure actuelle */}
                     {isCurrentDay && (
-                      <div style={{ position: 'absolute', top: nowTop, left: -44, right: 0, zIndex: 10, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
+                      <div style={{ position: 'absolute', top: nowTop, left: -44, right: 0, zIndex: 200, pointerEvents: 'none', display: 'flex', alignItems: 'center' }}>
                         <div style={{ background: RED, color: '#fff', borderRadius: 999, padding: '2px 5px', fontSize: 9, fontWeight: 700, flexShrink: 0 }}>{nowTime}</div>
                         <div style={{ flex: 1, height: 2, background: RED }} />
                       </div>

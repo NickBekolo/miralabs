@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
-import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare } from 'lucide-react'
+import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays } from 'lucide-react'
+import CalendrierEnseignant from './CalendrierEnseignant'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 const TYPES_EVAL = ['DS','TP','Devoir','Interrogation','Examen','CCF']
 const NAV = [
+  { id:'calendrier', label:'Calendrier', icon:CalendarDays },
   { id:'accueil',  label:'Accueil',         icon:Home },
   { id:'notes',    label:'Saisie notes',    icon:ClipboardList },
   { id:'carnet',   label:'Carnet de notes', icon:ClipboardList },
@@ -550,6 +552,7 @@ export default function EnseignantDashboard() {
     lecons:<LeconsSection C={C}/>,
     appel:<AppelSection C={C}/>,
     edt:<EdtSection cours={cours} C={C}/>,
+    calendrier:<CalendrierEnseignant/>,
     params:<div style={{ color:C.text,padding:20 }}>Parametres</div>,
   }
   return (

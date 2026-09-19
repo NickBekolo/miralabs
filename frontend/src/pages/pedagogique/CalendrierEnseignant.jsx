@@ -30,6 +30,27 @@ function getWeekDates(baseDate) {
 const timeToTop = (t) => { const [h,m]=t.split(':').map(Number); return(h*60+m)*(30/30) }
 const durToH    = (s,e) => { const [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number); return((eh*60+em)-(sh*60+sm))*(30/30) }
 
+
+function getOverlapLayout(cours) {
+  const sorted = [...cours].sort((a,b)=>a.heureDebut.localeCompare(b.heureDebut))
+  const layout = []
+  const cols = []
+  sorted.forEach(cr => {
+    const [sh,sm]=cr.heureDebut.split(':').map(Number)
+    const startMin=sh*60+sm
+    let col=0
+    for(let i=0;i<cols.length;i++){
+      const [lh,lm]=cols[i].heureFin.split(':').map(Number)
+      if(lh*60+lm<=startMin){col=i;break}
+      col=i+1
+    }
+    cols[col]=cr
+    layout.push({cr,col,totalCols:0})
+  })
+  const totalCols=cols.length||1
+  return layout.map(l=>({...l,totalCols}))
+}
+
 export default function CalendrierEnseignant() {
   const darkMode = useThemeStore(s=>s.darkMode)
   const C = darkMode ? DARK_THEME : LIGHT_THEME
@@ -42,6 +63,7 @@ export default function CalendrierEnseignant() {
   const [devoirs,  setDevoirs]  = useState([])
   const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
+  const [selectedCours, setSelectedCours] = useState(null)
   const scrollRef = useRef(null)
 
   const weekDates = getWeekDates(baseDate)
@@ -92,7 +114,17 @@ export default function CalendrierEnseignant() {
   const selectDay = (d) => { const date=new Date(calYear,calMonth,d); setBaseDate(date); setSelectedDay(date) }
 
   return (
-    <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', overflow:'hidden'}}>
+    <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden'}}>
+      {/* Header */}
+      <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0}}>
+        <div style={{fontSize:22,fontWeight:500,letterSpacing:'-0.4px',color:text,marginBottom:2}}>Emploi du temps</div>
+        <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
+          <span style={{color:RED,fontWeight:500}}>{today.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}</span>
+          <span style={{color:muted}}>·</span>
+          <span style={{fontWeight:600,color:text}}>{cours.length} cours</span>
+        </div>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
       {/* Colonne gauche — mini calendrier */}
       <div style={{width:220, borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
@@ -109,7 +141,7 @@ export default function CalendrierEnseignant() {
         {/* Jours semaine */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:4}}>
           {DAYS_SHORT.map((d,i)=>(
-            <div key={i} style={{textAlign:'center',fontSize:10,color:muted,fontWeight:500,padding:'2px 0'}}>{d}</div>
+            <div key={i} style={{textAlign:'center',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:500,padding:'2px 0'}}>{d}</div>
           ))}
         </div>
 
@@ -145,11 +177,11 @@ export default function CalendrierEnseignant() {
 
         {/* Légende */}
         <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
-          <div style={{fontSize:11,color:muted,fontWeight:600,marginBottom:4}}>Légende</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:muted}}>
+          <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:600,marginBottom:4}}>Légende</div>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
           </div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:muted}}>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
             <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
           </div>
 
@@ -202,7 +234,10 @@ export default function CalendrierEnseignant() {
             <div>
               {HOURS.map((h,i)=>(
                 <div key={i} style={{height:30,display:'flex',alignItems:'flex-start',justifyContent:'flex-end',paddingRight:8,paddingTop:2}}>
-                  {Number.isInteger(h) && <span style={{fontSize:10,color:muted}}>{String(Math.floor(h)).padStart(2,'0')}:00</span>}
+                  {Number.isInteger(h) 
+    ? <span style={{fontSize:10,color:muted}}>{String(Math.floor(h)).padStart(2,'0')}:00</span>
+    : <span style={{fontSize:9,color:muted+'88'}}>{String(Math.floor(h)).padStart(2,'0')}:30</span>
+  }
                 </div>
               ))}
             </div>
@@ -234,19 +269,19 @@ export default function CalendrierEnseignant() {
                   )}
 
                   {/* Cours */}
-                  {daysCours.map((c,ci2)=>{
+                  {getOverlapLayout(daysCours).map(({cr:c, col, totalCols}, ci2)=>{
                     const top = timeToTop(c.heureDebut)
                     const height = Math.max(durToH(c.heureDebut,c.heureFin)-2, 20)
                     const color = matColors[c.matiere?.nom] || COLORS_MAT[0]
                     return (
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
-                        background:color+'22',borderLeft:`3px solid ${color}`,
+                        background:color,borderLeft:'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',filter:selectedCours&&selectedCours.id!==c.id?'brightness(0.7)':'none',transform:selectedCours?.id===c.id?'scale(1.02)':'scale(1)',transition:'all 0.2s',
                         borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer'
                       }}>
                         <div style={{fontSize:11,fontWeight:700,color,lineHeight:1.2}}>{c.matiere?.nom}</div>
-                        <div style={{fontSize:10,color:muted}}>{c.heureDebut}–{c.heureFin}</div>
-                        {c.salle&&<div style={{fontSize:10,color:muted}}>{c.salle}</div>}
+                        <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.heureDebut}–{c.heureFin}</div>
+                        {c.salle&&<div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.salle}</div>}
                       </div>
                     )
                   })}
@@ -255,6 +290,7 @@ export default function CalendrierEnseignant() {
             })}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

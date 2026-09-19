@@ -104,6 +104,9 @@ class CoursController extends AbstractController
         $cours->setSalle($data['salle'] ?? null);
         $cours->setIsAnnule(false);
         if (!empty($data['couleur'])) $cours->setCouleur($data['couleur']);
+        // Assigner l'établissement de l'admin
+        $admin = $this->getUser();
+        if ($admin && $admin->getEtablissement()) $cours->setEtablissement($admin->getEtablissement());
 
         if (!empty($data['classeId'])) {
             $classe = $this->classeRepo->find($data['classeId']);

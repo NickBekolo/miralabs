@@ -81,6 +81,7 @@ class AdminController extends AbstractController
             'createdAt'        => $u->getCreatedAt()?->format('d/m/Y'),
             'classe'           => $u->getClasse() ? ['id'=>$u->getClasse()->getId(),'nom'=>$u->getClasse()->getName()] : null,
             'genre'            => $u->getGenre(),
+            'photoUrl'         => $u->getPhotoUrl(),
             'matieres'         => array_values(array_unique(array_map(
                 fn($c) => $c->getMatiere()?->getNom(),
                 array_filter($em->getRepository(\App\Entity\Cours::class)->findBy(['enseignant'=>$u]), fn($c) => $c->getMatiere() !== null)

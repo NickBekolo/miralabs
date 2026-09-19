@@ -534,6 +534,7 @@ export default function EnseignantDashboard() {
   const darkMode=useThemeStore(s=>s.darkMode)
   const C=darkMode?DARK_THEME:LIGHT_THEME
   const [active,setActive]=useState('accueil')
+  const [isMobile]=useState(window.innerWidth<768)
   const [cours,setCours]=useState([])
   const [devoirs,setDevoirs]=useState([])
   const [notes,setNotes]=useState([])
@@ -559,7 +560,7 @@ export default function EnseignantDashboard() {
     <>
       <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
       <div style={{ display:'flex',height:'100vh',fontFamily:ft,background:C.bg,overflow:'hidden' }}>
-        <div style={{ width:200,flexShrink:0,background:C.sidebar,display:'flex',flexDirection:'column',padding:'18px 10px' }}>
+        <div style={{ width:isMobile?0:200,flexShrink:0,background:C.sidebar,display:isMobile?'none':'flex',flexDirection:'column',padding:'18px 10px' }}>
           <div style={{ fontSize:15,fontWeight:700,color:C.text,padding:'4px 12px',marginBottom:20 }}>Miralabs.</div>
           <nav style={{ flex:1,overflowY:'auto' }}>
             {NAV.map(({id,label,icon:Icon})=>{

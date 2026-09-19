@@ -64,6 +64,7 @@ export default function CalendrierEnseignant() {
   const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
   const [selectedCours, setSelectedCours] = useState(null)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const scrollRef = useRef(null)
 
   const weekDates = getWeekDates(baseDate)
@@ -127,7 +128,7 @@ export default function CalendrierEnseignant() {
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
       {/* Colonne gauche — mini calendrier */}
-      <div style={{width:220, borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
+      {!isMobile && <div style={{width:220, borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
 
         {/* Mois nav */}
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
@@ -186,7 +187,7 @@ export default function CalendrierEnseignant() {
           </div>
 
         </div>
-      </div>
+      </div>}
 
       {/* Colonne droite — vue semaine */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>

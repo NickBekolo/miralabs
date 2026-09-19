@@ -260,7 +260,7 @@ export default function EdtSection({ C }) {
 
 
         {/* Mini calendrier */}
-        <div style={{ width: calCollapsed ? 32 : 196, borderRight: `1px solid ${border}`, flexShrink: 0, transition: 'width 0.2s', overflow: 'hidden', position: 'relative', padding: calCollapsed ? '12px 0' : '12px 10px' }}>
+        <div style={{ width: calCollapsed ? 32 : 196, filter: expandedId ? 'blur(2px)' : 'none', transition:'filter 0.2s', pointerEvents: expandedId ? 'none' : 'auto', borderRight: `1px solid ${border}`, flexShrink: 0, transition: 'width 0.2s', overflow: 'hidden', position: 'relative', padding: calCollapsed ? '12px 0' : '12px 10px' }}>
           <button onClick={() => setCalCollapsed(v => !v)}
             style={{ position: 'absolute', top: 10, right: 6, background: 'none', border: 'none', cursor: 'pointer', color: RED, fontSize: 10, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 2 }}>
             {calCollapsed ? <ChevronRight size={13} /> : <><ChevronLeft size={13} /><span>Réduire</span></>}
@@ -299,7 +299,8 @@ export default function EdtSection({ C }) {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'visible', minWidth: 0 }}>
 
           {/* Header jours */}
-          <div style={{ borderBottom: `1px solid ${border}`, flexShrink: 0 }}>
+          <div style={{ borderBottom: `1px solid ${border}`, flexShrink: 0, position:'relative' }}>
+            {expandedId && <div onClick={()=>setExpandedId(null)} style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.6)',backdropFilter:'blur(2px)',zIndex:50,pointerEvents:'auto',cursor:'pointer'}}/>}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 12px' }}>
               <div style={{ fontSize: 13, fontWeight: 600, color: text }}>{MOIS[weekDates[0].getMonth()]} {weekDates[0].getFullYear()}</div>
               <div style={{ display: 'flex', gap: 6 }}>

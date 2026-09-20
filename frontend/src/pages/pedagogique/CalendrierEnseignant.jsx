@@ -204,7 +204,8 @@ export default function CalendrierEnseignant() {
       </div>}
 
       {/* Colonne droite — vue semaine */}
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
+        {selectedCours && <div onClick={()=>setSelectedCours(null)} style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',backdropFilter:'blur(3px)',zIndex:8,cursor:'pointer'}}/>}
 
         {/* Header semaine */}
         <div style={{borderBottom:`1px solid ${border}`,flexShrink:0,padding:'10px 0 0'}}>
@@ -292,8 +293,8 @@ export default function CalendrierEnseignant() {
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
                         background:color,borderLeft:'none',opacity:c.isAnnule?0.5:1,textDecoration:c.isAnnule?'line-through':'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',filter:selectedCours&&selectedCours.id!==c.id?'brightness(0.7)':'none',transform:selectedCours?.id===c.id?'scale(1.02)':'scale(1)',transition:'all 0.2s',
-                        borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer'
-                      }}>
+                        borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer',zIndex:selectedCours?.id===c.id?20:2
+                      }} onClick={e=>{e.stopPropagation();setSelectedCours(selectedCours?.id===c.id?null:c)}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                           <div style={{fontSize:13,fontWeight:700,color:'#fff',lineHeight:1.2}}>{c.matiere?.nom}</div>
                           <button onClick={e=>{e.stopPropagation();annulerCours(c.id)}}

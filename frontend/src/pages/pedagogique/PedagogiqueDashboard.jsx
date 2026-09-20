@@ -36,8 +36,7 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
   return (
     <div>
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22,fontWeight:600,color:C.text,marginBottom:3 }}>Bonjour, {user?.firstName??'toi'}</h1>
-        <p style={{ fontSize:12,color:C.hint }}>{today}</p>
+        <h1 style={{ fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text,marginBottom:3,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Bonjour, {user?.firstName??'toi'}</h1>
       </div>
       <PlanningWidget C={C}/>
       <div style={{ height:16 }}/>

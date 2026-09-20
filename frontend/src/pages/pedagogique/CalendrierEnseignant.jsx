@@ -189,18 +189,6 @@ export default function CalendrierEnseignant() {
             )
           })}
         </div>
-
-        {/* Légende */}
-        <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
-          <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:600,marginBottom:4}}>Légende</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
-          </div>
-
-        </div>
       </>}
       </div>}
 
@@ -228,7 +216,7 @@ export default function CalendrierEnseignant() {
             {(selectedDay ? [selectedDay] : weekDates).map((date,i)=>(
               <div key={i} style={{textAlign:'center',paddingBottom:8}}>
                 <div style={{fontSize:10,color:isToday(date)?RED:muted,fontWeight:500,marginBottom:4}}>
-                  {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][i]}
+                  {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][(date.getDay()+6)%7]}
                 </div>
                 <div onClick={()=>setSelectedDay(date)} style={{
                   width:28,height:28,borderRadius:'50%',margin:'0 auto',

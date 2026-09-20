@@ -127,12 +127,9 @@ export default function PlanningWidget() {
     <div style={{fontFamily:ft, background:bg, height:400, display:'flex', flexDirection:'column', overflow:'hidden', borderRadius:20, boxShadow:'0 2px 16px rgba(0,0,0,0.08)', marginBottom:16}}>
       {/* Header */}
       <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0}}>
-        <div style={{fontSize:30,fontWeight:300,letterSpacing:'-0.8px',color:text,marginBottom:2}}>Calendrier</div>
-        <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
-          <span style={{color:RED,fontWeight:500}}>{today.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}</span>
-          <span style={{color:muted}}>·</span>
-          <span style={{fontWeight:600,color:text}}>{cours.length} cours</span>
-        </div>
+        <div style={{fontSize:20,fontWeight:400,letterSpacing:'-0.8px',color:text,marginBottom:2}}>
+    Planning · <span style={{color:'#FF3B30',fontSize:13}}>{new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'})}</span>
+  </div>
       </div>
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
@@ -148,7 +145,7 @@ export default function PlanningWidget() {
         <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12, marginTop:28}}>
           <button onClick={()=>{ const d=new Date(calYear,calMonth-1); setCalYear(d.getFullYear()); setCalMonth(d.getMonth()) }}
             style={{background:'none',border:'none',cursor:'pointer',color:muted,padding:4}}><ChevronLeft size={14}/></button>
-          <div style={{fontSize:13,fontWeight:600,color:text}}>{MONTHS[calMonth]} {calYear}</div>
+          <div style={{fontSize:13,fontWeight:400,letterSpacing:'-0.4px',color:text}}>{MONTHS[calMonth]} {calYear}</div>
           <button onClick={()=>{ const d=new Date(calYear,calMonth+1); setCalYear(d.getFullYear()); setCalMonth(d.getMonth()) }}
             style={{background:'none',border:'none',cursor:'pointer',color:muted,padding:4}}><ChevronRight size={14}/></button>
         </div>
@@ -189,18 +186,6 @@ export default function PlanningWidget() {
             )
           })}
         </div>
-
-        {/* Légende */}
-        <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
-          <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:600,marginBottom:4}}>Légende</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
-          </div>
-
-        </div>
       </>}
       </div>}
 
@@ -228,7 +213,7 @@ export default function PlanningWidget() {
             {(selectedDay ? [selectedDay] : weekDates).map((date,i)=>(
               <div key={i} style={{textAlign:'center',paddingBottom:8}}>
                 <div style={{fontSize:10,color:isToday(date)?RED:muted,fontWeight:500,marginBottom:4}}>
-                  {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][i]}
+                  {['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'][(date.getDay()+6)%7]}
                 </div>
                 <div onClick={()=>setSelectedDay(date)} style={{
                   width:28,height:28,borderRadius:'50%',margin:'0 auto',

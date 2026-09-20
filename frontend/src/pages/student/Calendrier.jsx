@@ -40,7 +40,8 @@ export default function Calendrier() {
   const [cours,    setCours]    = useState([])
   const [absences, setAbsences] = useState([])
   const [devoirs,  setDevoirs]  = useState([])
-  const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
+  const [selectedDay, setSelectedDay] = useState(null)
+  const [calCollapsed, setCalCollapsed] = useState(false) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
   const scrollRef = useRef(null)
 
@@ -95,10 +96,15 @@ export default function Calendrier() {
     <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', overflow:'hidden'}}>
 
       {/* Colonne gauche — mini calendrier */}
-      <div style={{width:220, borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
+      <div style={{width:calCollapsed?32:220, borderRight:`1px solid ${border}`, position:'relative', transition:'width 0.2s', display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
 
+        <button onClick={()=>setCalCollapsed(v=>!v)}
+          style={{position:'absolute',top:10,right:6,background:'none',border:'none',cursor:'pointer',color:'#FF3B30',fontSize:10,fontWeight:600,display:'flex',alignItems:'center',gap:2,zIndex:1}}>
+          {calCollapsed ? <ChevronRight size={13}/> : <><ChevronLeft size={13}/><span style={{display:calCollapsed?'none':'inline'}}>Réduire</span></>}
+        </button>
+        {!calCollapsed && <>
         {/* Mois nav */}
-        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12}}>
+        <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12, marginTop:28}}>
           <button onClick={()=>{ const d=new Date(calYear,calMonth-1); setCalYear(d.getFullYear()); setCalMonth(d.getMonth()) }}
             style={{background:'none',border:'none',cursor:'pointer',color:muted,padding:4}}><ChevronLeft size={14}/></button>
           <div style={{fontSize:13,fontWeight:600,color:text}}>{MONTHS[calMonth]} {calYear}</div>
@@ -154,6 +160,7 @@ export default function Calendrier() {
           </div>
 
         </div>
+      </>}
       </div>
 
       {/* Colonne droite — vue semaine */}

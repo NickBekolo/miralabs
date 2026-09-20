@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import DashboardLayout from '../../components/layout/DashboardLayout'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
@@ -9,7 +10,7 @@ import CalendrierEnseignant from './CalendrierEnseignant'
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 const TYPES_EVAL = ['DS','TP','Devoir','Interrogation','Examen','CCF']
 const NAV = [
-  { id:'calendrier', label:'Calendrier', icon:CalendarDays },
+  { id:'calendrier', label:'Emploi du temps', icon:CalendarDays },
   { id:'accueil',  label:'Accueil',         icon:Home },
   { id:'notes',    label:'Saisie notes',    icon:ClipboardList },
   { id:'carnet',   label:'Carnet de notes', icon:ClipboardList },
@@ -544,38 +545,22 @@ export default function EnseignantDashboard() {
       .catch(console.error)
   },[])
   const coursDuJour=cours.filter(c=>c.jourSemaine===(new Date().getDay()||1))
-  const pages={
-    accueil:<AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={setActive}/>,
-    notes:<NotesSection C={C}/>,
-    carnet:<CarnetNotesSection C={C}/>,
-    absences:<AbsencesSection C={C}/>,
-    devoirs:<DevoirsSection C={C}/>,
-    lecons:<LeconsSection C={C}/>,
-    appel:<AppelSection C={C}/>,
-    edt:<EdtSection cours={cours} C={C}/>,
-    calendrier:<CalendrierEnseignant/>,
-    params:<div style={{ color:C.text,padding:20 }}>Parametres</div>,
+  const pages = {
+    calendrier: <CalendrierEnseignant/>,
+    accueil: <AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={p=>document.querySelector(`[data-nav='${p}']`)?.click()}/>,
+    notes: <NotesSection C={C}/>,
+    carnet: <CarnetNotesSection C={C}/>,
+    absences: <AbsencesSection C={C}/>,
+    devoirs: <DevoirsSection C={C}/>,
+    lecons: <LeconsSection C={C}/>,
+    appel: <AppelSection C={C}/>,
+    edt: <EdtSection cours={cours} C={C}/>,
+    params: <div style={{color:C.text,padding:20}}>Paramètres</div>,
   }
+
   return (
-    <>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
-      <div style={{ display:'flex',height:'100vh',fontFamily:ft,background:C.bg,overflow:'hidden' }}>
-        <div style={{ width:isMobile?0:200,flexShrink:0,background:C.sidebar,display:isMobile?'none':'flex',flexDirection:'column',padding:'18px 10px' }}>
-          <div style={{ fontSize:15,fontWeight:700,color:C.text,padding:'4px 12px',marginBottom:20 }}>Miralabs.</div>
-          <nav style={{ flex:1,overflowY:'auto' }}>
-            {NAV.map(({id,label,icon:Icon})=>{
-              const a=active===id
-              return <div key={id} onClick={()=>setActive(id)} style={{ display:'flex',alignItems:'center',gap:9,padding:'8px 12px',borderRadius:8,cursor:'pointer',fontSize:13,fontWeight:a?500:400,color:a?C.text:C.muted,background:a?C.surface2:'transparent',marginBottom:1 }} onMouseEnter={e=>{if(!a)e.currentTarget.style.background=C.surface}} onMouseLeave={e=>{if(!a)e.currentTarget.style.background='transparent'}}><Icon size={15} strokeWidth={1.5}/>{label}</div>
-            })}
-          </nav>
-          <div onClick={()=>{logout();navigate('/')}} style={{ display:'flex',alignItems:'center',gap:9,padding:'8px 12px',borderRadius:8,cursor:'pointer',fontSize:13,color:C.muted }} onMouseEnter={e=>e.currentTarget.style.background=C.surface} onMouseLeave={e=>e.currentTarget.style.background='transparent'}>
-            <LogOut size={15} strokeWidth={1.5}/>Deconnexion
-          </div>
-        </div>
-        <div style={{ flex:1,overflowY:'auto',padding:'28px 32px',background:C.bg }}>
-          {pages[active]}
-        </div>
-      </div>
-    </>
+    <DashboardLayout nav={NAV} role="Enseignant" defaultActive="calendrier">
+      {(active, C) => pages[active] || <div style={{color:C.text}}>Page introuvable</div>}
+    </DashboardLayout>
   )
 }

@@ -8,7 +8,7 @@ const DAYS_SHORT = ['L','M','M','J','V','S','D']
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 const COLORS_MAT = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FF9F43','#F7DC6F','#26de81','#fd9644']
 
-const HOURS = Array.from({length:48}, (_,i)=>i/2) // 0h à 23h30 par tranches de 30min
+const HOURS = Array.from({length:48}, (_,i)=>i/2) // 0h à 23h30 par 30min
 
 function getMonthDays(year, month) {
   const first = new Date(year, month, 1)
@@ -27,7 +27,7 @@ function getWeekDates(baseDate) {
   return Array.from({length:7},(_,i)=>{ const dd=new Date(d); dd.setDate(d.getDate()+i); return dd })
 }
 
-const timeToTop = (t) => { const [h,m]=t.split(':').map(Number); return(h*60+m)*(30/30) }
+const timeToTop = (t) => { const [h,m]=t.split(':').map(Number); return(h*60+m) }
 const durToH    = (s,e) => { const [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number); return((eh*60+em)-(sh*60+sm))*(30/30) }
 
 export default function Calendrier() {
@@ -41,7 +41,8 @@ export default function Calendrier() {
   const [absences, setAbsences] = useState([])
   const [devoirs,  setDevoirs]  = useState([])
   const [selectedDay, setSelectedDay] = useState(null)
-  const [calCollapsed, setCalCollapsed] = useState(false) // null = vue semaine
+  const [calCollapsed, setCalCollapsed] = useState(false)
+  const [isMobile] = useState(window.innerWidth < 768) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
   const scrollRef = useRef(null)
 
@@ -64,10 +65,11 @@ export default function Calendrier() {
   }, [])
 
   useEffect(() => {
-    if(scrollRef.current) {
-      const scrollTo = Math.max(0, nowTop - 100)
-      scrollRef.current.scrollTop = scrollTo
-    }
+    setTimeout(() => {
+      if(scrollRef.current) {
+        scrollRef.current.scrollTop = Math.max(0, nowTop - 100)
+      }
+    }, 500)
   }, [nowTop])
 
   const matColors = {}
@@ -75,6 +77,8 @@ export default function Calendrier() {
   cours.forEach(c => { if(!matColors[c.matiere?.nom]) { matColors[c.matiere?.nom]=COLORS_MAT[ci%COLORS_MAT.length]; ci++ } })
 
   const absDays = absences.map(a => new Date(a.date).toDateString())
+  // Jours avec cours dans la semaine
+  const coursJours = cours.map(c => c.jourSemaine) // 1=lun...7=dim
   const devoirDays = devoirs.map(d => new Date(d.dateLimite || d.date).toDateString())
 
   const monthDays = getMonthDays(calYear, calMonth)
@@ -94,6 +98,7 @@ export default function Calendrier() {
 
   return (
     <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', overflow:'hidden'}}>
+
 
       {/* Colonne gauche — mini calendrier */}
       <div style={{width:calCollapsed?32:220, borderRight:`1px solid ${border}`, position:'relative', transition:'width 0.2s', display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
@@ -115,7 +120,7 @@ export default function Calendrier() {
         {/* Jours semaine */}
         <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',marginBottom:4}}>
           {DAYS_SHORT.map((d,i)=>(
-            <div key={i} style={{textAlign:'center',fontSize:10,color:muted,fontWeight:500,padding:'2px 0'}}>{d}</div>
+            <div key={i} style={{textAlign:'center',fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:500,padding:'2px 0'}}>{d}</div>
           ))}
         </div>
 
@@ -140,25 +145,11 @@ export default function Calendrier() {
                 {d}
                 {/* Dots */}
                 <div style={{position:'absolute',bottom:2,left:'50%',transform:'translateX(-50%)',display:'flex',gap:2}}>
-                  {isAbs && <div style={{width:3,height:3,borderRadius:'50%',background:'#FF3B30'}}/>}
-                  {isDev && <div style={{width:3,height:3,borderRadius:'50%',background:'#007AFF'}}/>}
 
                 </div>
               </div>
             )
           })}
-        </div>
-
-        {/* Légende */}
-        <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
-          <div style={{fontSize:11,color:muted,fontWeight:600,marginBottom:4}}>Légende</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:muted}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,color:muted}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
-          </div>
-
         </div>
       </>}
       </div>
@@ -208,8 +199,11 @@ export default function Calendrier() {
             {/* Heures */}
             <div>
               {HOURS.map((h,i)=>(
-                <div key={i} style={{height:30,display:'flex',alignItems:'flex-start',justifyContent:'flex-end',paddingRight:8,paddingTop:2}}>
-                  {Number.isInteger(h) && <span style={{fontSize:10,color:muted}}>{String(Math.floor(h)).padStart(2,'0')}:00</span>}
+                <div key={i} style={{height:30,display:'flex',alignItems:'flex-start',justifyContent:'flex-end',paddingRight:8,paddingTop:0,marginTop:-6}}>
+                  {Number.isInteger(h) 
+    ? <span style={{fontSize:10,color:muted}}>{String(Math.floor(h)).padStart(2,'0')}:00</span>
+    : <span style={{fontSize:9,color:muted+'88'}}>{String(Math.floor(h)).padStart(2,'0')}:30</span>
+  }
                 </div>
               ))}
             </div>
@@ -248,12 +242,12 @@ export default function Calendrier() {
                     return (
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
-                        background:color+'22',borderLeft:`3px solid ${color}`,
+                        background:color,borderLeft:'none',boxShadow:'0 2px 8px rgba(0,0,0,0.08)',
                         borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer'
                       }}>
                         <div style={{fontSize:11,fontWeight:700,color,lineHeight:1.2}}>{c.matiere?.nom}</div>
-                        <div style={{fontSize:10,color:muted}}>{c.heureDebut}–{c.heureFin}</div>
-                        {c.salle&&<div style={{fontSize:10,color:muted}}>{c.salle}</div>}
+                        <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.heureDebut}–{c.heureFin}</div>
+                        {c.salle&&<div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.salle}</div>}
                       </div>
                     )
                   })}

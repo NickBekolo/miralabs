@@ -84,7 +84,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
     <div style={{ fontFamily:ft, background:C.bg, color:C.text, WebkitFontSmoothing:'antialiased', height:'100vh', display:'flex', overflow:'hidden' }}>
       <div style={{ width:collapsed?60:200, flexShrink:0, background:C.sidebar, display:'flex', flexDirection:'column', padding:collapsed?'18px 6px':'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:24, padding:'4px 12px' }}>
-          {!collapsed && <div style={{ fontSize:16, fontWeight:700, letterSpacing:'-0.4px', color:C.text }}>Miralabs.</div>}
+          {!collapsed && <div style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:C.text, fontFamily:ft }}>Miralabs.</div>}
           <button onClick={()=>setCollapsed(s=>!s)} style={{ background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:6, color:C.muted, display:'flex', alignItems:'center', justifyContent:'center', marginLeft:collapsed?'auto':0 }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               {collapsed ? <path d="M9 18l6-6-6-6"/> : <path d="M15 18l-6-6 6-6"/>}
@@ -268,7 +268,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
       {menu && (
         <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>
           <div onClick={e => e.stopPropagation()} style={{ width:260, background:bg, height:'100%', padding:'48px 20px 32px', display:'flex', flexDirection:'column' }}>
-            <div style={{ fontSize:18, fontWeight:700, color:text, marginBottom:32 }}>Miralabs.</div>
+            <div style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:text, marginBottom:32, fontFamily:ft }}>Miralabs.</div>
             {NAV_ITEMS.map(({ id, label, icon:Icon, color:iColor }) => (
               <div key={id} onClick={() => { onNavChange(id); setMenu(false) }}
                 style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color: activePage===id ? text : muted, fontWeight: activePage===id ? 600 : 400, fontSize:16, borderBottom:`1px solid ${darkMode ? 'rgba(255,255,255,0.06)' : '#f0f0f0'}` }}>

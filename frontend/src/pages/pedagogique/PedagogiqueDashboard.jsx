@@ -6,6 +6,7 @@ import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
 import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays } from 'lucide-react'
 import CalendrierEnseignant from './CalendrierEnseignant'
+import PlanningWidget from './PlanningWidget'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 const TYPES_EVAL = ['DS','TP','Devoir','Interrogation','Examen','CCF']
@@ -38,6 +39,8 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
         <h1 style={{ fontSize:22,fontWeight:600,color:C.text,marginBottom:3 }}>Bonjour, {user?.firstName??'toi'}</h1>
         <p style={{ fontSize:12,color:C.hint }}>{today}</p>
       </div>
+      <PlanningWidget C={C}/>
+      <div style={{ height:16 }}/>
       <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16 }}>
         {[{label:"Cours aujourd'hui",value:cours.length,color:'#007AFF'},{label:'Notes saisies',value:notes.length,color:'#FF9500'},{label:'Devoirs créés',value:devoirs.length,color:'#34C759'}].map(s=>(
           <div key={s.label} style={{ background:C.surface,borderRadius:14,padding:'14px 16px' }}>

@@ -34,41 +34,40 @@ function Btn({ onClick, saving, disabled, label='Enregistrer', C }) {
 function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
   const today = new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'})
   return (
-    <div>
-      <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text,marginBottom:3,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Bonjour, {user?.firstName??'toi'}</h1>
+    <div style={{display:'flex',flexDirection:'column',gap:16}}>
+      {/* Salutation */}
+      <div>
+        <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>Bonjour, {user?.firstName??'toi'}</div>
+
+        <div style={{fontSize:14,color:C.muted,marginTop:6,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>
+          Vous avez <span style={{color:'#a29bfe',fontWeight:600}}>{cours.length} cours</span>, <span style={{color:'#a29bfe',fontWeight:600}}>{notes.length} notes</span> et <span style={{color:'#a29bfe',fontWeight:600}}>{devoirs.length} devoirs</span>
+        </div>
       </div>
+
+      {/* Planning */}
       <PlanningWidget C={C}/>
-      <div style={{ height:16 }}/>
-      <div style={{ display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:8,marginBottom:16 }}>
-        {[{label:"Cours aujourd'hui",value:cours.length,color:'#007AFF'},{label:'Notes saisies',value:notes.length,color:'#FF9500'},{label:'Devoirs créés',value:devoirs.length,color:'#34C759'}].map(s=>(
-          <div key={s.label} style={{ background:C.surface,borderRadius:14,padding:'14px 16px' }}>
-            <div style={{ fontSize:26,fontWeight:700,color:s.color,marginBottom:2 }}>{s.value}</div>
-            <div style={{ fontSize:11,color:C.muted }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-      <Card C={C} style={{ marginBottom:12 }}>
-        <ST C={C}>Cours du jour</ST>
-        {cours.length===0?<div style={{ color:C.hint,fontSize:13,textAlign:'center',padding:'12px 0' }}>Aucun cours</div>
-        :cours.map((c,i)=>(
-          <div key={c.id} style={{ display:'flex',gap:10,alignItems:'center',padding:'8px 0',borderBottom:i<cours.length-1?`1px solid ${C.surface2}`:'none' }}>
-            <div style={{ width:3,height:36,borderRadius:2,background:'#007AFF',flexShrink:0 }}/>
-            <div style={{ flex:1 }}><div style={{ fontSize:13,fontWeight:500,color:C.text }}>{c.matiere.nom}</div><div style={{ fontSize:11,color:C.muted }}>{c.salle} · {c.heureDebut}-{c.heureFin}</div></div>
-          </div>
-        ))}
-      </Card>
-      <Card C={C}>
-        <ST C={C}>Actions rapides</ST>
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:8 }}>
-          {[{label:'Saisir des notes',Icon:ClipboardList,id:'notes',color:'#007AFF'},{label:'Saisir absences',Icon:Users,id:'absences',color:'#FF9500'},{label:'Créer un devoir',Icon:BookOpen,id:'devoirs',color:'#34C759'},{label:"Voir l'EDT",Icon:Calendar,id:'edt',color:'#AF52DE'}].map(a=>(
-            <button key={a.id} onClick={()=>onNav(a.id)} style={{ display:'flex',alignItems:'center',gap:10,padding:'12px 14px',background:C.surface2,borderRadius:12,border:'none',cursor:'pointer',fontFamily:ft }}>
-              <div style={{ width:32,height:32,borderRadius:8,background:`${a.color}20`,display:'flex',alignItems:'center',justifyContent:'center' }}><a.Icon size={16} color={a.color} strokeWidth={1.5}/></div>
-              <span style={{ fontSize:12,fontWeight:500,color:C.text }}>{a.label}</span>
+
+
+
+      {/* Actions rapides */}
+      <div style={{background:C.surface,borderRadius:16,padding:'14px 16px',border:`1px solid ${C.surface2}`}}>
+        <div style={{fontSize:12,fontWeight:600,color:C.muted,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Actions rapides</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
+          {[
+            {label:'Saisir des notes',nav:'notes',icon:'✏️'},
+            {label:'Saisir absences',nav:'absences',icon:'👤'},
+            {label:'Créer un devoir',nav:'devoirs',icon:'📝'},
+            {label:"Voir l'EDT",nav:'calendrier',icon:'📅'},
+          ].map(a=>(
+            <button key={a.nav} onClick={()=>onNav(a.nav)}
+              style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:12,background:C.bg,border:`1px solid ${C.surface2}`,cursor:'pointer',fontSize:12,fontWeight:500,color:C.text,textAlign:'left'}}>
+              <span>{a.icon}</span>{a.label}
             </button>
           ))}
         </div>
-      </Card>
+      </div>
+
+
     </div>
   )
 }
@@ -101,7 +100,7 @@ function NotesSection({ C }) {
   }
   return (
     <div>
-      <h2 style={{ fontSize:20,fontWeight:600,color:C.text,marginBottom:20 }}>Saisie des notes</h2>
+
       <Card C={C} style={{ marginBottom:16 }}>
         <ST C={C}>Nouvelle note</ST>
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
@@ -141,7 +140,7 @@ function CarnetNotesSection({ C }) {
   filtrees.forEach(n=>{const k=n.matiere?.nom??'Sans matiere';if(!parMat[k])parMat[k]=[];parMat[k].push(n)})
   return (
     <div>
-      <h2 style={{ fontSize:20,fontWeight:600,color:C.text,marginBottom:20 }}>Carnet de notes</h2>
+
       <Card C={C} style={{ marginBottom:16 }}>
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10 }}>
           <Sel label="Matiere" value={fm} onChange={e=>setFm(e.target.value)}><option value="">Toutes</option>{matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}</Sel>
@@ -193,7 +192,7 @@ function AbsencesSection({ C }) {
   }
   return (
     <div>
-      <h2 style={{ fontSize:20,fontWeight:600,color:C.text,marginBottom:20 }}>Absences</h2>
+
       <Card C={C} style={{ marginBottom:16 }}>
         <ST C={C}>Saisir une absence</ST>
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
@@ -233,7 +232,7 @@ function DevoirsSection({ C }) {
   }
   return (
     <div>
-      <h2 style={{ fontSize:20,fontWeight:600,color:C.text,marginBottom:20 }}>Devoirs</h2>
+
       <Card C={C} style={{ marginBottom:16 }}>
         <ST C={C}>Nouveau devoir</ST>
         <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>

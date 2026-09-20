@@ -205,7 +205,7 @@ export default function CalendrierEnseignant() {
 
       {/* Colonne droite — vue semaine */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
-        {selectedCours && <div onClick={()=>setSelectedCours(null)} style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',backdropFilter:'blur(3px)',zIndex:8,cursor:'pointer'}}/>}
+        {selectedCours && <div onClick={()=>setSelectedCours(null)} style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',backdropFilter:'blur(3px)',zIndex:8,cursor:'pointer',transition:'all 0.4s ease'}}/>}
 
         {/* Header semaine */}
         <div style={{borderBottom:`1px solid ${border}`,flexShrink:0,padding:'10px 0 0'}}>

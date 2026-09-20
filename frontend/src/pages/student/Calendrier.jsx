@@ -64,6 +64,7 @@ export default function Calendrier() {
   const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
   const [selectedCours, setSelectedCours] = useState(null)
+  const [expandedId, setExpandedId] = useState(null)
   const [calCollapsed, setCalCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const scrollRef = useRef(null)
@@ -119,7 +120,7 @@ export default function Calendrier() {
     <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden'}}>
       {/* Header */}
       <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0}}>
-        <div style={{fontSize:30,fontWeight:300,letterSpacing:'-0.8px',color:text,marginBottom:2}}>Calendrier</div>
+        <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.5px',color:text,marginBottom:2}}>Calendrier</div>
         <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
           <span style={{color:RED,fontWeight:500}}>{today.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}</span>
           <span style={{color:muted}}>·</span>
@@ -129,7 +130,7 @@ export default function Calendrier() {
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
       {/* Colonne gauche — mini calendrier */}
-      {!isMobile && <div style={{position:'relative',width:calCollapsed?32:220,borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0, overflowY:'auto'}}>
+      <div style={{position:'relative',width:calCollapsed?32:220,borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0, overflowY:'auto'}}>
 
         <button onClick={()=>setCalCollapsed(v=>!v)}
           style={{position:'absolute',top:10,right:6,background:'none',border:'none',cursor:'pointer',color:'#FF3B30',fontSize:10,fontWeight:600,display:'flex',alignItems:'center',gap:2,zIndex:1}}>
@@ -173,8 +174,8 @@ export default function Calendrier() {
                 {d}
                 {/* Dots */}
                 <div style={{position:'absolute',bottom:2,left:'50%',transform:'translateX(-50%)',display:'flex',gap:2}}>
-                  {isAbs && <div style={{width:3,height:3,borderRadius:'50%',background:'#FF3B30'}}/>}
-                  {isDev && <div style={{width:3,height:3,borderRadius:'50%',background:'#007AFF'}}/>}
+                  
+                  
 
                 </div>
               </div>
@@ -182,19 +183,9 @@ export default function Calendrier() {
           })}
         </div>
 
-        {/* Légende */}
-        <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
-          <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:600,marginBottom:4}}>Légende</div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
-          </div>
-          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
-            <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
-          </div>
 
-        </div>
       </>}
-      </div>}
+      </div>
 
       {/* Colonne droite — vue semaine */}
       <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
@@ -280,14 +271,15 @@ export default function Calendrier() {
                   {/* Cours */}
                   {getOverlapLayout(daysCours).map(({cr:c, col, totalCols}, ci2)=>{
                     const top = timeToTop(c.heureDebut)
-                    const height = Math.max(durToH(c.heureDebut,c.heureFin)-2, 20)
+                    const naturalH = Math.max(durToH(c.heureDebut,c.heureFin)-2, 20)
+                    const height = expandedId===c.id ? Math.max(naturalH, 100) : naturalH
                     const color = matColors[c.matiere?.nom] || COLORS_MAT[0]
                     return (
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
                         background:color,borderLeft:'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',transition:'all 0.2s',zIndex:selectedCours?.id===c.id?20:2,
                         borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer'
-                      }} onClick={e=>{e.stopPropagation();setSelectedCours(selectedCours?.id===c.id?null:c)}}>
+                      }} onClick={e=>{e.stopPropagation();setExpandedId(expandedId===c.id?null:c.id);setSelectedCours(selectedCours?.id===c.id?null:c)}}>
                         <div style={{fontSize:13,fontWeight:700,color:'#fff',lineHeight:1.2}}>{c.matiere?.nom || c.nom}</div>
                         <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.heureDebut}–{c.heureFin}</div>
                         {c.salle&&<div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.salle}</div>}

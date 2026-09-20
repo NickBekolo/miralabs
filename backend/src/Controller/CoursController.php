@@ -209,4 +209,15 @@ class CoursController extends AbstractController
         ], $cours));
     }
 
+
+    #[Route('/{id}/annuler', name: 'cours_annuler', methods: ['PATCH'])]
+    public function annuler(int $id): JsonResponse
+    {
+        $cours = $this->coursRepo->find($id);
+        if (!$cours) return $this->json(['message' => 'Cours introuvable'], 404);
+        $cours->setIsAnnule(!$cours->isAnnule());
+        $this->em->flush();
+        return $this->json(['isAnnule' => $cours->isAnnule()]);
+    }
+
 }

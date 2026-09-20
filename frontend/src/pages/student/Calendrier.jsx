@@ -8,7 +8,7 @@ const DAYS_SHORT = ['L','M','M','J','V','S','D']
 const MONTHS = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
 const COLORS_MAT = ['#FF6B6B','#4ECDC4','#45B7D1','#96CEB4','#FF9F43','#F7DC6F','#26de81','#fd9644']
 
-const HOURS = Array.from({length:48}, (_,i)=>i/2) // 0h à 23h30 par 30min
+const HOURS = Array.from({length:48}, (_,i)=>i/2) // 0h à 23h30 par tranches de 30min
 
 function getMonthDays(year, month) {
   const first = new Date(year, month, 1)
@@ -27,8 +27,29 @@ function getWeekDates(baseDate) {
   return Array.from({length:7},(_,i)=>{ const dd=new Date(d); dd.setDate(d.getDate()+i); return dd })
 }
 
-const timeToTop = (t) => { const [h,m]=t.split(':').map(Number); return(h*60+m) }
+const timeToTop = (t) => { const [h,m]=t.split(':').map(Number); return(h*60+m)*(30/30) }
 const durToH    = (s,e) => { const [sh,sm]=s.split(':').map(Number),[eh,em]=e.split(':').map(Number); return((eh*60+em)-(sh*60+sm))*(30/30) }
+
+
+function getOverlapLayout(cours) {
+  const sorted = [...cours].sort((a,b)=>a.heureDebut.localeCompare(b.heureDebut))
+  const layout = []
+  const cols = []
+  sorted.forEach(cr => {
+    const [sh,sm]=cr.heureDebut.split(':').map(Number)
+    const startMin=sh*60+sm
+    let col=0
+    for(let i=0;i<cols.length;i++){
+      const [lh,lm]=cols[i].heureFin.split(':').map(Number)
+      if(lh*60+lm<=startMin){col=i;break}
+      col=i+1
+    }
+    cols[col]=cr
+    layout.push({cr,col,totalCols:0})
+  })
+  const totalCols=cols.length||1
+  return layout.map(l=>({...l,totalCols}))
+}
 
 export default function Calendrier() {
   const darkMode = useThemeStore(s=>s.darkMode)
@@ -40,10 +61,11 @@ export default function Calendrier() {
   const [cours,    setCours]    = useState([])
   const [absences, setAbsences] = useState([])
   const [devoirs,  setDevoirs]  = useState([])
-  const [selectedDay, setSelectedDay] = useState(null)
-  const [calCollapsed, setCalCollapsed] = useState(false)
-  const [isMobile] = useState(window.innerWidth < 768) // null = vue semaine
+  const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
+  const [selectedCours, setSelectedCours] = useState(null)
+  const [calCollapsed, setCalCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
   const scrollRef = useRef(null)
 
   const weekDates = getWeekDates(baseDate)
@@ -65,11 +87,10 @@ export default function Calendrier() {
   }, [])
 
   useEffect(() => {
-    setTimeout(() => {
-      if(scrollRef.current) {
-        scrollRef.current.scrollTop = Math.max(0, nowTop - 100)
-      }
-    }, 500)
+    if(scrollRef.current) {
+      const scrollTo = Math.max(0, nowTop - 100)
+      scrollRef.current.scrollTop = scrollTo
+    }
   }, [nowTop])
 
   const matColors = {}
@@ -77,8 +98,6 @@ export default function Calendrier() {
   cours.forEach(c => { if(!matColors[c.matiere?.nom]) { matColors[c.matiere?.nom]=COLORS_MAT[ci%COLORS_MAT.length]; ci++ } })
 
   const absDays = absences.map(a => new Date(a.date).toDateString())
-  // Jours avec cours dans la semaine
-  const coursJours = cours.map(c => c.jourSemaine) // 1=lun...7=dim
   const devoirDays = devoirs.map(d => new Date(d.dateLimite || d.date).toDateString())
 
   const monthDays = getMonthDays(calYear, calMonth)
@@ -97,15 +116,24 @@ export default function Calendrier() {
   const selectDay = (d) => { const date=new Date(calYear,calMonth,d); setBaseDate(date); setSelectedDay(date) }
 
   return (
-    <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', overflow:'hidden'}}>
-
+    <div style={{fontFamily:ft, background:bg, height:'100vh', display:'flex', flexDirection:'column', overflow:'hidden'}}>
+      {/* Header */}
+      <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0}}>
+        <div style={{fontSize:30,fontWeight:300,letterSpacing:'-0.8px',color:text,marginBottom:2}}>Calendrier</div>
+        <div style={{display:'flex',alignItems:'center',gap:6,fontSize:12}}>
+          <span style={{color:RED,fontWeight:500}}>{today.toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}</span>
+          <span style={{color:muted}}>·</span>
+          <span style={{fontWeight:600,color:text}}>{cours.length} cours</span>
+        </div>
+      </div>
+      <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
       {/* Colonne gauche — mini calendrier */}
-      <div style={{width:calCollapsed?32:220, borderRight:`1px solid ${border}`, position:'relative', transition:'width 0.2s', display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0}}>
+      {!isMobile && <div style={{position:'relative',width:calCollapsed?32:220,borderRight:`1px solid ${border}`, display:'flex', flexDirection:'column', padding:'16px 12px', flexShrink:0, overflowY:'auto'}}>
 
         <button onClick={()=>setCalCollapsed(v=>!v)}
           style={{position:'absolute',top:10,right:6,background:'none',border:'none',cursor:'pointer',color:'#FF3B30',fontSize:10,fontWeight:600,display:'flex',alignItems:'center',gap:2,zIndex:1}}>
-          {calCollapsed ? <ChevronRight size={13}/> : <><ChevronLeft size={13}/><span style={{display:calCollapsed?'none':'inline'}}>Réduire</span></>}
+          {calCollapsed ? <ChevronRight size={13}/> : <><ChevronLeft size={13}/><span>Réduire</span></>}
         </button>
         {!calCollapsed && <>
         {/* Mois nav */}
@@ -145,17 +173,32 @@ export default function Calendrier() {
                 {d}
                 {/* Dots */}
                 <div style={{position:'absolute',bottom:2,left:'50%',transform:'translateX(-50%)',display:'flex',gap:2}}>
+                  {isAbs && <div style={{width:3,height:3,borderRadius:'50%',background:'#FF3B30'}}/>}
+                  {isDev && <div style={{width:3,height:3,borderRadius:'50%',background:'#007AFF'}}/>}
 
                 </div>
               </div>
             )
           })}
         </div>
+
+        {/* Légende */}
+        <div style={{marginTop:16,display:'flex',flexDirection:'column',gap:6}}>
+          <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)',fontWeight:600,marginBottom:4}}>Légende</div>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:'#FF3B30'}} /> Absence
+          </div>
+          <div style={{display:'flex',alignItems:'center',gap:6,fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>
+            <div style={{width:8,height:8,borderRadius:'50%',background:'#007AFF'}}/> Devoir
+          </div>
+
+        </div>
       </>}
-      </div>
+      </div>}
 
       {/* Colonne droite — vue semaine */}
-      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+      <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden',position:'relative'}}>
+        {selectedCours && <div onClick={()=>setSelectedCours(null)} style={{position:'absolute',inset:0,background:'rgba(255,255,255,0.5)',backdropFilter:'blur(3px)',zIndex:8,cursor:'pointer',borderRadius:0}}/>}
 
         {/* Header semaine */}
         <div style={{borderBottom:`1px solid ${border}`,flexShrink:0,padding:'10px 0 0'}}>
@@ -199,7 +242,7 @@ export default function Calendrier() {
             {/* Heures */}
             <div>
               {HOURS.map((h,i)=>(
-                <div key={i} style={{height:30,display:'flex',alignItems:'flex-start',justifyContent:'flex-end',paddingRight:8,paddingTop:0,marginTop:-6}}>
+                <div key={i} style={{height:30,display:'flex',alignItems:'flex-start',justifyContent:'flex-end',paddingRight:8,paddingTop:2}}>
                   {Number.isInteger(h) 
     ? <span style={{fontSize:10,color:muted}}>{String(Math.floor(h)).padStart(2,'0')}:00</span>
     : <span style={{fontSize:9,color:muted+'88'}}>{String(Math.floor(h)).padStart(2,'0')}:30</span>
@@ -215,7 +258,7 @@ export default function Calendrier() {
               const isCurrentDay = isToday(date)
 
               return (
-                <div key={di} style={{position:'relative',borderLeft:`1px solid ${border}`}}>
+                <div key={di} style={{position:'relative',borderLeft:`1px solid ${border}`,transition:'filter 0.2s',filter:selectedCours&&!daysCours.find(x=>x.id===selectedCours.id)?'blur(1px) brightness(1.05)':'none'}}>
                   {HOURS.map((h,i)=>(
                     <div key={i} style={{height:30,borderBottom:Number.isInteger(h)?'1px solid '+border:'1px dashed '+border+'88'}}/>
                   ))}
@@ -235,17 +278,17 @@ export default function Calendrier() {
                   )}
 
                   {/* Cours */}
-                  {daysCours.map((c,ci2)=>{
+                  {getOverlapLayout(daysCours).map(({cr:c, col, totalCols}, ci2)=>{
                     const top = timeToTop(c.heureDebut)
                     const height = Math.max(durToH(c.heureDebut,c.heureFin)-2, 20)
                     const color = matColors[c.matiere?.nom] || COLORS_MAT[0]
                     return (
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
-                        background:color,borderLeft:'none',boxShadow:'0 2px 8px rgba(0,0,0,0.08)',
+                        background:color,borderLeft:'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',transition:'all 0.2s',zIndex:selectedCours?.id===c.id?20:2,
                         borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer'
-                      }}>
-                        <div style={{fontSize:11,fontWeight:700,color,lineHeight:1.2}}>{c.matiere?.nom}</div>
+                      }} onClick={e=>{e.stopPropagation();setSelectedCours(selectedCours?.id===c.id?null:c)}}>
+                        <div style={{fontSize:13,fontWeight:700,color:'#fff',lineHeight:1.2}}>{c.matiere?.nom || c.nom}</div>
                         <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.heureDebut}–{c.heureFin}</div>
                         {c.salle&&<div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.salle}</div>}
                       </div>
@@ -256,6 +299,7 @@ export default function Calendrier() {
             })}
           </div>
         </div>
+      </div>
       </div>
     </div>
   )

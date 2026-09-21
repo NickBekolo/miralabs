@@ -4,7 +4,8 @@ import DashboardLayout from '../../components/layout/DashboardLayout'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
-import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays } from 'lucide-react'
+import AvatarUser from '../../components/shared/AvatarUser'
+import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays, ChevronDown, ChevronRight } from 'lucide-react'
 import CalendrierEnseignant from './CalendrierEnseignant'
 import PlanningWidget from './PlanningWidget'
 
@@ -81,12 +82,17 @@ function NotesSection({ C }) {
   const [form,setForm]=useState({eleveId:'',matiereId:'',valeur:'',noteSur:'20',typeEvaluation:'',commentaire:''})
   const [saving,setSaving]=useState(false)
   const [msg,setMsg]=useState(null)
+  const ft2 = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
+  const NOTE_C = v => v>=10?'#1d1d1f':'#FF3B30'
+  const TYPE_COLORS = {DS:'#4F7CFF',TP:'#8B5CF6',Devoir:'#14B8A6',Interrogation:'#F97316',Examen:'#E85D5D',CCF:'#16A34A'}
+
   useEffect(()=>{
     api.get('/api/classes').then(r=>setClasses(r.data)).catch(()=>{})
     api.get('/api/notes').then(r=>setNotes(r.data)).catch(()=>{})
     api.get('/api/matieres').then(r=>setMatieres(r.data)).catch(()=>{})
   },[])
   useEffect(()=>{ if(!classeId){setEleves([]);return} api.get('/api/classes/'+classeId+'/eleves').then(r=>setEleves(r.data)).catch(()=>{}) },[classeId])
+
   const save=async()=>{
     if(!form.eleveId||!form.matiereId||!form.valeur)return
     setSaving(true);setMsg(null)
@@ -94,85 +100,234 @@ function NotesSection({ C }) {
       await api.post('/api/notes',{eleveId:+form.eleveId,matiereId:+form.matiereId,valeur:+form.valeur,noteSur:+form.noteSur,typeEvaluation:form.typeEvaluation||null,commentaire:form.commentaire})
       setMsg({ok:true,text:'Note enregistrée'})
       setForm({eleveId:'',matiereId:'',valeur:'',noteSur:'20',typeEvaluation:'',commentaire:''})
-      api.get('/api/notes').then(r=>setNotes(r.data))
+      setTimeout(()=>setMsg(null),3000)
+      api.get('/api/notes').then(r=>setNotes(r.data.filter(n=>n.professeur?.id===11)))
     }catch{setMsg({ok:false,text:'Erreur.'})}
     finally{setSaving(false)}
   }
-  return (
-    <div>
 
-      <Card C={C} style={{ marginBottom:16 }}>
-        <ST C={C}>Nouvelle note</ST>
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr',gap:10 }}>
-          <div style={{ gridColumn:'1/-1' }}><Sel label="Classe" value={classeId} onChange={e=>setClasseId(e.target.value)}><option value="">Sélectionner une classe</option>{classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}</Sel></div>
-          <div style={{ gridColumn:'1/-1' }}><Sel label="Eleve *" value={form.eleveId} onChange={e=>setForm(f=>({...f,eleveId:e.target.value}))}><option value="">Sélectionner un élève</option>{eleves.map(e=><option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}</Sel></div>
-          <Sel label="Matiere *" value={form.matiereId} onChange={e=>setForm(f=>({...f,matiereId:e.target.value}))}><option value="">Matière</option>{matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}</Sel>
-          <Sel label="Type" value={form.typeEvaluation} onChange={e=>setForm(f=>({...f,typeEvaluation:e.target.value}))}><option value="">Type</option>{TYPES_EVAL.map(t=><option key={t} value={t}>{t}</option>)}</Sel>
-          <Sel label="Sur" value={form.noteSur} onChange={e=>setForm(f=>({...f,noteSur:e.target.value}))}>{[10,20].map(n=><option key={n} value={n}>/{n}</option>)}</Sel>
-          <Inp label="Note *" type="number" min="0" max={form.noteSur} step="0.5" value={form.valeur} onChange={e=>setForm(f=>({...f,valeur:e.target.value}))} placeholder="0-20"/>
-          <div style={{ gridColumn:'1/-1' }}><Inp label="Commentaire" value={form.commentaire} onChange={e=>setForm(f=>({...f,commentaire:e.target.value}))} placeholder="Commentaire..."/></div>
-        </div>
-        <Msg msg={msg}/>
-        <Btn onClick={save} saving={saving} disabled={!form.eleveId||!form.matiereId||!form.valeur} C={C}/>
-      </Card>
-      <Card C={C}><ST C={C}>Notes recentes</ST>
-        {notes.slice(0,5).map((n,i)=>{const s=Math.round((n.valeur/n.noteSur)*200)/10;return(
-          <div key={n.id} style={{ display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<4?`1px solid ${C.surface2}`:'none' }}>
-            <div style={{ width:36,height:36,borderRadius:8,background:s<10?'rgba(255,59,48,0.1)':C.surface2,display:'flex',alignItems:'center',justifyContent:'center' }}><span style={{ fontSize:13,fontWeight:700,color:s<10?'#FF3B30':C.text }}>{s}</span></div>
-            <div style={{ flex:1 }}><div style={{ fontSize:12,color:C.text }}>{n.eleve?.firstName} {n.eleve?.lastName}</div><div style={{ fontSize:11,color:C.muted }}>{n.matiere?.nom}</div></div>
-          </div>
-        )})}
-      </Card>
+  const Field = ({label,children}) => (
+    <div style={{marginBottom:14}}>
+      <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>{label}</div>
+      {children}
     </div>
   )
-}
+  const selStyle = {width:'100%',padding:'10px 12px',borderRadius:12,border:'1px solid #e5e5ea',background:'#fff',fontSize:14,outline:'none',fontFamily:ft2,color:'#1d1d1f',appearance:'none',cursor:'pointer'}
+  const inpStyle = {width:'100%',padding:'10px 12px',borderRadius:12,border:'1px solid #e5e5ea',background:'#fff',fontSize:14,outline:'none',fontFamily:ft2,color:'#1d1d1f',boxSizing:'border-box'}
 
-function CarnetNotesSection({ C }) {
-  const [notes,setNotes]=useState([])
-  const [matieres,setMatieres]=useState([])
-  const [loading,setLoading]=useState(true)
-  const [fm,setFm]=useState('')
-  const [ft2,setFt2]=useState('')
-  const avg=arr=>arr.length?Math.round(arr.reduce((s,n)=>s+(n.valeur/n.noteSur)*20,0)/arr.length*10)/10:0
-  useEffect(()=>{ Promise.all([api.get('/api/notes'),api.get('/api/matieres')]).then(([n,m])=>{setNotes(n.data);setMatieres(m.data)}).catch(()=>{}).finally(()=>setLoading(false)) },[])
-  const filtrees=notes.filter(n=>(!fm||n.matiere?.id===parseInt(fm))&&(!ft2||n.typeEvaluation===ft2))
-  const parMat={}
-  filtrees.forEach(n=>{const k=n.matiere?.nom??'Sans matiere';if(!parMat[k])parMat[k]=[];parMat[k].push(n)})
   return (
-    <div>
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2}}>
+      {/* Formulaire */}
+      <div style={{background:'#fff',borderRadius:20,padding:'18px',border:'1px solid #f0f0f0'}}>
+        <div style={{fontSize:16,fontWeight:500,letterSpacing:'-0.4px',color:'#1d1d1f',marginBottom:16}}>Nouvelle note</div>
 
-      <Card C={C} style={{ marginBottom:16 }}>
-        <div style={{ display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:10 }}>
-          <Sel label="Matiere" value={fm} onChange={e=>setFm(e.target.value)}><option value="">Toutes</option>{matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}</Sel>
-          <Sel label="Type" value={ft2} onChange={e=>setFt2(e.target.value)}><option value="">Tous</option>{TYPES_EVAL.map(t=><option key={t} value={t}>{t}</option>)}</Sel>
-          <div style={{ display:'flex',alignItems:'flex-end' }}><button onClick={()=>{setFm('');setFt2('')}} style={{ width:'100%',padding:'9px 12px',borderRadius:10,border:'none',background:C.surface2,color:C.muted,fontSize:13,cursor:'pointer',fontFamily:ft }}>Reset</button></div>
+        {msg&&<div style={{fontSize:13,color:msg.ok?'#34C759':'#FF3B30',marginBottom:12,fontWeight:500}}>{msg.text}</div>}
+
+        <Field label="Classe">
+          <select value={classeId} onChange={e=>setClasseId(e.target.value)} style={selStyle}>
+            <option value="">Sélectionner une classe</option>
+            {classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
+          </select>
+        </Field>
+
+        <Field label="Élève *">
+          <select value={form.eleveId} onChange={e=>setForm(f=>({...f,eleveId:e.target.value}))} style={selStyle}>
+            <option value="">Sélectionner un élève</option>
+            {eleves.map(e=><option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
+          </select>
+        </Field>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+          <Field label="Matière *">
+            <select value={form.matiereId} onChange={e=>setForm(f=>({...f,matiereId:e.target.value}))} style={selStyle}>
+              <option value="">Matière</option>
+              {matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}
+            </select>
+          </Field>
+          <Field label="Type">
+            <select value={form.typeEvaluation} onChange={e=>setForm(f=>({...f,typeEvaluation:e.target.value}))} style={selStyle}>
+              <option value="">Type</option>
+              {TYPES_EVAL.map(t=><option key={t} value={t}>{t}</option>)}
+            </select>
+          </Field>
         </div>
-      </Card>
-      {loading?<div style={{ textAlign:'center',padding:32,color:C.hint }}>Chargement...</div>
-      :Object.entries(parMat).map(([mat,mn])=>(
-        <Card C={C} key={mat} style={{ marginBottom:12 }}>
-          <div style={{ display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:14 }}>
-            <div><div style={{ fontSize:15,fontWeight:700,color:C.text }}>{mat}</div><div style={{ fontSize:11,color:C.hint }}>{mn.length} note(s)</div></div>
-            <div style={{ textAlign:'right' }}><div style={{ fontSize:22,fontWeight:700,color:avg(mn)<10?'#FF3B30':'#34C759' }}>{avg(mn)}/20</div></div>
-          </div>
-          <div style={{ borderRadius:10,overflow:'hidden',border:`1px solid ${C.surface2}` }}>
-            <div style={{ display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',background:C.surface2,padding:'8px 12px' }}>
-              {['Eleve','Note','Type','Commentaire'].map(h=><div key={h} style={{ fontSize:10,fontWeight:600,color:C.hint,textTransform:'uppercase' }}>{h}</div>)}
-            </div>
-            {mn.map(n=>{const s=Math.round((n.valeur/n.noteSur)*200)/10;return(
-              <div key={n.id} style={{ display:'grid',gridTemplateColumns:'2fr 1fr 1fr 1fr',padding:'10px 12px',borderTop:`1px solid ${C.surface2}`,alignItems:'center' }}>
-                <div style={{ fontSize:13,color:C.text }}>{n.eleve?.firstName} {n.eleve?.lastName}</div>
-                <div style={{ fontSize:14,fontWeight:700,color:s<10?'#FF3B30':'#34C759' }}>{s}/20</div>
-                <div>{n.typeEvaluation?<span style={{ fontSize:11,padding:'2px 8px',borderRadius:980,background:C.surface2,color:C.muted }}>{n.typeEvaluation}</span>:<span style={{ color:C.hint }}>-</span>}</div>
-                <div style={{ fontSize:11,color:C.muted }}>{n.commentaire||'-'}</div>
+
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+          <Field label="Note *">
+            <input type="number" min="0" max={form.noteSur} step="0.5" value={form.valeur} onChange={e=>setForm(f=>({...f,valeur:e.target.value}))} placeholder="0" style={inpStyle}/>
+          </Field>
+          <Field label="Sur">
+            <select value={form.noteSur} onChange={e=>setForm(f=>({...f,noteSur:e.target.value}))} style={selStyle}>
+              {[10,20].map(n=><option key={n} value={n}>/{n}</option>)}
+            </select>
+          </Field>
+        </div>
+
+        <Field label="Commentaire">
+          <input value={form.commentaire} onChange={e=>setForm(f=>({...f,commentaire:e.target.value}))} placeholder="Commentaire..." style={inpStyle}/>
+        </Field>
+
+        <button onClick={save} disabled={saving||!form.eleveId||!form.matiereId||!form.valeur}
+          style={{width:'100%',padding:'13px',borderRadius:14,background:'#1d1d1f',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2,opacity:saving||!form.eleveId||!form.matiereId||!form.valeur?0.4:1}}>
+          {saving?'Enregistrement...':'Enregistrer la note'}
+        </button>
+      </div>
+
+      {/* Notes récentes */}
+      <div style={{background:'#fff',borderRadius:20,border:'1px solid #f0f0f0',overflow:'hidden'}}>
+        <div style={{padding:'14px 16px',borderBottom:'1px solid #f0f0f0'}}>
+          <div style={{fontSize:14,fontWeight:500,letterSpacing:'-0.3px',color:'#1d1d1f'}}>Notes récentes</div>
+        </div>
+        {notes.slice(0,8).map((n,i)=>{
+          const s=Math.round((n.valeur/n.noteSur)*200)/10
+          const type = n.typeEvaluation||n.type
+          return(
+            <div key={n.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<7?'1px solid #f5f5f7':'none'}}>
+              <AvatarUser genre={n.eleve?.genre} isActive={true} size={36}/>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:500,color:'#1d1d1f'}}>{n.eleve?.firstName} {n.eleve?.lastName}</div>
+                <div style={{fontSize:11,color:'#8e8e93'}}>{n.matiere?.nom}</div>
               </div>
-            )})}
-          </div>
-        </Card>
-      ))}
+              {type&&<div style={{padding:'3px 8px',borderRadius:999,border:'1px solid #e5e5ea',color:'#1d1d1f',fontSize:11,flexShrink:0}}>{type}</div>}
+              <div style={{fontSize:16,fontWeight:400,color:NOTE_C(s),fontFamily:ft2,flexShrink:0}}>{s}/20</div>
+            </div>
+          )
+        })}
+        {notes.length===0&&<div style={{padding:24,textAlign:'center',color:'#8e8e93',fontSize:13}}>Aucune note</div>}
+      </div>
     </div>
   )
 }
+
+
+function CarnetNotesSection({ C, user }) {
+  const [notes, setNotes] = useState([])
+  const [filtreMatiere, setFiltreMatiere] = useState('')
+  const [filtreType, setFiltreType] = useState('')
+
+  const [collapsed, setCollapsed] = useState({})
+  const [filtreOpen, setFiltreOpen] = useState({mat:true,type:true})
+  const MAT_COLORS = {
+    'Mathématiques':'#4F7CFF','Physique-Chimie':'#E85D5D','Français':'#8B5CF6',
+    'Anglais':'#14B8A6','Histoire-Géographie':'#F59E0B'
+  }
+  const TYPE_COLORS = {
+    'DS':'#4F7CFF','TP':'#8B5CF6','Devoir':'#14B8A6','Interrogation':'#F97316','Examen':'#E85D5D','CCF':'#16A34A'
+  }
+  const NOTE_COLOR = (v,s) => { const p=(v/s)*20; return p>=10?'#1d1d1f':'#FF3B30' }
+  const AVATAR_COLORS = ['#4F7CFF','#E85D5D','#8B5CF6','#14B8A6','#F59E0B','#F97316']
+
+  useEffect(()=>{ api.get('/api/notes').then(r=>{
+    const mes = user?.id ? r.data.filter(n=>n.professeur?.id===user.id) : r.data
+    setNotes(mes)
+  }).catch(()=>{}) },[user?.id])
+
+  const matieres = [...new Set(notes.map(n=>n.matiere?.nom).filter(Boolean))]
+  const types = [...new Set(notes.map(n=>n.typeEvaluation||n.type).filter(Boolean))]
+
+  const filtered = notes
+    .filter(n=>!filtreMatiere||n.matiere?.nom===filtreMatiere)
+    .filter(n=>!filtreType||(n.typeEvaluation||n.type)===filtreType)
+
+  const byMatiere = matieres.filter(m=>!filtreMatiere||m===filtreMatiere).map(m=>({
+    nom:m,
+    notes:filtered.filter(n=>n.matiere?.nom===m),
+    color:MAT_COLORS[m]||'#8e8e93'
+  })).filter(g=>g.notes.length>0)
+
+  const avg = ns => ns.length ? Math.round(ns.reduce((a,n)=>a+(n.valeur/n.noteSur)*20,0)/ns.length*10)/10 : 0
+
+  const Chip = ({label, active, color, onClick}) => (
+    <button onClick={onClick} style={{
+      padding:'5px 12px',borderRadius:999,fontSize:12,fontWeight:500,cursor:'pointer',
+      background:active?(color||'#1d1d1f'):'#fff',
+      color:active?'#fff':'#6e6e73',
+      border:active?'none':'1.5px solid #e5e5ea',
+      transition:'all 0.15s'
+    }}>{label}</button>
+  )
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft}}>
+      {/* Filtres */}
+      <div style={{background:'#fff',borderRadius:20,border:'1px solid #f0f0f0',padding:'14px 16px'}}>
+        <div style={{marginBottom:10}}>
+          <div onClick={()=>setFiltreOpen(p=>({...p,mat:!p.mat}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer',marginBottom:8}}>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',textTransform:'uppercase',letterSpacing:'0.5px'}}>Matière</div>
+            {filtreOpen.mat?<ChevronDown size={13} color='#6e6e73'/>:<ChevronRight size={13} color='#6e6e73'/>}
+          </div>
+          {filtreOpen.mat&&<div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+            <Chip label="Toutes" active={!filtreMatiere} color="#1d1d1f" onClick={()=>setFiltreMatiere('')}/>
+            {matieres.map(m=><Chip key={m} label={m} active={filtreMatiere===m} color={MAT_COLORS[m]} onClick={()=>setFiltreMatiere(filtreMatiere===m?'':m)}/>)}
+          </div>}
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-end'}}>
+          <div>
+            <div onClick={()=>setFiltreOpen(p=>({...p,type:!p.type}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',cursor:'pointer',marginBottom:8,marginTop:10}}>
+              <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',textTransform:'uppercase',letterSpacing:'0.5px'}}>Type</div>
+              {filtreOpen.type?<ChevronDown size={13} color='#6e6e73'/>:<ChevronRight size={13} color='#6e6e73'/>}
+            </div>
+            {filtreOpen.type&&<div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+              <Chip label="Tous" active={!filtreType} color="#1d1d1f" onClick={()=>setFiltreType('')}/>
+              {types.map(t=><Chip key={t} label={t} active={filtreType===t} color={TYPE_COLORS[t]} onClick={()=>setFiltreType(filtreType===t?'':t)}/>)}
+            </div>}
+          </div>
+          <button onClick={()=>{setFiltreMatiere('');setFiltreType('')}}
+            style={{display:'flex',alignItems:'center',gap:4,padding:'6px 14px',borderRadius:10,border:'none',background:'transparent',color:'#a29bfe',fontSize:12,cursor:'pointer',fontWeight:600}}>
+            ↺ Reset
+          </button>
+        </div>
+      </div>
+
+      {/* Cards matières */}
+      {byMatiere.map(groupe=>{
+        const moyenne = avg(groupe.notes)
+        const avgColor = NOTE_COLOR(moyenne,20)
+        return (
+          <div key={groupe.nom} style={{background:'#fff',borderRadius:22,border:'1px solid #f0f0f0',overflow:'hidden'}}>
+            {/* En-tête */}
+            <div onClick={()=>setCollapsed(p=>({...p,[groupe.nom]:!p[groupe.nom]}))} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',cursor:'pointer'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10}}>
+                <div style={{width:10,height:10,borderRadius:'50%',background:groupe.color,flexShrink:0}}/>
+                <div>
+                  <div style={{fontSize:14,fontWeight:700,color:'#1d1d1f'}}>{groupe.nom}</div>
+                  <div style={{fontSize:11,color:'#8e8e93'}}>{groupe.notes.length} note(s)</div>
+                </div>
+              </div>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <div style={{padding:'4px 14px',borderRadius:999,background:groupe.color,color:'#fff',fontSize:13,fontWeight:700,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>
+                  {moyenne}/20
+                </div>
+                <div style={{color:'#8e8e93'}}>{collapsed[groupe.nom]?<ChevronRight size={16}/>:<ChevronDown size={16}/>}</div>
+              </div>
+            </div>
+            {!collapsed[groupe.nom]&&<>
+            <div style={{height:1,background:'#f0f0f0'}}/>
+            {groupe.notes.map((n,i)=>{
+              const nc = NOTE_COLOR(n.valeur,n.noteSur)
+              const initiales = (n.eleve?.firstName?.[0]||'')+(n.eleve?.lastName?.[0]||'')
+              const avatarColor = AVATAR_COLORS[(n.eleve?.id||0)%AVATAR_COLORS.length]
+              return (
+                <div key={n.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<groupe.notes.length-1?'1px solid #f5f5f7':'none'}}>
+<AvatarUser genre={n.eleve?.genre} isActive={true} size={36}/>
+                  <div style={{flex:1,minWidth:0}}>
+                    <div style={{fontSize:13,fontWeight:600,color:'#1d1d1f',fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>{n.eleve?.firstName} {n.eleve?.lastName}</div>
+                    {n.commentaire&&<div style={{fontSize:11,color:'#8e8e93',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}}>{n.commentaire}</div>}
+                  </div>
+                  {(n.typeEvaluation||n.type)&&<div style={{padding:'3px 8px',borderRadius:999,background:'transparent',border:'1px solid #e5e5ea',color:'#1d1d1f',fontSize:11,fontWeight:500,flexShrink:0}}>{n.typeEvaluation||n.type}</div>}
+                  <div style={{fontSize:16,fontWeight:400,color:NOTE_COLOR(n.valeur,n.noteSur),flexShrink:0,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif",letterSpacing:'-0.3px'}}>{n.valeur}/{n.noteSur}</div>
+                </div>
+              )
+            })}
+            </>}
+          </div>
+        )
+      })}
+      {byMatiere.length===0&&<div style={{textAlign:'center',color:'#8e8e93',padding:40,fontSize:13}}>Aucune note</div>}
+    </div>
+  )
+}
+
 
 function AbsencesSection({ C }) {
   const [classes,setClasses]=useState([])
@@ -315,15 +470,16 @@ function AppelSection({ C }) {
   const [saving,setSaving]=useState(false)
   const [msg,setMsg]=useState(null)
   const [sigActive,setSigActive]=useState(true)
-  const [historique,setHistorique]=useState([])
   const [presences,setPresences]=useState([])
   const [detail,setDetail]=useState(null)
-  const [appelDetail,setAppelDetail]=useState(null)
+  const bg='#fff', border='#e5e5ea', text='#1d1d1f', muted='#8e8e93'
+  const RED='#FF3B30', GREEN='#34C759', ORANGE='#FF9500'
+  const COL={present:GREEN,absent:RED,retard:ORANGE,signed:GREEN,waiting:ORANGE}
+  const LBL={present:'Présent',absent:'Absent',retard:'Retard',signed:'Signé',waiting:'En attente'}
 
   useEffect(()=>{
     api.get('/api/classes').then(r=>setClasses(r.data)).catch(()=>{})
     api.get('/api/etablissement/parametres').then(r=>setSigActive(r.data.signatureNumeriqueActive)).catch(()=>{})
-    api.get('/api/appels/historique').then(r=>setHistorique(r.data)).catch(()=>{})
     const saved=sessionStorage.getItem('appelActif')
     if(saved){try{const d=JSON.parse(saved);setAppel(d);if(d.classeId){setClasseId(String(d.classeId));api.get('/api/classes/'+d.classeId+'/eleves').then(r=>setEleves(r.data)).catch(()=>{})}}catch(e){}}
   },[])
@@ -344,7 +500,7 @@ function AppelSection({ C }) {
     return()=>clearInterval(iv)
   },[appel])
 
-  const toggle=id=>{if(appel)return;setStatuts(s=>{const c=s[id]||'present';return{...s,[id]:c==='present'?'absent':c==='absent'?'retard':'present'}})}
+  const toggle=id=>{if(appel)return;setStatuts(s=>{const cur=s[id]||'present';return{...s,[id]:cur==='present'?'absent':cur==='absent'?'retard':'present'}})}
 
   const lancer=async()=>{
     if(!classeId||!eleves.length)return
@@ -356,156 +512,178 @@ function AppelSection({ C }) {
       sessionStorage.setItem('appelActif',JSON.stringify(ad))
       setAppel(r.data)
       api.get('/api/appels/'+r.data.id).then(res=>setPresences(res.data.presences||[])).catch(()=>{})
-      setMsg({ok:true,text:sigActive?'Appel lance ! Code : '+r.data.codeSignature:'Appel lance !'})
-      api.get('/api/appels/historique').then(r=>setHistorique(r.data)).catch(()=>{})
-    }catch{setMsg({ok:false,text:'Erreur.'})}
+      setMsg({ok:true,text:sigActive?'Appel lancé ! Code : '+r.data.codeSignature:'Appel lancé !'})
+    }catch{setMsg({ok:false,text:'Erreur lors du lancement.'})}
     finally{setSaving(false)}
   }
 
   const terminer=async()=>{
     if(!appel)return
     const r=await api.patch('/api/appels/'+appel.id+'/terminer')
-    setMsg({ok:true,text:'Appel termine. '+r.data.absencesCreees+' absence(s) creee(s).'})
+    setMsg({ok:true,text:'Appel terminé. '+r.data.absencesCreees+' absence(s) créée(s).'})
     sessionStorage.removeItem('appelActif')
     setAppel(null)
     const s={};eleves.forEach(e=>s[e.id]='present');setStatuts(s)
-    api.get('/api/appels/historique').then(r=>setHistorique(r.data)).catch(()=>{})
   }
 
-  const COL={present:'#34C759',absent:'#FF3B30',retard:'#FF9500',signed:'#34C759',waiting:'#FF9500'}
-  const LBL={present:'Present',absent:'Absent',retard:'Retard',signed:'Signe',waiting:'En attente'}
+  const nbPresents = eleves.filter(e=>['present','signed'].includes(statuts[e.id]||'present')).length
+  const nbAbsents = eleves.filter(e=>statuts[e.id]==='absent').length
+  const nbRetards = eleves.filter(e=>statuts[e.id]==='retard').length
 
   return (
-    <div>
-      <h2 style={{fontSize:20,fontWeight:600,color:C.text,marginBottom:6}}>Faire l'appel</h2>
-      <p style={{fontSize:12,color:C.hint,marginBottom:20}}>{sigActive?'Les eleves presants recevront une notification.':'Mode classique.'}</p>
-      {msg&&<div style={{padding:'12px 16px',borderRadius:12,background:msg.ok?'rgba(52,199,89,0.1)':'rgba(255,59,48,0.1)',color:msg.ok?'#34C759':'#FF3B30',fontSize:13,marginBottom:16}}>{msg.text}</div>}
+    <div style={{fontFamily:ft,display:'flex',flexDirection:'column',gap:16,maxWidth:600}}>
 
+      {/* Message */}
+      {msg&&(
+        <div style={{fontSize:13,color:'#a29bfe',fontWeight:500,padding:'4px 0'}}>
+          {msg.text}
+        </div>
+      )}
+
+      {/* Code signature */}
       {appel&&sigActive&&(
-        <Card C={C} style={{marginBottom:16,textAlign:'center',background:'#1a1a2e'}}>
-          <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',marginBottom:8}}>Code signature</div>
-          <div style={{fontSize:52,fontWeight:700,color:'#fff',letterSpacing:10,marginBottom:8}}>{appel.codeSignature}</div>
-        </Card>
+        <div style={{background:'#1a1a2e',borderRadius:20,padding:'24px',textAlign:'center'}}>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.5)',marginBottom:8,letterSpacing:'0.5px',textTransform:'uppercase'}}>Code signature</div>
+          <div style={{fontSize:56,fontWeight:800,color:'#fff',letterSpacing:12,fontFamily:ft}}>{appel.codeSignature}</div>
+          <div style={{fontSize:11,color:'rgba(255,255,255,0.3)',marginTop:8}}>Les élèves saisissent ce code dans leur app</div>
+        </div>
       )}
 
-      <Card C={C} style={{marginBottom:12}}>
-        <Sel label="Classe *" value={classeId} onChange={e=>setClasseId(e.target.value)}>
-          <option value="">Selectionner une classe</option>
-          {classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
-        </Sel>
-      </Card>
-
-      {eleves.length>0&&(
-        <>
-          {appel&&(
-            <Card C={C} style={{marginBottom:12}}>
-              <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Signatures</div>
-              {eleves.map(e=>{
-                const s=statuts[e.id]||'waiting'
-                return (
-                  <div key={e.id} style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:`1px solid ${C.surface2}`}}>
-                    <div style={{width:8,height:8,borderRadius:'50%',background:COL[s]||'#999',flexShrink:0}}/>
-                    <span style={{flex:1,fontSize:13,color:C.text}}>{e.firstName} {e.lastName}</span>
-                    <span style={{fontSize:12,fontWeight:600,color:COL[s]||'#999'}}>{LBL[s]}</span>
-                    {s==='signed'&&<button onClick={()=>{const p=presences.find(x=>String(x.eleve?.id)===String(e.id));setDetail(p||null)}} style={{fontSize:11,padding:'3px 8px',borderRadius:8,border:'none',background:C.surface2,color:C.muted,cursor:'pointer',fontFamily:ft}}>Detail</button>}
-                  </div>
-                )
-              })}
-            </Card>
-          )}
-
-          {!appel&&(
-            <Card C={C} style={{marginBottom:12,padding:0,overflow:'hidden'}}>
-              <div style={{padding:'12px 16px',borderBottom:`1px solid ${C.surface2}`,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-                <span style={{fontSize:13,fontWeight:600,color:C.text}}>{eleves.length} eleves</span>
-                <div style={{display:'flex',gap:6}}>
-                  <button onClick={()=>setStatuts(Object.fromEntries(eleves.map(e=>[e.id,'present'])))} style={{fontSize:11,padding:'4px 10px',borderRadius:8,border:'none',background:'rgba(52,199,89,0.1)',color:'#34C759',cursor:'pointer',fontFamily:ft}}>Tous presents</button>
-                  <button onClick={()=>setStatuts(Object.fromEntries(eleves.map(e=>[e.id,'absent'])))} style={{fontSize:11,padding:'4px 10px',borderRadius:8,border:'none',background:'rgba(255,59,48,0.1)',color:'#FF3B30',cursor:'pointer',fontFamily:ft}}>Tous absents</button>
-                </div>
-              </div>
-              {eleves.map((e,i)=>{const s=statuts[e.id]||'present';return(
-                <div key={e.id} onClick={()=>toggle(e.id)} style={{display:'flex',alignItems:'center',gap:14,padding:'12px 16px',borderBottom:i<eleves.length-1?`1px solid ${C.surface2}`:'none',cursor:'pointer'}}>
-                  <div style={{width:40,height:40,borderRadius:'50%',background:(COL[s]||'#999')+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:14,fontWeight:700,color:COL[s]||'#999',flexShrink:0}}>{e.firstName?.[0]}{e.lastName?.[0]}</div>
-                  <div style={{flex:1,fontSize:14,fontWeight:600,color:C.text}}>{e.firstName} {e.lastName}</div>
-                  <div style={{display:'flex',borderRadius:980,overflow:'hidden',border:`1px solid ${C.surface2}`}}>
-                    {['present','absent','retard'].map(opt=>(
-                      <button key={opt} onClick={ev=>{ev.stopPropagation();setStatuts(ss=>({...ss,[e.id]:opt}))}}
-                        style={{padding:'4px 10px',border:'none',cursor:'pointer',fontSize:12,fontWeight:s===opt?700:400,background:s===opt?(COL[opt]||'#999'):'transparent',color:s===opt?'#fff':C.muted,fontFamily:ft}}>
-                        {opt==='present'?'P':opt==='absent'?'A':'R'}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )})}
-            </Card>
-          )}
-
-          {!appel
-            ?<button onClick={lancer} disabled={saving||!classeId} style={{width:'100%',padding:14,borderRadius:12,border:'none',background:C.text,color:C.bg,fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:ft,opacity:saving||!classeId?0.5:1,marginBottom:16}}>
-              {saving?'Lancement...':'Lancer l appel'}
-            </button>
-            :<button onClick={terminer} style={{width:'100%',padding:14,borderRadius:12,border:'none',background:'#FF3B30',color:'#fff',fontSize:14,fontWeight:700,cursor:'pointer',fontFamily:ft,marginBottom:16}}>
-              Terminer l appel
-            </button>
-          }
-
-          {historique.length>0&&(
-            <Card C={C}>
-              <div style={{fontSize:13,fontWeight:600,color:C.text,marginBottom:12}}>Historique ({historique.length})</div>
-              {historique.map((a,i)=>(
-                <div key={a.id} onClick={()=>api.get('/api/appels/'+a.id).then(r=>setAppelDetail(r.data)).catch(()=>{})}
-                  style={{display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<historique.length-1?`1px solid ${C.surface2}`:'none',cursor:'pointer'}}>
-                  <div style={{flex:1}}>
-                    <div style={{fontSize:13,color:C.text}}>Appel #{a.id} — {a.dateHeure}</div>
-                    <div style={{fontSize:11,color:C.muted}}>{a.nbPresents} presants · {a.nbAbsents} absents · {a.nbSignes} signes</div>
-                  </div>
-                  <span style={{fontSize:11,padding:'2px 8px',borderRadius:980,background:a.statut==='termine'?'rgba(52,199,89,0.1)':'rgba(255,149,0,0.1)',color:a.statut==='termine'?'#34C759':'#FF9500'}}>
-                    {a.statut==='termine'?'Termine':'En cours'}
-                  </span>
-                </div>
-              ))}
-            </Card>
-          )}
-        </>
-      )}
-
-      {detail&&(
-        <div onClick={()=>setDetail(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(8px)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:C.bg,borderRadius:20,padding:24,maxWidth:420,width:'90%'}}>
-            <div style={{fontSize:16,fontWeight:700,color:C.text,marginBottom:4}}>{detail?.eleve?.firstName} {detail?.eleve?.lastName}</div>
-            <div style={{fontSize:12,color:C.muted,marginBottom:16}}>Signe a {detail?.signedAt ? new Date(new Date().toDateString()+' '+detail.signedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</div>
-            {detail?.signatureImage
-              ?<img src={(import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000')+detail.signatureImage} alt="Signature" style={{width:'100%',borderRadius:12,border:`1px solid ${C.surface2}`,background:'#fff'}}/>
-              :<div style={{padding:24,textAlign:'center',color:C.hint,fontSize:13}}>Aucune image</div>
-            }
-            <button onClick={()=>setDetail(null)} style={{width:'100%',marginTop:16,padding:10,borderRadius:10,border:'none',background:C.text,color:C.bg,cursor:'pointer',fontFamily:ft}}>Fermer</button>
+      {/* Sélection classe */}
+      {!appel&&(
+        <div style={{background:bg,borderRadius:16,padding:'16px',border:`1px solid ${border}`}}>
+          <div style={{fontSize:12,fontWeight:600,color:muted,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Sélectionner une classe</div>
+          <div style={{display:'flex',flexWrap:'wrap',gap:8}}>
+            {classes.map(cl=>(
+              <button key={cl.id} onClick={()=>setClasseId(String(cl.id))}
+                style={{padding:'8px 16px',borderRadius:999,fontSize:13,fontWeight:500,cursor:'pointer',border:'none',
+                  background:classeId===String(cl.id)?text:'#f5f5f7',
+                  color:classeId===String(cl.id)?bg:text,
+                  transition:'all 0.15s'}}>
+                {cl.name}
+              </button>
+            ))}
           </div>
         </div>
       )}
 
-      {appelDetail&&(
-        <div onClick={()=>setAppelDetail(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.6)',backdropFilter:'blur(8px)',zIndex:300,display:'flex',alignItems:'center',justifyContent:'center'}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:C.bg,borderRadius:20,padding:24,maxWidth:480,width:'90%',maxHeight:'80vh',overflowY:'auto'}}>
-            <div style={{fontSize:16,fontWeight:700,color:C.text,marginBottom:4}}>Appel #{appelDetail.id}</div>
-            <div style={{fontSize:12,color:C.muted,marginBottom:16}}>{appelDetail.dateHeure}</div>
-            {(appelDetail.presences||[]).map((p,i)=>(
-              <div key={p.id} style={{display:'flex',alignItems:'center',gap:10,padding:'10px 0',borderBottom:i<(appelDetail.presences.length-1)?`1px solid ${C.surface2}`:'none'}}>
-                <div style={{width:8,height:8,borderRadius:'50%',background:p.signed?'#34C759':p.statut==='absent'?'#FF3B30':'#FF9500',flexShrink:0}}/>
-                <div style={{flex:1}}>
-                  <div style={{fontSize:13,color:C.text}}>{p.eleve?.firstName} {p.eleve?.lastName}</div>
-                  {p.signedAt&&<div style={{fontSize:11,color:C.muted}}>Signe a {p.signedAt ? new Date(new Date().toDateString()+' '+p.signedAt).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}) : ''}</div>}
-                </div>
-                <span style={{fontSize:12,fontWeight:600,color:p.signed?'#34C759':p.statut==='absent'?'#FF3B30':'#FF9500'}}>{p.signed?'Signe':p.statut==='absent'?'Absent':'En attente'}</span>
-                {p.signatureImage&&<button onClick={()=>setDetail(p)} style={{fontSize:11,padding:'3px 8px',borderRadius:8,border:'none',background:C.surface2,color:C.muted,cursor:'pointer',fontFamily:ft}}>Image</button>}
+      {/* Stats rapides */}
+      {eleves.length>0&&(
+        <div style={{background:bg,borderRadius:14,padding:'14px 16px',border:`1px solid ${border}`}}>
+          <div style={{fontSize:14,color:'#1d1d1f',fontFamily:"'Nunito',sans-serif"}}>
+            <span style={{fontWeight:700,color:GREEN}}>{nbPresents} présent{nbPresents>1?'s':''}</span>,{' '}
+            <span style={{fontWeight:700,color:RED}}>{nbAbsents} absent{nbAbsents>1?'s':''}</span>{nbRetards>0?<> et <span style={{fontWeight:700,color:ORANGE}}>{nbRetards} retard{nbRetards>1?'s':''}</span></>:''} sur {eleves.length} élèves.
+          </div>
+        </div>
+      )}
+
+      {/* Liste élèves */}
+      {eleves.length>0&&(
+        <div style={{background:bg,borderRadius:20,border:`1px solid ${border}`,overflow:'hidden'}}>
+          {/* En-tête */}
+          <div style={{padding:'14px 16px',borderBottom:`1px solid ${border}`,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <div style={{fontSize:14,fontWeight:600,color:text}}>{eleves.length} élèves</div>
+            {!appel&&(
+              <div style={{display:'flex',gap:6}}>
+                <button onClick={()=>setStatuts(Object.fromEntries(eleves.map(e=>[e.id,'present'])))}
+                  style={{fontSize:11,padding:'5px 12px',borderRadius:8,border:'1px solid #e5e5ea',
+                    background:eleves.every(e=>statuts[e.id]==='present')?'#34C759':'#fff',
+                    color:eleves.every(e=>statuts[e.id]==='present')?'#fff':'#6e6e73',
+                    cursor:'pointer',fontWeight:500,transition:'all 0.15s'}}>
+                  Tous présents
+                </button>
+                <button onClick={()=>setStatuts(Object.fromEntries(eleves.map(e=>[e.id,'absent'])))}
+                  style={{fontSize:11,padding:'5px 12px',borderRadius:8,border:'1px solid #e5e5ea',
+                    background:eleves.every(e=>statuts[e.id]==='absent')?'#FF3B30':'#fff',
+                    color:eleves.every(e=>statuts[e.id]==='absent')?'#fff':'#6e6e73',
+                    cursor:'pointer',fontWeight:500,transition:'all 0.15s'}}>
+                  Tous absents
+                </button>
               </div>
-            ))}
-            <button onClick={()=>setAppelDetail(null)} style={{width:'100%',marginTop:16,padding:10,borderRadius:10,border:'none',background:C.text,color:C.bg,cursor:'pointer',fontFamily:ft}}>Fermer</button>
+            )}
+          </div>
+          {/* Élèves */}
+          {eleves.map((e,i)=>{
+            const s=statuts[e.id]||'present'
+            const color=COL[s]||muted
+            return (
+              <div key={e.id} onClick={()=>toggle(e.id)}
+                style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<eleves.length-1?`1px solid ${border}`:'none',cursor:appel?'default':'pointer',transition:'background 0.1s'}}
+                onMouseEnter={e2=>{if(!appel)e2.currentTarget.style.background='#f9f9f9'}}
+                onMouseLeave={e2=>{e2.currentTarget.style.background='transparent'}}>
+                {/* Avatar */}
+<AvatarUser genre={e.genre} isActive={s==='present'||s==='signed'} size={40}/>
+                {/* Nom */}
+                <div style={{flex:1}}>
+                  <div style={{fontSize:14,fontWeight:500,color:text}}>{e.firstName} {e.lastName}</div>
+                  {!appel&&<div style={{fontSize:11,color:muted}}>Cliquer pour changer le statut</div>}
+                </div>
+                {/* Boutons statut style ChatGPT */}
+                {!appel && (
+                  <div style={{display:'flex',gap:6,flexShrink:0}}>
+                    {['present','absent','retard'].map(st=>(
+                      <button key={st} onClick={ev=>{ev.stopPropagation();setStatuts(prev=>({...prev,[e.id]:st}))}}
+                        style={{
+                          padding:'5px 12px',borderRadius:8,fontSize:12,fontWeight:500,cursor:'pointer',
+                          border:s===st?'none':'1px solid #e5e5ea',
+                          background:s===st?COL[st]:'#fff',
+                          color:s===st?'#fff':'#6e6e73',
+                          transition:'all 0.15s'
+                        }}>
+                        {st==='present'?'Présent':st==='absent'?'Absent':'Retard'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {appel && (
+                  <div style={{padding:'4px 12px',borderRadius:999,background:color+'15',color,fontSize:12,fontWeight:600,flexShrink:0}}>
+                    {LBL[s]}
+                  </div>
+                )}
+                {/* Bouton détail signature */}
+                {appel&&s==='signed'&&(
+                  <button onClick={ev=>{ev.stopPropagation();const p=presences.find(x=>String(x.eleve?.id)===String(e.id));setDetail(p||null)}}
+                    style={{fontSize:11,padding:'4px 10px',borderRadius:8,border:`1px solid ${border}`,background:bg,color:muted,cursor:'pointer'}}>
+                    Voir
+                  </button>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {/* Boutons action */}
+      {eleves.length>0&&(
+        <div style={{display:'flex',gap:10}}>
+          {!appel?(
+            <button onClick={lancer} disabled={saving||!classeId}
+              style={{flex:1,padding:'14px',borderRadius:14,background:text,color:bg,border:'none',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:ft,opacity:saving?0.6:1}}>
+              {saving?'Lancement...':'Lancer appel'}
+            </button>
+          ):(
+            <button onClick={terminer}
+              style={{flex:1,padding:'14px',borderRadius:14,background:RED,color:'#fff',border:'none',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:ft}}>
+              Terminer l'appel
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Modal détail signature */}
+      {detail&&(
+        <div style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:999,padding:20}}>
+          <div style={{background:bg,borderRadius:24,padding:24,maxWidth:360,width:'100%',boxShadow:'0 20px 60px rgba(0,0,0,0.2)'}}>
+            <div style={{fontSize:16,fontWeight:700,color:text,marginBottom:16}}>Signature de {detail.eleve?.firstName}</div>
+            {detail.signatureImage&&<img src={(import.meta.env.VITE_API_URL||'http://127.0.0.1:8000')+detail.signatureImage} style={{width:'100%',borderRadius:12,border:`1px solid ${border}`}} alt="Signature"/>}
+            <button onClick={()=>setDetail(null)} style={{width:'100%',marginTop:16,padding:12,borderRadius:12,background:'#f5f5f7',color:text,border:'none',fontSize:14,fontWeight:500,cursor:'pointer'}}>Fermer</button>
           </div>
         </div>
       )}
     </div>
   )
 }
+
 
 function EdtSection({ cours, C }) {
   const J=['Lundi','Mardi','Mercredi','Jeudi','Vendredi']
@@ -550,7 +728,7 @@ export default function EnseignantDashboard() {
     calendrier: <CalendrierEnseignant/>,
     accueil: <AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={p=>document.querySelector(`[data-nav='${p}']`)?.click()}/>,
     notes: <NotesSection C={C}/>,
-    carnet: <CarnetNotesSection C={C}/>,
+    carnet: <CarnetNotesSection C={C} user={user}/>,
     absences: <AbsencesSection C={C}/>,
     devoirs: <DevoirsSection C={C}/>,
     lecons: <LeconsSection C={C}/>,

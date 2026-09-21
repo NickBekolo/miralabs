@@ -45,7 +45,7 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
       </div>
 
       {/* Planning */}
-      <PlanningWidget C={C}/>
+      <PlanningWidget C={C} onNav={onNav}/>
 
 
 

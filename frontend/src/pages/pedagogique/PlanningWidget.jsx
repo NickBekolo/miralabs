@@ -51,7 +51,7 @@ function getOverlapLayout(cours) {
   return layout.map(l=>({...l,totalCols}))
 }
 
-export default function PlanningWidget() {
+export default function PlanningWidget({ onNav }) {
   const darkMode = useThemeStore(s=>s.darkMode)
   const C = darkMode ? DARK_THEME : LIGHT_THEME
   const today = new Date()
@@ -126,10 +126,11 @@ export default function PlanningWidget() {
   return (
     <div style={{fontFamily:ft, background:bg, height:400, display:'flex', flexDirection:'column', overflow:'hidden', borderRadius:20, boxShadow:'0 2px 16px rgba(0,0,0,0.08)', marginBottom:16}}>
       {/* Header */}
-      <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0}}>
-        <div style={{fontSize:20,fontWeight:400,letterSpacing:'-0.8px',color:text,marginBottom:2}}>
-    Planning · <span style={{color:'#FF3B30',fontSize:13}}>{new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'})}</span>
-  </div>
+      <div style={{padding:'12px 20px 8px', borderBottom:`1px solid ${border}`, flexShrink:0, display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+        <div style={{fontSize:20,fontWeight:400,letterSpacing:'-0.8px',color:text}}>
+          Planning · <span style={{color:'#FF3B30',fontSize:13}}>{new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long'})}</span>
+        </div>
+        <button onClick={()=>{ if(window.navigateTo) window.navigateTo('calendrier'); else { const e=new CustomEvent('nav',{detail:'calendrier'}); window.dispatchEvent(e) } }} style={{fontSize:12,color:'#FF3B30',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>Ouvrir</button>
       </div>
       <div style={{display:'flex',flex:1,overflow:'hidden'}}>
 
@@ -200,7 +201,7 @@ export default function PlanningWidget() {
               {MONTHS[weekDates[0].getMonth()]} {weekDates[0].getFullYear()}
             </div>
             <div style={{display:'flex',gap:8,alignItems:'center'}}>
-              {selectedDay && <button onClick={()=>setSelectedDay(null)} style={{fontSize:12,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:500,marginRight:8}}>← Semaine</button>}
+              {selectedDay && <button onClick={()=>setSelectedDay(null)} style={{fontSize:12,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:500,marginRight:8}}>Semaine</button>}
               <button onClick={()=>{ setBaseDate(new Date()); setSelectedDay(null) }} style={{fontSize:12,color:RED,background:'none',border:'none',cursor:'pointer',fontWeight:500}}>Aujourd'hui</button>
               <button onClick={goWeekBack} style={{background:'none',border:'none',cursor:'pointer',color:muted}}><ChevronLeft size={16}/></button>
               <button onClick={goWeekNext} style={{background:'none',border:'none',cursor:'pointer',color:muted}}><ChevronRight size={16}/></button>

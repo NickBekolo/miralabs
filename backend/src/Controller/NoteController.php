@@ -10,6 +10,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use App\Trait\EtablissementTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
@@ -17,7 +18,7 @@ use Symfony\Component\Security\Http\Attribute\IsGranted;
 class NoteController extends AbstractController
 {
     use EtablissementTrait;
-    public function __construct(
+    public function __construct(private EntityManagerInterface $em,
         private NoteRepository $noteRepository,
         private UserRepository $userRepository,
         private MatiereRepository $matiereRepository,
@@ -77,6 +78,11 @@ class NoteController extends AbstractController
             ->setProfesseur($this->getUser())
             ->setMatiere($matiere)
             ->setCreatedAt(new \DateTimeImmutable());
+
+        if (!empty($data['sessionId'])) {
+            $session = $this->em->getRepository(\App\Entity\SessionNotes::class)->find($data['sessionId']);
+            if ($session) $note->setSession($session);
+        }
 
         $this->noteRepository->save($note, true);
 

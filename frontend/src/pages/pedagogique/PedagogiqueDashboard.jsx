@@ -20,7 +20,6 @@ const NAV = [
   { id:'devoirs',  label:'Devoirs',         icon:BookOpen },
   { id:'lecons',   label:'Cahier de texte', icon:FileText },
   { id:'appel',    label:"Faire l'appel",   icon:CheckSquare },
-  { id:'edt',      label:'Emploi du temps', icon:Calendar },
   { id:'params',   label:'Paramètres',      icon:Settings },
 ]
 function Card({ children, C, style={} }) { return <div style={{ background:C.surface, borderRadius:16, padding:18, ...style }}>{children}</div> }
@@ -73,130 +72,283 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
   )
 }
 
-function NotesSection({ C }) {
-  const [classes,setClasses]=useState([])
-  const [eleves,setEleves]=useState([])
-  const [matieres,setMatieres]=useState([])
-  const [notes,setNotes]=useState([])
-  const [classeId,setClasseId]=useState('')
-  const [form,setForm]=useState({eleveId:'',matiereId:'',valeur:'',noteSur:'20',typeEvaluation:'',commentaire:''})
-  const [saving,setSaving]=useState(false)
-  const [msg,setMsg]=useState(null)
+function NotesSection({ C, user }) {
+  const [vue, setVue] = useState('sessions') // sessions | nouvelle | saisie
+  const [sessions, setSessions] = useState([])
+  const [classes, setClasses] = useState([])
+  const [matieres, setMatieres] = useState([])
+  const [eleves, setEleves] = useState([])
+  const [sessionActive, setSessionActive] = useState(null)
+  const [notesSession, setNotesSession] = useState({}) // {eleveId: {valeur, commentaire}}
+  const [form, setForm] = useState({classeId:'',matiereId:'',typeEvaluation:'',noteSur:'20',dateSession:new Date().toISOString().split('T')[0]})
+  const [saving, setSaving] = useState(false)
+  const [msg, setMsg] = useState(null)
+  const [detailSession, setDetailSession] = useState(null)
+  const [detailNotes, setDetailNotes] = useState([])
   const ft2 = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
   const NOTE_C = v => v>=10?'#1d1d1f':'#FF3B30'
-  const TYPE_COLORS = {DS:'#4F7CFF',TP:'#8B5CF6',Devoir:'#14B8A6',Interrogation:'#F97316',Examen:'#E85D5D',CCF:'#16A34A'}
+  const STATUT_C = {en_cours:'#FF9500',soumise:'#a29bfe',cloturee:'#8e8e93'}
+  const STATUT_L = {en_cours:'En cours',soumise:'Soumise',cloturee:'Clôturée'}
 
   useEffect(()=>{
+    api.get('/api/sessions-notes').then(r=>setSessions(r.data)).catch(()=>{})
     api.get('/api/classes').then(r=>setClasses(r.data)).catch(()=>{})
-    api.get('/api/notes').then(r=>setNotes(r.data)).catch(()=>{})
     api.get('/api/matieres').then(r=>setMatieres(r.data)).catch(()=>{})
   },[])
-  useEffect(()=>{ if(!classeId){setEleves([]);return} api.get('/api/classes/'+classeId+'/eleves').then(r=>setEleves(r.data)).catch(()=>{}) },[classeId])
 
-  const save=async()=>{
-    if(!form.eleveId||!form.matiereId||!form.valeur)return
-    setSaving(true);setMsg(null)
-    try{
-      await api.post('/api/notes',{eleveId:+form.eleveId,matiereId:+form.matiereId,valeur:+form.valeur,noteSur:+form.noteSur,typeEvaluation:form.typeEvaluation||null,commentaire:form.commentaire})
-      setMsg({ok:true,text:'Note enregistrée'})
-      setForm({eleveId:'',matiereId:'',valeur:'',noteSur:'20',typeEvaluation:'',commentaire:''})
-      setTimeout(()=>setMsg(null),3000)
-      api.get('/api/notes').then(r=>setNotes(r.data.filter(n=>n.professeur?.id===11)))
-    }catch{setMsg({ok:false,text:'Erreur.'})}
-    finally{setSaving(false)}
+  useEffect(()=>{
+    if(!form.classeId)return
+    api.get('/api/classes/'+form.classeId+'/eleves').then(r=>setEleves(r.data)).catch(()=>{})
+  },[form.classeId])
+
+  const ouvrirDetail = async (s) => {
+    setDetailSession(s)
+    const r = await api.get('/api/sessions-notes/'+s.id+'/notes')
+    setDetailNotes(r.data)
   }
 
-  const Field = ({label,children}) => (
-    <div style={{marginBottom:14}}>
-      <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>{label}</div>
-      {children}
-    </div>
-  )
+  const creerSession = async () => {
+    if(!form.classeId||!form.matiereId)return
+    setSaving(true)
+    try {
+      const r = await api.post('/api/sessions-notes', {
+        classeId: parseInt(form.classeId),
+        matiereId: parseInt(form.matiereId),
+        typeEvaluation: form.typeEvaluation||null,
+        noteSur: parseInt(form.noteSur),
+        dateSession: form.dateSession
+      })
+      setSessionActive(r.data)
+      // Initialiser les notes à vide pour chaque élève
+      const ns = {}
+      eleves.forEach(e=>ns[e.id]={valeur:'',commentaire:''})
+      setNotesSession(ns)
+      setVue('saisie')
+      api.get('/api/sessions-notes').then(r=>setSessions(r.data))
+    } catch(e) { console.error(e) }
+    setSaving(false)
+  }
+
+  const ouvrirSession = async (session) => {
+    setSessionActive(session)
+    const r = await api.get('/api/classes/'+session.classe?.id+'/eleves')
+    setEleves(r.data)
+    const notesR = await api.get('/api/sessions-notes/'+session.id+'/notes')
+    const ns = {}
+    r.data.forEach(e=>{
+      const noteExist = notesR.data.find(n=>n.eleve?.id===e.id)
+      ns[e.id] = {valeur: noteExist?.valeur||'', commentaire: noteExist?.commentaire||'', noteId: noteExist?.id}
+    })
+    setNotesSession(ns)
+    setVue('saisie')
+  }
+
+  const enregistrerNote = async (eleveId) => {
+    const n = notesSession[eleveId]
+    if(!n?.valeur)return
+    try {
+      await api.post('/api/notes', {
+        eleveId: parseInt(eleveId),
+        matiereId: sessionActive.matiere?.id,
+        valeur: parseFloat(n.valeur),
+        noteSur: sessionActive.noteSur,
+        typeEvaluation: sessionActive.typeEvaluation,
+        commentaire: n.commentaire||null,
+        sessionId: sessionActive.id
+      })
+      setNotesSession(prev=>({...prev,[eleveId]:{...prev[eleveId],saved:true}}))
+    } catch(e) { console.error(e) }
+  }
+
+  const soumettreSession = async () => {
+    if(!sessionActive)return
+    try {
+      await api.patch('/api/sessions-notes/'+sessionActive.id+'/soumettre')
+      setMsg({ok:true,text:'Session soumise'})
+      api.get('/api/sessions-notes').then(r=>setSessions(r.data))
+      setTimeout(()=>{setVue('sessions');setMsg(null)},2000)
+    } catch(e) { console.error(e) }
+  }
+
   const selStyle = {width:'100%',padding:'10px 12px',borderRadius:12,border:'1px solid #e5e5ea',background:'#fff',fontSize:14,outline:'none',fontFamily:ft2,color:'#1d1d1f',appearance:'none',cursor:'pointer'}
   const inpStyle = {width:'100%',padding:'10px 12px',borderRadius:12,border:'1px solid #e5e5ea',background:'#fff',fontSize:14,outline:'none',fontFamily:ft2,color:'#1d1d1f',boxSizing:'border-box'}
 
-  return (
+  // Modal détail session
+  if (detailSession) return (
     <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2}}>
-      {/* Formulaire */}
-      <div style={{background:'#fff',borderRadius:20,padding:'18px',border:'1px solid #f0f0f0'}}>
-        <div style={{fontSize:16,fontWeight:500,letterSpacing:'-0.4px',color:'#1d1d1f',marginBottom:16}}>Nouvelle note</div>
-
-        {msg&&<div style={{fontSize:13,color:msg.ok?'#34C759':'#FF3B30',marginBottom:12,fontWeight:500}}>{msg.text}</div>}
-
-        <Field label="Classe">
-          <select value={classeId} onChange={e=>setClasseId(e.target.value)} style={selStyle}>
-            <option value="">Sélectionner une classe</option>
-            {classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
-          </select>
-        </Field>
-
-        <Field label="Élève *">
-          <select value={form.eleveId} onChange={e=>setForm(f=>({...f,eleveId:e.target.value}))} style={selStyle}>
-            <option value="">Sélectionner un élève</option>
-            {eleves.map(e=><option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}
-          </select>
-        </Field>
-
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
-          <Field label="Matière *">
-            <select value={form.matiereId} onChange={e=>setForm(f=>({...f,matiereId:e.target.value}))} style={selStyle}>
-              <option value="">Matière</option>
-              {matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}
-            </select>
-          </Field>
-          <Field label="Type">
-            <select value={form.typeEvaluation} onChange={e=>setForm(f=>({...f,typeEvaluation:e.target.value}))} style={selStyle}>
-              <option value="">Type</option>
-              {TYPES_EVAL.map(t=><option key={t} value={t}>{t}</option>)}
-            </select>
-          </Field>
+      <div>
+        <button onClick={()=>{setDetailSession(null);setDetailNotes([])}} style={{background:'none',border:'none',cursor:'pointer',color:'#1d1d1f',fontSize:13,paddingLeft:0,marginBottom:8}}>← Retour</button>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+          <div>
+            <div style={{fontSize:18,fontWeight:400,letterSpacing:'-0.5px',color:'#1d1d1f'}}>{detailSession.matiere?.nom} · {detailSession.classe?.name}</div>
+            <div style={{fontSize:12,color:'#8e8e93',marginTop:2}}>{detailSession.typeEvaluation||'Sans type'} · /{detailSession.noteSur} · {detailSession.dateSession} · {detailNotes.length} note(s)</div>
+          </div>
+          <div style={{padding:'4px 12px',borderRadius:999,background:STATUT_C[detailSession.statut]+'18',color:STATUT_C[detailSession.statut],fontSize:12,fontWeight:600}}>
+            {STATUT_L[detailSession.statut]}
+          </div>
         </div>
-
-        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
-          <Field label="Note *">
-            <input type="number" min="0" max={form.noteSur} step="0.5" value={form.valeur} onChange={e=>setForm(f=>({...f,valeur:e.target.value}))} placeholder="0" style={inpStyle}/>
-          </Field>
-          <Field label="Sur">
-            <select value={form.noteSur} onChange={e=>setForm(f=>({...f,noteSur:e.target.value}))} style={selStyle}>
-              {[10,20].map(n=><option key={n} value={n}>/{n}</option>)}
-            </select>
-          </Field>
-        </div>
-
-        <Field label="Commentaire">
-          <input value={form.commentaire} onChange={e=>setForm(f=>({...f,commentaire:e.target.value}))} placeholder="Commentaire..." style={inpStyle}/>
-        </Field>
-
-        <button onClick={save} disabled={saving||!form.eleveId||!form.matiereId||!form.valeur}
-          style={{width:'100%',padding:'13px',borderRadius:14,background:'#1d1d1f',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2,opacity:saving||!form.eleveId||!form.matiereId||!form.valeur?0.4:1}}>
-          {saving?'Enregistrement...':'Enregistrer la note'}
-        </button>
       </div>
-
-      {/* Notes récentes */}
       <div style={{background:'#fff',borderRadius:20,border:'1px solid #f0f0f0',overflow:'hidden'}}>
-        <div style={{padding:'14px 16px',borderBottom:'1px solid #f0f0f0'}}>
-          <div style={{fontSize:14,fontWeight:500,letterSpacing:'-0.3px',color:'#1d1d1f'}}>Notes récentes</div>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 80px 60px 1fr',padding:'10px 16px',borderBottom:'1px solid #f0f0f0',background:'#f9f9f9'}}>
+          {['Élève','Note','Type','Commentaire'].map(h=>(
+            <div key={h} style={{fontSize:11,fontWeight:600,color:'#6e6e73',textTransform:'uppercase',letterSpacing:'0.4px'}}>{h}</div>
+          ))}
         </div>
-        {notes.slice(0,8).map((n,i)=>{
-          const s=Math.round((n.valeur/n.noteSur)*200)/10
-          const type = n.typeEvaluation||n.type
-          return(
-            <div key={n.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<7?'1px solid #f5f5f7':'none'}}>
-              <AvatarUser genre={n.eleve?.genre} isActive={true} size={36}/>
-              <div style={{flex:1}}>
+        {detailNotes.length===0&&<div style={{padding:24,textAlign:'center',color:'#8e8e93',fontSize:13}}>Aucune note saisie</div>}
+        {detailNotes.map((n,i)=>{
+          const pct = (n.valeur/n.noteSur)*20
+          const nc = pct>=10?'#1d1d1f':'#FF3B30'
+          return (
+            <div key={n.id} style={{display:'grid',gridTemplateColumns:'1fr 80px 60px 1fr',padding:'12px 16px',borderBottom:i<detailNotes.length-1?'1px solid #f5f5f7':'none',alignItems:'center'}}>
+              <div style={{display:'flex',alignItems:'center',gap:8}}>
+                <AvatarUser genre={n.eleve?.genre} isActive={true} size={32}/>
                 <div style={{fontSize:13,fontWeight:500,color:'#1d1d1f'}}>{n.eleve?.firstName} {n.eleve?.lastName}</div>
-                <div style={{fontSize:11,color:'#8e8e93'}}>{n.matiere?.nom}</div>
               </div>
-              {type&&<div style={{padding:'3px 8px',borderRadius:999,border:'1px solid #e5e5ea',color:'#1d1d1f',fontSize:11,flexShrink:0}}>{type}</div>}
-              <div style={{fontSize:16,fontWeight:400,color:NOTE_C(s),fontFamily:ft2,flexShrink:0}}>{s}/20</div>
+              <div style={{fontSize:14,fontWeight:500,color:nc,fontFamily:ft2}}>{n.valeur}/{n.noteSur}</div>
+              <div style={{fontSize:12,color:'#8e8e93'}}>{n.typeEvaluation||'—'}</div>
+              <div style={{fontSize:12,color:'#8e8e93'}}>{n.commentaire||'—'}</div>
             </div>
           )
         })}
-        {notes.length===0&&<div style={{padding:24,textAlign:'center',color:'#8e8e93',fontSize:13}}>Aucune note</div>}
       </div>
     </div>
   )
+
+
+  // Vue liste sessions
+  if (vue==='sessions') return (
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+
+        <button onClick={()=>setVue('nouvelle')} style={{padding:'8px 16px',borderRadius:12,background:'#1d1d1f',color:'#fff',border:'none',fontSize:13,fontWeight:500,cursor:'pointer',fontFamily:ft2}}>
+          + Nouvelle session
+        </button>
+      </div>
+      {msg&&<div style={{fontSize:13,color:msg.ok?'#34C759':'#FF3B30',fontWeight:500}}>{msg.text}</div>}
+      {sessions.length===0 && (
+        <div style={{textAlign:'center',color:'#8e8e93',padding:40,fontSize:13}}>Aucune session. Créez votre première session de notes.</div>
+      )}
+      {sessions.length>0 && (
+        <div style={{background:'#fff',borderRadius:20,border:'1px solid #f0f0f0',overflow:'hidden'}}>
+          {/* Header tableau */}
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 80px 60px 90px 40px',gap:0,padding:'10px 16px',borderBottom:'1px solid #f0f0f0',background:'#f9f9f9'}}>
+            {['Matière','Classe','Type','Sur','Statut',''].map(h=>(
+              <div key={h} style={{fontSize:11,fontWeight:600,color:'#6e6e73',textTransform:'uppercase',letterSpacing:'0.4px'}}>{h}</div>
+            ))}
+          </div>
+          {sessions.map((s,i)=>(
+            <div key={s.id} onClick={()=>s.statut==='soumise'?ouvrirDetail(s):ouvrirSession(s)}
+              style={{display:'grid',gridTemplateColumns:'1fr 1fr 80px 60px 90px 40px',gap:0,padding:'12px 16px',borderBottom:i<sessions.length-1?'1px solid #f5f5f7':'none',cursor:'pointer',alignItems:'center'}}
+              onMouseEnter={e=>{if(s.statut!=='soumise')e.currentTarget.style.background='#f9f9f9'}}
+              onMouseLeave={e=>{e.currentTarget.style.background='transparent'}}>
+              <div>
+                <div style={{fontSize:13,fontWeight:500,color:'#1d1d1f'}}>{s.matiere?.nom}</div>
+                <div style={{fontSize:11,color:'#8e8e93'}}>{s.dateSession}</div>
+              </div>
+              <div style={{fontSize:13,color:'#1d1d1f'}}>{s.classe?.name}</div>
+              <div style={{fontSize:12,color:'#8e8e93'}}>{s.typeEvaluation||'—'}</div>
+              <div style={{fontSize:12,color:'#8e8e93'}}>/{s.noteSur}</div>
+              <div style={{padding:'3px 8px',borderRadius:999,background:STATUT_C[s.statut]+'18',color:STATUT_C[s.statut],fontSize:11,fontWeight:600,display:'inline-flex',width:'fit-content'}}>
+                {STATUT_L[s.statut]}
+              </div>
+              <div>{s.statut!=='soumise'&&<ChevronRight size={14} color='#8e8e93'/>}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+
+
+  // Vue nouvelle session
+  if (vue==='nouvelle') return (
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2}}>
+      <div>
+        <button onClick={()=>setVue('sessions')} style={{background:'none',border:'none',cursor:'pointer',color:'#1d1d1f',fontSize:13,paddingLeft:0,marginBottom:8}}>← Retour</button>
+        <div style={{fontSize:18,fontWeight:400,letterSpacing:'-0.5px',color:'#1d1d1f'}}>Nouvelle session</div>
+      </div>
+      <div style={{background:'#fff',borderRadius:20,padding:18,border:'1px solid #f0f0f0'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:12,marginBottom:14}}>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>Classe *</div>
+            <select value={form.classeId} onChange={e=>setForm(f=>({...f,classeId:e.target.value}))} style={selStyle}>
+              <option value="">Choisir</option>
+              {classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>Matière *</div>
+            <select value={form.matiereId} onChange={e=>setForm(f=>({...f,matiereId:e.target.value}))} style={selStyle}>
+              <option value="">Choisir</option>
+              {matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>Type</div>
+            <select value={form.typeEvaluation} onChange={e=>setForm(f=>({...f,typeEvaluation:e.target.value}))} style={selStyle}>
+              <option value="">Sans type</option>
+              {TYPES_EVAL.map(t=><option key={t} value={t}>{t}</option>)}
+            </select>
+          </div>
+          <div>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>Sur</div>
+            <select value={form.noteSur} onChange={e=>setForm(f=>({...f,noteSur:e.target.value}))} style={selStyle}>
+              {[10,20].map(n=><option key={n} value={n}>/{n}</option>)}
+            </select>
+          </div>
+          <div style={{gridColumn:'1/-1'}}>
+            <div style={{fontSize:11,fontWeight:600,color:'#6e6e73',marginBottom:6,textTransform:'uppercase',letterSpacing:'0.4px'}}>Date</div>
+            <input type="date" value={form.dateSession} onChange={e=>setForm(f=>({...f,dateSession:e.target.value}))} style={inpStyle}/>
+          </div>
+        </div>
+        {eleves.length>0&&<div style={{fontSize:13,color:'#8e8e93',marginBottom:12}}>{eleves.length} élèves dans cette classe</div>}
+        <button onClick={creerSession} disabled={saving||!form.classeId||!form.matiereId}
+          style={{width:'100%',padding:13,borderRadius:14,background:'#1d1d1f',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2,opacity:saving||!form.classeId||!form.matiereId?0.4:1}}>
+          {saving?'Création...':'Ouvrir la session de saisie'}
+        </button>
+      </div>
+    </div>
+  )
+
+  // Vue saisie notes
+  if (vue==='saisie') return (
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2}}>
+      <div>
+        <button onClick={()=>setVue('sessions')} style={{background:'none',border:'none',cursor:'pointer',color:'#1d1d1f',fontSize:13,paddingLeft:0,marginBottom:8}}>← Sessions</button>
+        <div style={{fontSize:18,fontWeight:400,letterSpacing:'-0.5px',color:'#1d1d1f'}}>{sessionActive?.matiere?.nom} · {sessionActive?.classe?.name}</div>
+        <div style={{fontSize:12,color:'#8e8e93',marginTop:2}}>{sessionActive?.typeEvaluation||'Sans type'} · /{sessionActive?.noteSur} · {sessionActive?.dateSession}</div>
+      </div>
+      {msg&&<div style={{fontSize:13,color:msg.ok?'#34C759':'#FF3B30',fontWeight:500}}>{msg.text}</div>}
+      <div style={{background:'#fff',borderRadius:20,border:'1px solid #f0f0f0',overflow:'hidden'}}>
+        {eleves.map((e,i)=>{
+          const n = notesSession[e.id]||{}
+          const saved = n.saved
+          return (
+            <div key={e.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<eleves.length-1?'1px solid #f5f5f7':'none'}}>
+              <AvatarUser genre={e.genre} isActive={true} size={36}/>
+              <div style={{flex:1}}>
+                <div style={{fontSize:13,fontWeight:500,color:'#1d1d1f'}}>{e.firstName} {e.lastName}</div>
+              </div>
+              <input type="number" min="0" max={sessionActive?.noteSur} step="0.5"
+                value={n.valeur||''} onChange={ev=>setNotesSession(prev=>({...prev,[e.id]:{...prev[e.id],valeur:ev.target.value,saved:false}}))}
+                placeholder="—"
+                style={{width:60,padding:'6px 8px',borderRadius:8,border:'1px solid #e5e5ea',fontSize:14,fontWeight:500,textAlign:'center',outline:'none',fontFamily:ft2,color:n.valeur?(parseFloat(n.valeur)>=10?'#1d1d1f':'#FF3B30'):'#8e8e93'}}/>
+              <button onClick={()=>enregistrerNote(e.id)} disabled={!n.valeur||saved}
+                style={{padding:'6px 12px',borderRadius:8,background:'transparent',color:saved?'#34C759':'#1d1d1f',border:saved?'none':'1px solid #e5e5ea',fontSize:12,fontWeight:500,cursor:'pointer',opacity:!n.valeur?0.3:1}}>
+                {saved?'✓ Sauvegardé':'Sauvegarder'}
+              </button>
+            </div>
+          )
+        })}
+      </div>
+      <button onClick={soumettreSession}
+        style={{padding:13,borderRadius:14,background:'#a29bfe',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2}}>
+        Soumettre à l'administrateur
+      </button>
+    </div>
+  )
+
+  return null
 }
 
 
@@ -727,13 +879,12 @@ export default function EnseignantDashboard() {
   const pages = {
     calendrier: <CalendrierEnseignant/>,
     accueil: <AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={p=>document.querySelector(`[data-nav='${p}']`)?.click()}/>,
-    notes: <NotesSection C={C}/>,
+    notes: <NotesSection C={C} user={user}/>,
     carnet: <CarnetNotesSection C={C} user={user}/>,
     absences: <AbsencesSection C={C}/>,
     devoirs: <DevoirsSection C={C}/>,
     lecons: <LeconsSection C={C}/>,
     appel: <AppelSection C={C}/>,
-    edt: <EdtSection cours={cours} C={C}/>,
     params: <div style={{color:C.text,padding:20}}>Paramètres</div>,
   }
 

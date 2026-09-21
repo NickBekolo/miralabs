@@ -7,7 +7,7 @@ import Signature from '../../pages/student/Signature'
 import ProfilMenu from '../../pages/student/ProfilMenu'
 import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut, CalendarDays } from 'lucide-react'
 
-const ft = 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
+const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
 
 const NAV_ITEMS = [
   { id:'calendrier', label:'Calendrier',     icon:CalendarDays, color:'#FF3B30' },
@@ -194,7 +194,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
           </button>
 
           <div style={{ position:'relative' }}>
-            <button onClick={() => setDropdown(d => !d)} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', fontSize:18, fontWeight:700, cursor:'pointer', color:text, fontFamily:ft }}>
+            <button onClick={() => setDropdown(d => !d)} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', fontSize:22, fontWeight:400, letterSpacing:'-0.8px', cursor:'pointer', color:text, fontFamily:ft }}>
               Miralabs.
               <ChevronDown size={18} color={muted} style={{ transform: dropdown ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
             </button>

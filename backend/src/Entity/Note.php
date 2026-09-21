@@ -70,4 +70,11 @@ class Note
     public function getEtablissement(): ?Etablissement { return $this->etablissement; }
     public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
 
+
+    #[ORM\ManyToOne(targetEntity: SessionNotes::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?SessionNotes $session = null;
+
+    public function getSession(): ?SessionNotes { return $this->session; }
+    public function setSession(?SessionNotes $s): self { $this->session = $s; return $this; }
 }

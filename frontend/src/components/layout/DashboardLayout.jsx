@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
-import { ChevronLeft, ChevronRight, Bell, Moon, Sun, LogOut, ChevronUp, ChevronDown, Settings } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Bell, Moon, Sun, LogOut, ChevronUp, ChevronDown, Settings, Menu } from 'lucide-react'
 
 import AvatarUser from '../shared/AvatarUser'
 import ProfilContent from '../profil/ProfilContent'
@@ -16,6 +16,8 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
   const [active, setActive]         = useState(defaultActive || nav[0]?.id || 'accueil')
   const [collapsed, setCollapsed]   = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
+  useEffect(()=>{ const fn=()=>setIsMobile(window.innerWidth<768); window.addEventListener('resize',fn); return()=>window.removeEventListener('resize',fn) },[])
   const [profileOpen, setProfileOpen] = useState(false)
   const [showProfil, setShowProfil] = useState(false)
 
@@ -123,9 +125,9 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
     <div style={{ display:'flex', height:'100vh', fontFamily:ft, background:C.bg, color:C.text, overflow:'hidden' }}>
 
       {/* Sidebar desktop */}
-      <div style={{ width:collapsed?60:220, flexShrink:0, background:C.sidebar, borderRight:`1px solid ${C.surface2}`, padding:'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden', display:'flex', flexDirection:'column' }}>
+      {!isMobile && <div style={{ width:collapsed?60:220, flexShrink:0, background:C.sidebar, borderRight:`1px solid ${C.surface2}`, padding:'18px 10px', height:'100vh', transition:'width 0.25s ease', overflow:'hidden', display:'flex', flexDirection:'column' }}>
         <SidebarContent/>
-      </div>
+      </div>}
 
       {/* Sidebar mobile */}
       {mobileOpen && (
@@ -140,7 +142,7 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
       {/* Contenu */}
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', borderBottom:active==='edt'?'none':`1px solid ${C.surface2}`, flexShrink:0 }}>
-          <div>{active !== 'edt' && <div style={{ fontSize:16, fontWeight:600, color:C.text }}>{activeItem?.label}</div>}</div>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>{isMobile&&<button onClick={()=>setMobileOpen(true)} style={{background:'none',border:'none',cursor:'pointer',color:C.text,display:'flex',alignItems:'center'}}><Menu size={20}/></button>}<div style={{ fontSize:16, fontWeight:600, color:C.text }}>{activeItem?.label}</div></div>
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <Bell size={18} color={C.muted} strokeWidth={1.5}/>
             <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={30}/>

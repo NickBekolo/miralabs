@@ -143,12 +143,9 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
         <div style={{ height:52, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 24px', borderBottom:active==='edt'?'none':`1px solid ${C.surface2}`, flexShrink:0 }}>
           <div style={{display:'flex',alignItems:'center',gap:10}}>{isMobile&&<button onClick={()=>setMobileOpen(true)} style={{background:'none',border:'none',cursor:'pointer',color:C.text,display:'flex',alignItems:'center'}}><Menu size={20}/></button>}<div style={{ fontSize:20, fontWeight:400, letterSpacing:'-0.6px', color:C.text, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>{activeItem?.label}</div></div>
-          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <Bell size={18} color={C.muted} strokeWidth={1.5}/>
-            <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={30}/>
-          </div>
+          
         </div>
-        <div style={{ flex:1, overflowY:'auto', padding:24 }}>
+        <div style={{ flex:1, overflowY:'auto', padding:'0 24px 12px' }}>
           {children(active, C)}
         </div>
       </div>

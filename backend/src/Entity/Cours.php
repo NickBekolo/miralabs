@@ -148,4 +148,15 @@ class Cours
     private ?string $couleur = null;
     public function getCouleur(): ?string { return $this->couleur; }
     public function setCouleur(?string $couleur): static { $this->couleur = $couleur; return $this; }
+
+    #[ORM\Column(type: 'boolean', options: ['default' => false])]
+    private bool $enseignantAbsent = false;
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $motifAbsence = null;
+
+    public function isEnseignantAbsent(): bool { return $this->enseignantAbsent; }
+    public function setEnseignantAbsent(bool $v): self { $this->enseignantAbsent = $v; return $this; }
+    public function getMotifAbsence(): ?string { return $this->motifAbsence; }
+    public function setMotifAbsence(?string $m): self { $this->motifAbsence = $m; return $this; }
 }

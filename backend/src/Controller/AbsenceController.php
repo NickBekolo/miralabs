@@ -28,7 +28,7 @@ class AbsenceController extends AbstractController
         $user = $this->getUser();
         $roles = $user->getRoles();
 
-        if (in_array('ROLE_ADMIN', $roles) || in_array('ROLE_PROF', $roles)) {
+        if (in_array('ROLE_ADMIN', $roles) || in_array('ROLE_TEACHER', $roles)) {
             $absences = $this->absenceRepository->findAll();
         } else {
             $absences = $this->absenceRepository->findByEleve($user->getId());
@@ -46,7 +46,7 @@ class AbsenceController extends AbstractController
     }
 
     #[Route('', name: 'absences_create', methods: ['POST'])]
-    #[IsGranted('ROLE_PROF')]
+    #[IsGranted('ROLE_TEACHER')]
     public function create(Request $request): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
@@ -81,7 +81,7 @@ class AbsenceController extends AbstractController
     }
 
     #[Route('/{id}/justifier', name: 'absences_justifier', methods: ['PATCH'])]
-    #[IsGranted('ROLE_PROF')]
+    #[IsGranted('ROLE_TEACHER')]
     public function justifier(int $id, Request $request): JsonResponse
     {
         $absence = $this->absenceRepository->find($id);

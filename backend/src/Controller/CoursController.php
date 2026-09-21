@@ -220,4 +220,26 @@ class CoursController extends AbstractController
         return $this->json(['isAnnule' => $cours->isAnnule()]);
     }
 
+
+    #[Route('/{id}/absence-enseignant', name: 'cours_absence_enseignant', methods: ['PATCH'])]
+    public function absenceEnseignant(int $id, Request $request): JsonResponse
+    {
+        $cours = $this->coursRepo->find($id);
+        if (!$cours) return $this->json(['message' => 'Cours introuvable'], 404);
+
+        $data = json_decode($request->getContent(), true);
+        $absent = $data['absent'] ?? !$cours->isEnseignantAbsent();
+        $motif = $data['motif'] ?? null;
+
+        $cours->setEnseignantAbsent($absent);
+        if ($motif !== null) $cours->setMotifAbsence($motif);
+        if (!$absent) $cours->setMotifAbsence(null);
+
+        $this->em->flush();
+
+        return $this->json([
+            'enseignantAbsent' => $cours->isEnseignantAbsent(),
+            'motifAbsence'     => $cours->getMotifAbsence(),
+        ]);
+    }
 }

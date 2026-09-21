@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
@@ -64,6 +65,8 @@ export default function CalendrierEnseignant() {
   const [selectedDay, setSelectedDay] = useState(null) // null = vue semaine
   const [nowTop,   setNowTop]   = useState(0)
   const [selectedCours, setSelectedCours] = useState(null)
+  const [confirmAnnul, setConfirmAnnul] = useState(null)
+  const [motifAbsence, setMotifAbsence] = useState('')
   const [expandedId, setExpandedId] = useState(null)
   const [calCollapsed, setCalCollapsed] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)
@@ -116,10 +119,20 @@ export default function CalendrierEnseignant() {
   const isSelected = d => d && weekDates.some(wd=>wd.toDateString()===new Date(calYear,calMonth,d).toDateString())
   const selectDay = (d) => { const date=new Date(calYear,calMonth,d); setBaseDate(date); setSelectedDay(date) }
 
-  const annulerCours = async (id) => {
+  const signalerAbsence = async (id, motif) => {
     try {
-      const res = await api.patch('/api/cours/' + id + '/annuler')
-      setCours(prev => prev.map(c => c.id === id ? {...c, isAnnule: res.data.isAnnule} : c))
+      const res = await api.patch('/api/cours/' + id + '/absence-enseignant', {
+        absent: true,
+        motif: motif || null
+      })
+      setCours(prev => prev.map(c => c.id === id ? {...c, enseignantAbsent: res.data.enseignantAbsent, motifAbsence: res.data.motifAbsence} : c))
+    } catch(e) { console.error(e) }
+  }
+
+  const annulerAbsence = async (id) => {
+    try {
+      const res = await api.patch('/api/cours/' + id + '/absence-enseignant', { absent: false })
+      setCours(prev => prev.map(c => c.id === id ? {...c, enseignantAbsent: false, motifAbsence: null} : c))
     } catch(e) { console.error(e) }
   }
 
@@ -282,14 +295,14 @@ export default function CalendrierEnseignant() {
                     return (
                       <div key={ci2} style={{
                         position:'absolute',top,left:1,right:1,height,
-                        background:color,borderLeft:'none',opacity:c.isAnnule?0.5:1,textDecoration:c.isAnnule?'line-through':'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',filter:selectedCours&&selectedCours.id!==c.id?'brightness(0.7)':'none',transform:selectedCours?.id===c.id?'scale(1.02)':'scale(1)',transition:'all 0.2s',
+                        background:color,borderLeft:'none',opacity:c.enseignantAbsent?0.5:1,textDecoration:c.enseignantAbsent?'line-through':'none',boxShadow:selectedCours?.id===c.id?'0 8px 24px rgba(0,0,0,0.2)':'0 2px 8px rgba(0,0,0,0.08)',filter:selectedCours&&selectedCours.id!==c.id?'brightness(0.7)':'none',transform:selectedCours?.id===c.id?'scale(1.02)':'scale(1)',transition:'all 0.2s',
                         borderRadius:4,padding:'3px 5px',overflow:'hidden',cursor:'pointer',zIndex:selectedCours?.id===c.id?20:2
                       }} onClick={e=>{e.stopPropagation();setExpandedId(expandedId===c.id?null:c.id);setSelectedCours(selectedCours?.id===c.id?null:c)}}>
                         <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
                           <div style={{fontSize:13,fontWeight:700,color:'#fff',lineHeight:1.2}}>{c.matiere?.nom}</div>
-                          <button onClick={e=>{e.stopPropagation();annulerCours(c.id)}}
+                          <button onClick={e=>{e.stopPropagation();setConfirmAnnul(c)}}
                             style={{background:'rgba(255,255,255,0.25)',border:'none',borderRadius:4,color:'#fff',fontSize:9,fontWeight:600,cursor:'pointer',padding:'2px 5px',flexShrink:0}}>
-                            {c.isAnnule ? '↩' : '✕'}
+                            {c.enseignantAbsent ? '↩' : height>40 ? 'Absent' : '✕'}
                           </button>
                         </div>
                         <div style={{fontSize:11,fontWeight:500,color:'rgba(255,255,255,0.85)'}}>{c.heureDebut}–{c.heureFin}</div>
@@ -304,6 +317,42 @@ export default function CalendrierEnseignant() {
         </div>
       </div>
       </div>
+      {/* Modal confirmation annulation */}
+      {confirmAnnul && createPortal(
+        <div style={{position:'fixed',inset:0,zIndex:9999,background:'rgba(0,0,0,0.4)',display:'flex',alignItems:'center',justifyContent:'center',padding:20}}>
+          <div style={{background:'#fff',borderRadius:20,width:'100%',maxWidth:340,padding:'24px',boxShadow:'0 20px 60px rgba(0,0,0,0.2)',fontFamily:ft}}>
+            <div style={{fontSize:17,fontWeight:700,color:'#1d1d1f',marginBottom:4}}>
+              {confirmAnnul.enseignantAbsent ? 'Annuler votre absence ?' : 'Signaler votre absence ?'}
+            </div>
+            <div style={{fontSize:13,color:'#6e6e73',marginBottom:12}}>
+              {confirmAnnul.matiere?.nom} · {confirmAnnul.heureDebut}–{confirmAnnul.heureFin}
+              {confirmAnnul.classe ? ' · ' + confirmAnnul.classe.name : ''}
+            </div>
+            {!confirmAnnul.enseignantAbsent && (
+              <div style={{marginBottom:16}}>
+<input value={motifAbsence} onChange={e=>setMotifAbsence(e.target.value)}
+                  placeholder="Motif"
+                  style={{width:'100%',padding:'10px 12px',borderRadius:12,border:'1px solid #e5e5ea',fontSize:13,outline:'none',boxSizing:'border-box'}}/>
+              </div>
+            )}
+            <div style={{display:'flex',gap:10}}>
+              <button onClick={()=>{setConfirmAnnul(null);setMotifAbsence('')}}
+                style={{flex:1,padding:'11px',borderRadius:12,background:'#f5f5f7',color:'#1d1d1f',border:'none',fontSize:14,fontWeight:500,cursor:'pointer'}}>
+                Annuler
+              </button>
+              <button onClick={()=>{
+                if(confirmAnnul.enseignantAbsent) annulerAbsence(confirmAnnul.id)
+                else signalerAbsence(confirmAnnul.id, motifAbsence)
+                setConfirmAnnul(null); setMotifAbsence('')
+              }}
+                style={{flex:1,padding:'11px',borderRadius:12,background:'#FF3B30',color:'#fff',border:'none',fontSize:14,fontWeight:600,cursor:'pointer'}}>
+                {confirmAnnul.enseignantAbsent ? 'Annuler mon absence' : 'Confirmer'}
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

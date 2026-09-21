@@ -12,8 +12,8 @@ import PlanningWidget from './PlanningWidget'
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 const TYPES_EVAL = ['DS','TP','Devoir','Interrogation','Examen','CCF']
 const NAV = [
-  { id:'calendrier', label:'Emploi du temps', icon:CalendarDays },
   { id:'accueil',  label:'Accueil',         icon:Home },
+  { id:'calendrier', label:'Emploi du temps', icon:CalendarDays },
   { id:'notes',    label:'Saisie notes',    icon:ClipboardList },
   { id:'carnet',   label:'Carnet de notes', icon:ClipboardList },
   { id:'absences', label:'Absences',        icon:Users },
@@ -24,9 +24,9 @@ const NAV = [
 ]
 function Card({ children, C, style={} }) { return <div style={{ background:C.surface, borderRadius:16, padding:18, ...style }}>{children}</div> }
 function ST({ children, C }) { return <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:12 }}>{children}</div> }
-function Inp({ label, ...p }) { return <div>{label&&<label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>{label}</label>}<input {...p} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,boxSizing:'border-box',...p.style }}/></div> }
-function Sel({ label, children, ...p }) { return <div>{label&&<label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>{label}</label>}<select {...p} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,...p.style }}>{children}</select></div> }
-function Msg({ msg }) { if(!msg)return null; return <div style={{ padding:'8px 12px',borderRadius:8,background:msg.ok?'rgba(52,199,89,0.1)':'rgba(255,59,48,0.1)',color:msg.ok?'#34C759':'#FF3B30',fontSize:12,marginTop:8 }}>{msg.text}</div> }
+function Inp({ label, C:Cp, ...p }) { return <div>{label&&<label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>{label}</label>}<input {...p} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,boxSizing:'border-box',color:'inherit',...p.style }}/></div> }
+function Sel({ label, children, ...p }) { return <div>{label&&<label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>{label}</label>}<select {...p} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,color:'inherit',...p.style }}>{children}</select></div> }
+function Msg({ msg }) { if(!msg)return null; return <div style={{ fontSize:12,marginTop:8,color:msg.ok?'#34C759':'#FF3B30',fontWeight:500 }}>{msg.text}</div> }
 function Btn({ onClick, saving, disabled, label='Enregistrer', C }) {
   return <button onClick={onClick} disabled={saving||disabled} style={{ width:'100%',marginTop:14,padding:12,borderRadius:10,border:'none',background:C.text,color:C.bg,fontSize:13,fontWeight:600,cursor:saving||disabled?'default':'pointer',fontFamily:ft,opacity:saving||disabled?0.5:1,display:'flex',alignItems:'center',justifyContent:'center',gap:8 }}>{saving&&<span style={{ width:14,height:14,borderRadius:'50%',border:'2px solid rgba(255,255,255,0.3)',borderTopColor:'#fff',animation:'spin 0.7s linear infinite',display:'inline-block' }}/>}{saving?'Enregistrement...':label}</button>
 }
@@ -40,7 +40,7 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
         <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>Bonjour, {user?.firstName??'toi'}</div>
 
         <div style={{fontSize:14,color:C.muted,marginTop:6,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>
-          Vous avez <span style={{color:'#a29bfe',fontWeight:600}}>{cours.length} cours</span>, <span style={{color:'#a29bfe',fontWeight:600}}>{notes.length} notes</span> et <span style={{color:'#a29bfe',fontWeight:600}}>{devoirs.length} devoirs</span>
+          Vous avez <span style={{color:'#a29bfe',fontWeight:600}}>{cours.length} cours aujourd'hui</span>, <span style={{color:'#a29bfe',fontWeight:600}}>{notes.length} notes</span> et <span style={{color:'#a29bfe',fontWeight:600}}>{devoirs.length} devoirs</span>
         </div>
       </div>
 
@@ -54,14 +54,14 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
         <div style={{fontSize:12,fontWeight:600,color:C.muted,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Actions rapides</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
           {[
-            {label:'Saisir des notes',nav:'notes',icon:'✏️'},
-            {label:'Saisir absences',nav:'absences',icon:'👤'},
-            {label:'Créer un devoir',nav:'devoirs',icon:'📝'},
-            {label:"Voir l'EDT",nav:'calendrier',icon:'📅'},
+            {label:'Saisir des notes',nav:'notes',Icon:ClipboardList,color:'#a29bfe'},
+            {label:'Saisir absences',nav:'absences',Icon:Users,color:'#a29bfe'},
+            {label:'Créer un devoir',nav:'devoirs',Icon:BookOpen,color:'#a29bfe'},
+            {label:"Emploi du temps",nav:'calendrier',Icon:CalendarDays,color:'#a29bfe'},
           ].map(a=>(
-            <button key={a.nav} onClick={()=>onNav(a.nav)}
-              style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:12,background:C.bg,border:`1px solid ${C.surface2}`,cursor:'pointer',fontSize:12,fontWeight:500,color:C.text,textAlign:'left'}}>
-              <span>{a.icon}</span>{a.label}
+            <button key={a.nav} onClick={()=>window.dispatchEvent(new CustomEvent('navigate',{detail:a.nav}))}
+              style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:12,background:C.bg,border:`1px solid ${C.surface2}`,cursor:'pointer',fontSize:12,fontWeight:500,color:C.text,textAlign:'left',background:C.surface,border:`1px solid ${C.surface2}`}}>
+              <a.Icon size={15} color={a.color} strokeWidth={1.8}/>{a.label}
             </button>
           ))}
         </div>
@@ -486,7 +486,7 @@ function AbsencesSection({ C }) {
   const [eleves,setEleves]=useState([])
   const [absences,setAbsences]=useState([])
   const [classeId,setClasseId]=useState('')
-  const [form,setForm]=useState({eleveId:'',date:'',motif:'',isJustified:false})
+  const [form,setForm]=useState({eleveId:'',date:'',heure:'',motif:'',isJustified:false})
   const [saving,setSaving]=useState(false)
   const [msg,setMsg]=useState(null)
   useEffect(()=>{ api.get('/api/classes').then(r=>setClasses(r.data)).catch(()=>{}); api.get('/api/absences').then(r=>setAbsences(r.data)).catch(()=>{}) },[])
@@ -494,7 +494,7 @@ function AbsencesSection({ C }) {
   const save=async()=>{
     if(!form.eleveId||!form.date)return
     setSaving(true)
-    try{ await api.post('/api/absences',{eleveId:+form.eleveId,date:form.date,motif:form.motif,isJustified:form.isJustified}); setMsg({ok:true,text:'Absence enregistree'}); setForm({eleveId:'',date:'',motif:'',isJustified:false}); api.get('/api/absences').then(r=>setAbsences(r.data)) }
+    try{ await api.post('/api/absences',{eleveId:+form.eleveId,date:form.date,heure:form.heure||null,motif:form.motif,isJustified:form.isJustified}); setMsg({ok:true,text:'Absence enregistree'}); setForm({eleveId:'',date:'',heure:'',motif:'',isJustified:false}); api.get('/api/absences').then(r=>setAbsences(r.data)) }
     catch{ setMsg({ok:false,text:'Erreur.'}) } finally{ setSaving(false) }
   }
   return (
@@ -506,6 +506,7 @@ function AbsencesSection({ C }) {
           <div style={{ gridColumn:'1/-1' }}><Sel label="Classe" value={classeId} onChange={e=>setClasseId(e.target.value)}><option value="">Classe</option>{classes.map(cl=><option key={cl.id} value={cl.id}>{cl.name}</option>)}</Sel></div>
           <div style={{ gridColumn:'1/-1' }}><Sel label="Eleve *" value={form.eleveId} onChange={e=>setForm(f=>({...f,eleveId:e.target.value}))}><option value="">Eleve</option>{eleves.map(e=><option key={e.id} value={e.id}>{e.firstName} {e.lastName}</option>)}</Sel></div>
           <Inp label="Date *" type="date" value={form.date} onChange={e=>setForm(f=>({...f,date:e.target.value}))}/>
+          <Inp label="Heure" type="time" value={form.heure} onChange={e=>setForm(f=>({...f,heure:e.target.value}))}/>
           <Inp label="Motif" value={form.motif} onChange={e=>setForm(f=>({...f,motif:e.target.value}))} placeholder="Motif"/>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}><input type="checkbox" checked={form.isJustified} onChange={e=>setForm(f=>({...f,isJustified:e.target.checked}))}/><span style={{ fontSize:13,color:C.text }}>Justifiee</span></div>
         </div>
@@ -515,8 +516,8 @@ function AbsencesSection({ C }) {
         {absences.slice(0,6).map((a,i)=>(
           <div key={a.id} style={{ display:'flex',alignItems:'center',gap:10,padding:'8px 0',borderBottom:i<5?`1px solid ${C.surface2}`:'none' }}>
             <div style={{ width:8,height:8,borderRadius:'50%',background:a.isJustified?'#FF9500':'#FF3B30',flexShrink:0 }}/>
-            <div style={{ flex:1 }}><div style={{ fontSize:12,color:C.text }}>{a.eleve?.firstName} {a.eleve?.lastName}</div><div style={{ fontSize:11,color:C.muted }}>{a.date}</div></div>
-            <span style={{ fontSize:11,padding:'2px 8px',borderRadius:980,background:a.isJustified?'rgba(255,149,0,0.1)':'rgba(255,59,48,0.1)',color:a.isJustified?'#FF9500':'#FF3B30' }}>{a.isJustified?'Justifiee':'Non'}</span>
+            <div style={{ flex:1 }}><div style={{ fontSize:12,color:C.text }}>{a.eleve?.firstName} {a.eleve?.lastName}</div><div style={{ fontSize:11,color:C.muted }}>{a.date}{a.heure?' · '+a.heure:''}</div></div>
+            
           </div>
         ))}
       </Card>
@@ -546,7 +547,7 @@ function DevoirsSection({ C }) {
           <div style={{ gridColumn:'1/-1' }}><Inp label="Titre *" value={form.titre} onChange={e=>setForm(f=>({...f,titre:e.target.value}))} placeholder="Titre"/></div>
           <Sel label="Matiere" value={form.matiereId} onChange={e=>setForm(f=>({...f,matiereId:e.target.value}))}><option value="">Matiere</option>{matieres.map(m=><option key={m.id} value={m.id}>{m.nom}</option>)}</Sel>
           <Inp label="Date rendu *" type="date" value={form.dateRendu} onChange={e=>setForm(f=>({...f,dateRendu:e.target.value}))}/>
-          <div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>Description</label><textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,resize:'none',height:70,boxSizing:'border-box' }}/></div>
+          <div style={{ gridColumn:'1/-1' }}><label style={{ fontSize:11,color:'#999',display:'block',marginBottom:4 }}>Description</label><textarea value={form.description} onChange={e=>setForm(f=>({...f,description:e.target.value}))} style={{ width:'100%',padding:'9px 12px',background:'rgba(128,128,128,0.1)',border:'none',borderRadius:10,fontSize:13,outline:'none',fontFamily:ft,resize:'none',height:70,boxSizing:'border-box',color:'inherit' }}/></div>
           <div style={{ display:'flex',alignItems:'center',gap:8 }}><input type="checkbox" checked={form.urgent} onChange={e=>setForm(f=>({...f,urgent:e.target.checked}))}/><span style={{ fontSize:13,color:C.text }}>Urgent</span></div>
         </div>
         <Msg msg={msg}/><Btn onClick={save} saving={saving} disabled={!form.titre||!form.dateRendu} C={C}/>
@@ -860,6 +861,45 @@ function EdtSection({ cours, C }) {
   )
 }
 
+function ParamsSection({ C }) {
+  const darkMode = useThemeStore(s => s.darkMode)
+  const toggleDarkMode = useThemeStore(s => s.toggleDarkMode)
+  const ft2 = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
+
+  return (
+    <div style={{display:'flex',flexDirection:'column',gap:16,fontFamily:ft2,maxWidth:480}}>
+      {/* Apparence */}
+      <div style={{background:C.surface,borderRadius:20,border:`1px solid ${C.surface2}`,overflow:'hidden'}}>
+        <div style={{padding:'14px 16px',borderBottom:`1px solid ${C.surface2}`}}>
+          <div style={{fontSize:14,fontWeight:500,color:C.text}}>Apparence</div>
+        </div>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px'}}>
+          <div>
+            <div style={{fontSize:13,fontWeight:500,color:C.text}}>Mode sombre</div>
+            <div style={{fontSize:11,color:C.muted,marginTop:2}}>Changer l'apparence de l'application</div>
+          </div>
+          <button onClick={toggleDarkMode}
+            style={{width:44,height:26,borderRadius:13,background:darkMode?'#a29bfe':'#e5e5ea',border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+            <div style={{width:22,height:22,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:darkMode?20:2,transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.2)'}}/>
+          </button>
+        </div>
+      </div>
+
+      {/* À propos */}
+      <div style={{background:C.surface,borderRadius:20,border:`1px solid ${C.surface2}`,overflow:'hidden'}}>
+        <div style={{padding:'14px 16px',borderBottom:`1px solid ${C.surface2}`}}>
+          <div style={{fontSize:14,fontWeight:500,color:C.text}}>À propos</div>
+        </div>
+        <div style={{padding:'14px 16px'}}>
+          <div style={{fontSize:13,fontWeight:400,letterSpacing:'-0.8px',color:C.text,marginBottom:4}}>Miralabs.</div>
+          <div style={{fontSize:12,color:C.muted}}>Plateforme de gestion scolaire</div>
+          <div style={{fontSize:11,color:C.muted,marginTop:2}}>Version 1.0.0</div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 export default function EnseignantDashboard() {
   const {logout,user}=useAuth()
   const navigate=useNavigate()
@@ -875,7 +915,7 @@ export default function EnseignantDashboard() {
       .then(([c,d,n])=>{setCours(c.data);setDevoirs(d.data);setNotes(n.data)})
       .catch(console.error)
   },[])
-  const coursDuJour=cours.filter(c=>c.jourSemaine===(new Date().getDay()||1))
+  const coursDuJour=cours.filter(c=>c.jourSemaine===((new Date().getDay()+6)%7+1))
   const pages = {
     calendrier: <CalendrierEnseignant/>,
     accueil: <AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={p=>document.querySelector(`[data-nav='${p}']`)?.click()}/>,
@@ -885,12 +925,25 @@ export default function EnseignantDashboard() {
     devoirs: <DevoirsSection C={C}/>,
     lecons: <LeconsSection C={C}/>,
     appel: <AppelSection C={C}/>,
-    params: <div style={{color:C.text,padding:20}}>Paramètres</div>,
+    params: <ParamsSection C={C}/>,
   }
 
   return (
-    <DashboardLayout nav={NAV} role="Enseignant" defaultActive="calendrier">
-      {(active, C) => pages[active] || <div style={{color:C.text}}>Page introuvable</div>}
+    <DashboardLayout nav={NAV} role="Enseignant" defaultActive="accueil">
+      {(active, C) => {
+        const pgs = {
+          accueil: <AccueilSection cours={coursDuJour} notes={notes} devoirs={devoirs} C={C} user={user} onNav={p=>window.dispatchEvent(new CustomEvent('navigate',{detail:p}))}/>,
+          calendrier: <CalendrierEnseignant/>,
+          notes: <NotesSection C={C} user={user}/>,
+          carnet: <CarnetNotesSection C={C} user={user}/>,
+          absences: <AbsencesSection C={C}/>,
+          devoirs: <DevoirsSection C={C}/>,
+          lecons: <LeconsSection C={C}/>,
+          appel: <AppelSection C={C}/>,
+          params: <ParamsSection C={C}/>,
+        }
+        return pgs[active] || <div style={{color:C.text}}>Page introuvable</div>
+      }}
     </DashboardLayout>
   )
 }

@@ -14,6 +14,11 @@ export default function DashboardLayout({ nav, children, role, defaultActive }) 
   const toggleDarkMode = useThemeStore(s => s.toggleDarkMode)
   const C              = darkMode ? DARK_THEME : LIGHT_THEME
   const [active, setActive]         = useState(defaultActive || nav[0]?.id || 'accueil')
+  useEffect(()=>{
+    const fn = (e) => setActive(e.detail)
+    window.addEventListener('navigate', fn)
+    return () => window.removeEventListener('navigate', fn)
+  },[])
   const [collapsed, setCollapsed]   = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768)

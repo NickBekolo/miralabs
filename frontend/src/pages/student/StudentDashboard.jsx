@@ -6,7 +6,6 @@ import HomeScreen         from './home'
 import Calendrier         from './Calendrier'
 import Conversations      from './Conversations'
 import Espaces            from './Espaces'
-import EmploiDuTemps      from './EmploiDuTemps'
 import Notes              from './Notes'
 import Assiduite          from './Assiduite'
 import MiraIA             from './MiraIA'
@@ -47,11 +46,11 @@ export default function StudentDashboard({ isParent, onSign }) {
   const renderPage = () => {
     switch (active) {
       case 'calendrier':    return <Calendrier/>
+      case 'emploi':        return <Calendrier/>
       case 'accueil':       return <HomeScreen onSign={onSign} onNav={setActive}/>
       case 'conversations': return <Conversations />
       case 'espaces':       return <Espaces />
       case 'notes':         return <Notes />
-      case 'emploi':        return <EmploiDuTemps />
       case 'assiduite':     return <Assiduite />
       case 'revision':      return <MiraIA />
       case 'params':        return <ParamsEtudiant/>

@@ -782,7 +782,7 @@ export default function Conversations() {
             {/* Header */}
             <div style={{ padding:'16px 16px 10px', flexShrink:0, background:bg }}>
               <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                <h1 style={{ fontSize:28, fontWeight:700, color:text, letterSpacing:'-0.5px', margin:0 }}>{tab==='msgs'?'Messages':'Groupes'}</h1>
+                <h1 style={{ fontSize:28, fontWeight:400, color:text, letterSpacing:'-0.8px', margin:0, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>{tab==='msgs'?'Messages':'Groupes'}</h1>
                 <button onClick={() => tab==='msgs'?setShowNewConv(s=>!s):setShowNewGroupe(s=>!s)}
                   style={{ width:32, height:32, borderRadius:'50%', border:'none', background:darkMode?'#1C1C1E':'#F2F2F7', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
                   {(showNewConv||showNewGroupe) ? <X size={16} color={text} strokeWidth={2}/> : <Plus size={18} color={text} strokeWidth={2}/>}

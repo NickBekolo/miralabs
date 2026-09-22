@@ -11,15 +11,14 @@ import {ChevronDown, ChevronUp, Menu, Sun, Moon, Settings as SettingsIcon, Plus,
 const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
 
 const NAV_ITEMS = [
-  { id:'calendrier', label:'Calendrier',     icon:CalendarDays, color:'#FF3B30' },
-  { id:'accueil',   label:'Accueil',        icon:Home },
-  { id:'notes',     label:'Notes',           icon:BarChart2 },
-  { id:'emploi',    label:'Emploi du temps', icon:Calendar },
-  { id:'conversations', label:'Messages',       icon:MessageSquare },
-  { id:'espaces',       label:'Espaces',        icon:LayoutGrid },
+  { id:'accueil',       label:'Accueil',         icon:Home },
+  { id:'emploi',        label:'Emploi du temps', icon:Calendar },
+  { id:'notes',         label:'Notes',           icon:BarChart2 },
+  { id:'conversations', label:'Messages',        icon:MessageSquare },
+  { id:'espaces',       label:'Espaces',         icon:LayoutGrid },
   { id:'assiduite',     label:'Assiduité',       icon:Edit3 },
-  { id:'revision',  label:'Mira',        icon:ScanFace },
-  { id:'params',    label:'Paramètres',      icon:Settings },
+  { id:'revision',      label:'Mira IA',         icon:ScanFace },
+  { id:'params',        label:'Paramètres',      icon:Settings },
 ]
 
 const TAB_ITEMS = [

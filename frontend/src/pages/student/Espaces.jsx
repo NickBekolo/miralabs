@@ -77,7 +77,8 @@ export default function Espaces() {
   // Vue liste espaces
   if (!espaceId) return (
     <div style={{ fontFamily:ft, background:bg, minHeight:'100%', color:text, padding:'20px 16px' }}>
-      <div style={{ fontSize:22, fontWeight:700, color:text, letterSpacing:'-0.5px', marginBottom:20 }}>Espaces</div>
+      <div style={{ fontSize:22, fontWeight:400, color:text, letterSpacing:'-0.8px', marginBottom:8, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Espaces</div>
+      <div style={{ fontSize:13, color:'#8e8e93', marginBottom:20, padding:'10px 14px', background:'rgba(142,142,147,0.1)', borderRadius:10 }}>Cette section est en cours de développement. Certaines fonctionnalités peuvent ne pas être disponibles.</div>
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {ESPACES.map(e => {
           const totalUnread = e.canaux.reduce((a, c) => a + c.unread, 0)

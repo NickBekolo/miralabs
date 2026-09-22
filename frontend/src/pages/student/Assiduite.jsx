@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
 
-const ft = "'Arial Rounded MT Bold', 'Arial Rounded MT', Nunito, sans-serif"
+const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
 
 const JOURS = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
 const MOIS  = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre']
@@ -15,12 +15,13 @@ function getDays(year, month) {
   return new Date(year, month + 1, 0).getDate()
 }
 
-function StatCard({ label, value, sub, color, C }) {
+function StatCard({ label, value, sub, color, C, alert }) {
   return (
     <div style={{ background:C.surface, borderRadius:14, padding:'14px 16px', flex:1 }}>
-      <div style={{ fontSize:26, fontWeight:700, color:color??C.text, letterSpacing:'-0.5px', marginBottom:2 }}>{value}</div>
-      <div style={{ fontSize:12, fontWeight:600, color:C.text, marginBottom:1 }}>{label}</div>
+      <div style={{ fontSize:26, fontWeight:400, color:color??C.text, letterSpacing:'-0.5px', marginBottom:2 }}>{value}</div>
+      <div style={{ fontSize:12, fontWeight:400, color:C.text, marginBottom:1 }}>{label}</div>
       {sub && <div style={{ fontSize:11, color:C.muted }}>{sub}</div>}
+      {alert && <div style={{ fontSize:12, color:'#ff5555', marginTop:6, fontWeight:600 }}>Seuil d'absences atteint</div>}
     </div>
   )
 }
@@ -40,10 +41,10 @@ function Calendar({ absences, year, month, C }) {
 
   return (
     <div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:6 }}>
-        {JOURS.map(j => <div key={j} style={{ fontSize:10, fontWeight:600, color:C.hint, textAlign:'center', padding:'3px 0' }}>{j}</div>)}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', columnGap:0, rowGap:1, marginBottom:4 }}>
+        {JOURS.map(j => <div key={j} style={{ fontSize:8, fontWeight:400, color:C.hint, textAlign:'center', padding:'3px 0' }}>{j}</div>)}
       </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,minmax(0,1fr))', gap:4 }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,minmax(0,1fr))', columnGap:0, rowGap:1 }}>
         {cells.map((d,i) => {
           if (!d) return <div key={`e${i}`}/>
           const isAbsent    = absentDays.includes(d)
@@ -52,11 +53,11 @@ function Calendar({ absences, year, month, C }) {
           const isWeekend   = (i%7)>=5
           let bg='transparent', color=C.muted
           if (isToday)       { bg=C.text;   color=C.bg }
-          else if (isAbsent)     { bg='rgba(255,85,85,0.15)';  color='#ff5555' }
+          else if (isAbsent)     { bg='#ff5555';  color='#fff' }
           else if (isJustified)  { bg='rgba(251,191,36,0.15)'; color='#fbbf24' }
           else if (isWeekend)    { color=C.hint }
           return (
-            <div key={d} style={{ aspectRatio:'1', borderRadius:8, display:'flex', alignItems:'center', justifyContent:'center', fontSize:12, fontWeight:isToday?700:400, background:bg, color, position:'relative' }}>
+            <div key={d} style={{ width:30, height:30, borderRadius:4, display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:400, background:bg, color, position:'relative' }}>
               {d}
               {(isAbsent||isJustified) && <div style={{ position:'absolute', bottom:2, left:'50%', transform:'translateX(-50%)', width:3, height:3, borderRadius:'50%', background:isAbsent?'#ff5555':'#fbbf24' }}/>}
             </div>
@@ -84,7 +85,7 @@ function BarreMensuelle({ absences, C }) {
   const max = Math.max(...mois.map(m=>m.count), 1)
   return (
     <div style={{ background:C.surface, borderRadius:14, padding:'16px', marginTop:10 }}>
-      <div style={{ fontSize:12, fontWeight:700, color:C.text, marginBottom:14 }}>Absences par mois</div>
+      <div style={{ fontSize:12, fontWeight:400, color:C.text, marginBottom:14 }}>Absences par mois</div>
       <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:60 }}>
         {mois.map(m => (
           <div key={m.nom} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
@@ -125,9 +126,9 @@ function JustifyModal({ absence, onClose, onSubmit, C }) {
   ]
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-      <div style={{ background:C.bg, borderRadius:'24px 24px 0 0', padding:'24px 20px 40px', width:'100%', maxWidth:480 }}>
+      <div style={{ background:C.bg, borderRadius:'24px 24px 0 0', padding:'6px 4px 10px', width:'100%', maxWidth:200 }}>
         <div style={{ width:40, height:4, background:C.surface2, borderRadius:2, margin:'0 auto 20px' }}/>
-        <div style={{ fontSize:16, fontWeight:700, color:C.text, marginBottom:16 }}>Soumettre une justification</div>
+        <div style={{ fontSize:16, fontWeight:400, color:C.text, marginBottom:16 }}>Soumettre une justification</div>
         <div style={{ display:'flex', gap:8, marginBottom:14 }}>
           {TYPES.map(t => (
             <button key={t.value} onClick={() => setType(t.value)}
@@ -140,7 +141,7 @@ function JustifyModal({ absence, onClose, onSubmit, C }) {
           style={{ width:'100%', padding:'10px 14px', background:C.surface, border:'none', borderRadius:12, fontSize:13, color:C.text, outline:'none', fontFamily:ft, resize:'none', height:80, boxSizing:'border-box', marginBottom:16 }}/>
         <div style={{ display:'flex', gap:8 }}>
           <button onClick={onClose} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.surface, color:C.muted, fontSize:13, cursor:'pointer', fontFamily:ft }}>Annuler</button>
-          <button onClick={() => onSubmit({ absence, motif, type })} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:700, cursor:'pointer', fontFamily:ft }}>Soumettre</button>
+          <button onClick={() => onSubmit({ absence, motif, type })} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:400, cursor:'pointer', fontFamily:ft }}>Soumettre</button>
         </div>
       </div>
     </div>
@@ -182,25 +183,17 @@ export default function Assiduite() {
     <div style={{ fontFamily:ft, padding:'16px 14px 40px', background:C.bg, minHeight:'100%', color:C.text }}>
 
       <div style={{ marginBottom:16 }}>
-        <h1 style={{ fontSize:22, fontWeight:700, letterSpacing:'-0.4px', color:C.text, marginBottom:3 }}>Assiduité</h1>
+        <h1 style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.4px', color:C.text, marginBottom:3 }}>Assiduité</h1>
         <p style={{ fontSize:12, color:C.hint }}>Suivi de vos présences</p>
       </div>
 
       {/* Stats */}
       <div style={{ display:'flex', gap:8, marginBottom:14 }}>
         <StatCard label="Total absences" value={total} sub="cette année" color={total>10?'#ff5555':undefined} C={C}/>
-        <StatCard label="Non justifiées" value={nonJustified} sub={`${justified} justifiées`} color={nonJustified>5?'#ff5555':'#fbbf24'} C={C}/>
+        <StatCard label="Non justifiées" value={nonJustified} sub={`${justified} justifiées`} color={nonJustified>5?'#ff5555':'#fbbf24'} C={C} alert={nonJustified>=5}/>
       </div>
 
-      {nonJustified>=5 && (
-        <div style={{ background:'rgba(255,85,85,0.1)', border:'1px solid rgba(255,85,85,0.2)', borderRadius:12, padding:'10px 14px', marginBottom:14, display:'flex', gap:10 }}>
-        
-          <div>
-            <div style={{ fontSize:12, fontWeight:700, color:'#ff5555' }}>Seuil d'absences atteint</div>
-            <div style={{ fontSize:11, color:C.muted, marginTop:1 }}>{nonJustified} absences non justifiées.</div>
-          </div>
-        </div>
-      )}
+
 
       {/* Layout 2 colonnes */}
       <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
@@ -211,7 +204,7 @@ export default function Assiduite() {
             {/* Navigation mois */}
             <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
               <button onClick={prevMonth} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:18, padding:'0 4px' }}>‹</button>
-              <span style={{ fontSize:14, fontWeight:700, color:C.text }}>{MOIS[month]} {year}</span>
+              <span style={{ fontSize:14, fontWeight:400, color:C.text }}>{MOIS[month]} {year}</span>
               <button onClick={nextMonth} style={{ background:'none', border:'none', cursor:'pointer', color:C.muted, fontSize:18, padding:'0 4px' }}>›</button>
             </div>
             <Calendar absences={absences} year={year} month={month} C={C}/>
@@ -223,7 +216,7 @@ export default function Assiduite() {
 
         {/* Colonne droite — Liste absences */}
         <div style={{ background:C.surface, borderRadius:16, padding:'16px' }}>
-          <div style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:12 }}>
+          <div style={{ fontSize:13, fontWeight:400, color:C.text, marginBottom:12 }}>
             {thisMonth.length>0 ? `${thisMonth.length} absence(s) — ${MOIS[month]}` : `Aucune absence en ${MOIS[month]}`}
           </div>
           {loading ? (
@@ -240,7 +233,7 @@ export default function Assiduite() {
           {/* Toutes les absences */}
           {absences.length > thisMonth.length && (
             <div style={{ marginTop:20 }}>
-              <div style={{ fontSize:13, fontWeight:700, color:C.text, marginBottom:12 }}>Toutes les absences</div>
+              <div style={{ fontSize:13, fontWeight:400, color:C.text, marginBottom:12 }}>Toutes les absences</div>
               {absences.filter(a => { const d=new Date(a.date); return !(d.getMonth()===month&&d.getFullYear()===year) }).map(a => (
                 <AbsenceRow key={a.id} absence={a} C={C} onJustify={setToJustify}/>
               ))}

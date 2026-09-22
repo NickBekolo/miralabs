@@ -87,7 +87,7 @@ class MessageController extends AbstractController
             'content'   => $m->getContent(),
             'isMe'      => $m->getSender()?->getId() === $user->getId(),
             'sender'    => ['id'=>$m->getSender()?->getId(),'firstName'=>$m->getSender()?->getFirstName()],
-            'createdAt' => $m->getCreatedAt()->format('Y-m-d H:i:s'),
+            'createdAt' => $m->getCreatedAt()->setTimezone(new \DateTimeZone('Europe/Paris'))->format('Y-m-d H:i:s'),
             'isRead'    => $m->isRead(),
             'tapback'   => $m->getTapback(),
             'replyTo'   => $m->getReplyToId() ? ['id'=>$m->getReplyToId(),'text'=>$m->getReplyToText(),'senderName'=>($em->getRepository(\App\Entity\Message::class)->find($m->getReplyToId())?->getSender()?->getFirstName()??'?')] : null,
@@ -134,7 +134,7 @@ class MessageController extends AbstractController
             'id'        => $msg->getId(),
             'content'   => $msg->getContent(),
             'isMe'      => true,
-            'createdAt' => $msg->getCreatedAt()->format('Y-m-d H:i:s'),
+            'createdAt' => $msg->getCreatedAt()->setTimezone(new \DateTimeZone('Europe/Paris'))->format('Y-m-d H:i:s'),
             'isRead'    => false,
         ], 201);
     }

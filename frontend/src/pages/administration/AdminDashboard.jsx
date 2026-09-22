@@ -22,6 +22,7 @@ const NAV_ALL = [
   { id:'classes',     label:'Classes',           icon:ClipboardList,roles:['ROLE_ADMIN'] },
   { id:'edt',         label:'Emploi du temps',   icon:Calendar,     roles:['ROLE_ADMIN'] },
   { id:'stats',       label:'Statistiques',      icon:BarChart2,    roles:['ROLE_ADMIN','ROLE_COMPTABILITE'] },
+  { id:'absences',    label:'Absences',           icon:Users,        roles:['ROLE_ADMIN','ROLE_SECRETARIAT'] },
   { id:'messages',    label:'Messages',          icon:MessageSquare,roles:['ROLE_ADMIN','ROLE_SECRETARIAT','ROLE_COMPTABILITE'] },
 ]
 
@@ -1076,6 +1077,82 @@ function AccueilSection({ C }) {
 }
 
 // ─── Dashboard principal ──────────────────────────────────────
+
+function AbsencesAdmin({ C }) {
+  const [absences, setAbsences] = useState([])
+  const [filtre, setFiltre] = useState('en_attente') // en_attente, toutes
+  const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
+
+  useEffect(() => {
+    api.get('/api/absences').then(r => setAbsences(r.data)).catch(()=>{})
+  }, [])
+
+  const list = filtre === 'en_attente'
+    ? absences.filter(a => a.statutJustification === 'en_attente')
+    : absences
+
+  const valider = async (id, statut) => {
+    try {
+      await api.patch('/api/absences/'+id+'/justifier', { statut })
+      setAbsences(prev => prev.map(a => a.id===id ? {...a, statutJustification: statut, justifiee: statut==='acceptee'} : a))
+    } catch(e) { console.error(e) }
+  }
+
+  const STATUT_C = { en_attente:'#FF9500', acceptee:'#34C759', refusee:'#FF3B30', non_soumise:'#8e8e93' }
+  const STATUT_L = { en_attente:'En attente', acceptee:'Acceptée', refusee:'Refusée', non_soumise:'Non soumise' }
+
+  return (
+    <div style={{fontFamily:ft}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
+        <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text}}>Absences</div>
+        <div style={{display:'flex',gap:8}}>
+          {['en_attente','toutes'].map(f=>(
+            <button key={f} onClick={()=>setFiltre(f)}
+              style={{padding:'6px 14px',borderRadius:10,border:'none',fontSize:12,fontWeight:500,cursor:'pointer',
+                background:filtre===f?C.text:C.surface2, color:filtre===f?C.bg:C.text}}>
+              {f==='en_attente'?'En attente':'Toutes'}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {list.length===0 && <div style={{textAlign:'center',color:C.muted,padding:40,fontSize:13}}>
+        {filtre==='en_attente'?'Aucune justification en attente':'Aucune absence'}
+      </div>}
+
+      <div style={{display:'flex',flexDirection:'column',gap:10}}>
+        {list.map(a=>(
+          <div key={a.id} style={{background:C.surface,borderRadius:16,padding:'14px 16px',border:`1px solid ${C.surface2}`}}>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:8}}>
+              <div>
+                <div style={{fontSize:14,fontWeight:500,color:C.text}}>{a.eleve?.firstName} {a.eleve?.lastName}</div>
+                <div style={{fontSize:12,color:C.muted,marginTop:2}}>{a.date} {a.motif?'· '+a.motif:''}</div>
+                {a.motifJustification&&<div style={{fontSize:12,color:C.muted,marginTop:2}}>Motif : {a.motifJustification}</div>}
+                {a.typeJustification&&<div style={{fontSize:11,color:C.muted,marginTop:2}}>Type : {a.typeJustification}</div>}
+              </div>
+              <div style={{padding:'3px 10px',borderRadius:999,background:STATUT_C[a.statutJustification||'non_soumise']+'20',color:STATUT_C[a.statutJustification||'non_soumise'],fontSize:11,fontWeight:600}}>
+                {STATUT_L[a.statutJustification||'non_soumise']}
+              </div>
+            </div>
+            {a.statutJustification==='en_attente'&&(
+              <div style={{display:'flex',gap:8,marginTop:8}}>
+                <button onClick={()=>valider(a.id,'acceptee')}
+                  style={{flex:1,padding:'8px',borderRadius:10,border:'none',background:'#34C75920',color:'#34C759',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                  Accepter
+                </button>
+                <button onClick={()=>valider(a.id,'refusee')}
+                  style={{flex:1,padding:'8px',borderRadius:10,border:'none',background:'#FF3B3020',color:'#FF3B30',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                  Refuser
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 export default function AdminDashboard() {
   const darkMode  = useThemeStore(s => s.darkMode)
   const C         = darkMode ? DARK_THEME : LIGHT_THEME
@@ -1093,10 +1170,11 @@ export default function AdminDashboard() {
           {active === 'apprenants'  && <ApprenantSection C={C}/>}
           {active === 'enseignants' && <EnseignantSection C={C}/>}
           {active === 'classes'     && <ClasseSection C={C}/>}
+          {active === 'absences'    && <AbsencesAdmin C={C}/>}
           {active === 'messages'    && <Conversations/>}
           {active === 'stats'       && <StatsSection C={C} onNavigate={(id) => { /* naviguer via layout */ document.querySelector(`[data-nav='${id}']`)?.click() }}/> }
           {active === 'edt' && <EdtSection C={C}/>}
-          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && active !== 'edt' && active !== 'messages' && (
+          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && active !== 'edt' && active !== 'messages' && active !== 'absences' && (
             <div style={{ background:C.surface, borderRadius:14, padding:24, border:`1px solid ${C.surface2}` }}>
               <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>En cours de développement</div>
               <div style={{ fontSize:13, color:C.muted }}>Cette section sera disponible prochainement.</div>

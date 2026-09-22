@@ -32,8 +32,8 @@ function Calendar({ absences, year, month, C }) {
   const today     = new Date()
   const todayDay  = today.getMonth()===month && today.getFullYear()===year ? today.getDate() : null
 
-  const absentDays   = absences.filter(a => { const d=new Date(a.date); return d.getMonth()===month&&d.getFullYear()===year&&!a.isJustified }).map(a=>new Date(a.date).getDate())
-  const justifiedDays= absences.filter(a => { const d=new Date(a.date); return d.getMonth()===month&&d.getFullYear()===year&&a.isJustified }).map(a=>new Date(a.date).getDate())
+  const absentDays   = absences.filter(a => { const d=new Date(a.date); return d.getMonth()===month&&d.getFullYear()===year&&!a.justifiee }).map(a=>new Date(a.date).getDate())
+  const justifiedDays= absences.filter(a => { const d=new Date(a.date); return d.getMonth()===month&&d.getFullYear()===year&&a.justifiee }).map(a=>new Date(a.date).getDate())
 
   const cells = []
   for (let i=0; i<firstDay; i++) cells.push(null)
@@ -80,7 +80,7 @@ function Calendar({ absences, year, month, C }) {
 function BarreMensuelle({ absences, C }) {
   const mois = MOIS.map((nom, i) => {
     const count = absences.filter(a => new Date(a.date).getMonth()===i).length
-    return { nom:nom.slice(0,3), count }
+    return { nom:nom.slice(0,3), count, idx:i }
   })
   const max = Math.max(...mois.map(m=>m.count), 1)
   return (
@@ -88,8 +88,8 @@ function BarreMensuelle({ absences, C }) {
       <div style={{ fontSize:12, fontWeight:400, color:C.text, marginBottom:14 }}>Absences par mois</div>
       <div style={{ display:'flex', gap:6, alignItems:'flex-end', height:60 }}>
         {mois.map(m => (
-          <div key={m.nom} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
-            <div style={{ width:'100%', background:m.count>0?'rgba(255,85,85,0.6)':C.surface2, borderRadius:4, height:m.count>0?`${(m.count/max)*48}px`:'4px', transition:'height 0.3s', minHeight:4 }}/>
+          <div key={m.idx} style={{ flex:1, display:'flex', flexDirection:'column', alignItems:'center', gap:4 }}>
+            <div style={{ width:'100%', background:m.count>0?'#ff5555':C.surface2, borderRadius:4, height:m.count>0?`${(m.count/max)*48}px`:'4px', transition:'height 0.3s', minHeight:4 }}/>
             <div style={{ fontSize:8, color:C.hint }}>{m.nom}</div>
           </div>
         ))}
@@ -103,14 +103,18 @@ function AbsenceRow({ absence, C, onJustify }) {
   const dateStr = date.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' })
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:`1px solid ${C.surface2}` }}>
-      <div style={{ width:3, height:36, borderRadius:2, background:absence.isJustified?'#fbbf24':'#ff5555', flexShrink:0 }}/>
+      <div style={{ width:3, height:36, borderRadius:2, background:absence.justifiee?'#fbbf24':'#ff5555', flexShrink:0 }}/>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:13, fontWeight:500, color:C.text, marginBottom:1 }}>{absence.matiere?.nom ?? 'Cours'}</div>
         <div style={{ fontSize:11, color:C.muted }}>{dateStr}</div>
       </div>
-      {absence.isJustified
+      {absence.justifiee
         ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(251,191,36,0.15)', color:'#fbbf24' }}>Justifiée</span>
-        : <button onClick={() => onJustify(absence)} style={{ fontSize:11, fontWeight:500, padding:'5px 12px', borderRadius:980, background:C.surface2, color:C.text, border:'none', cursor:'pointer', fontFamily:ft }}>Justifier</button>
+        : absence.statutJustification==='en_attente'
+          ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(255,149,0,0.15)', color:'#FF9500' }}>En attente</span>
+          : absence.statutJustification==='refusee'
+            ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(255,59,48,0.15)', color:'#FF3B30' }}>Refusée</span>
+            : <button onClick={() => onJustify(absence)} style={{ fontSize:11, fontWeight:500, padding:'5px 12px', borderRadius:980, background:C.surface2, color:C.text, border:'none', cursor:'pointer', fontFamily:ft }}>Justifier</button>
       }
     </div>
   )
@@ -119,6 +123,8 @@ function AbsenceRow({ absence, C, onJustify }) {
 function JustifyModal({ absence, onClose, onSubmit, C }) {
   const [motif, setMotif] = useState('')
   const [type,  setType]  = useState('medical')
+  const [fichier, setFichier] = useState(null)
+  const [saving, setSaving] = useState(false)
   const TYPES = [
     { value:'medical',  label:'Médical' },
     { value:'familial', label:'Familial' },
@@ -126,7 +132,7 @@ function JustifyModal({ absence, onClose, onSubmit, C }) {
   ]
   return (
     <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.5)', backdropFilter:'blur(8px)', zIndex:200, display:'flex', alignItems:'flex-end', justifyContent:'center' }}>
-      <div style={{ background:C.bg, borderRadius:'24px 24px 0 0', padding:'6px 4px 10px', width:'100%', maxWidth:200 }}>
+      <div style={{ background:C.bg, borderRadius:'24px 24px 0 0', padding:'20px 16px 30px', width:'100%', maxWidth:480 }}>
         <div style={{ width:40, height:4, background:C.surface2, borderRadius:2, margin:'0 auto 20px' }}/>
         <div style={{ fontSize:16, fontWeight:400, color:C.text, marginBottom:16 }}>Soumettre une justification</div>
         <div style={{ display:'flex', gap:8, marginBottom:14 }}>
@@ -139,9 +145,30 @@ function JustifyModal({ absence, onClose, onSubmit, C }) {
         </div>
         <textarea value={motif} onChange={e=>setMotif(e.target.value)} placeholder="Motif (optionnel)..."
           style={{ width:'100%', padding:'10px 14px', background:C.surface, border:'none', borderRadius:12, fontSize:13, color:C.text, outline:'none', fontFamily:ft, resize:'none', height:80, boxSizing:'border-box', marginBottom:16 }}/>
+        <div style={{ marginBottom:12 }}>
+          <label style={{ fontSize:11, color:C.muted, display:'block', marginBottom:6 }}>Justificatif (optionnel) — JPG, PNG ou PDF</label>
+          <input type="file" accept=".jpg,.jpeg,.png,.pdf" onChange={e=>setFichier(e.target.files[0])}
+            style={{ fontSize:12, color:C.text, width:'100%' }}/>
+          {fichier && <div style={{ fontSize:11, color:'#34C759', marginTop:4 }}>{fichier.name}</div>}
+        </div>
         <div style={{ display:'flex', gap:8 }}>
           <button onClick={onClose} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.surface, color:C.muted, fontSize:13, cursor:'pointer', fontFamily:ft }}>Annuler</button>
-          <button onClick={() => onSubmit({ absence, motif, type })} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:400, cursor:'pointer', fontFamily:ft }}>Soumettre</button>
+          <button onClick={async()=>{
+              setSaving(true)
+              const formData = new FormData()
+              if(fichier) formData.append('fichier', fichier)
+              formData.append('motif', motif)
+              formData.append('type', type)
+              try {
+                const r = await fetch('/api/upload/justificatif-absence/'+absence.id, {
+                  method:'POST',
+                  headers:{'Authorization':'Bearer '+sessionStorage.getItem('token')},
+                  body: formData
+                })
+                if(r.ok) onSubmit({ absence, motif, type })
+              } catch(e) { console.error(e) }
+              setSaving(false)
+            }} disabled={saving} style={{ flex:1, padding:12, borderRadius:12, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:400, cursor:'pointer', fontFamily:ft, opacity:saving?0.5:1 }}>{saving?'Envoi...':'Soumettre'}</button>
         </div>
       </div>
     </div>
@@ -170,12 +197,12 @@ export default function Assiduite() {
   const nextMonth = () => month===11 ? (setMonth(0), setYear(y=>y+1)) : setMonth(m=>m+1)
 
   const handleJustify = ({ absence, motif }) => {
-    setAbsences(abs => abs.map(a => a.id===absence.id ? {...a, isJustified:true, motif} : a))
+    api.get('/api/absences').then(r => setAbsences(r.data)).catch(()=>{})
     setToJustify(null)
   }
 
   const total       = absences.length
-  const justified   = absences.filter(a=>a.isJustified).length
+  const justified   = absences.filter(a=>a.justifiee).length
   const nonJustified= total - justified
   const thisMonth   = absences.filter(a => { const d=new Date(a.date); return d.getMonth()===month&&d.getFullYear()===year })
 
@@ -217,7 +244,7 @@ export default function Assiduite() {
         {/* Colonne droite — Liste absences */}
         <div style={{ background:C.surface, borderRadius:16, padding:'16px' }}>
           <div style={{ fontSize:13, fontWeight:400, color:C.text, marginBottom:12 }}>
-            {thisMonth.length>0 ? `${thisMonth.length} absence(s) — ${MOIS[month]}` : `Aucune absence en ${MOIS[month]}`}
+            {thisMonth.length>0 ? `${thisMonth.length} absence(s) · ${MOIS[month]}` : `Aucune absence · ${MOIS[month]}`}
           </div>
           {loading ? (
             <div style={{ fontSize:12, color:C.hint }}>Chargement...</div>

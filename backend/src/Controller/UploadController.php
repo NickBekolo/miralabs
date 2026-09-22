@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\DemandeModification;
+use App\Entity\Absence;
 use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -91,5 +92,41 @@ class UploadController extends AbstractController
         $em->flush();
 
         return $this->json(['photoUrl' => '/uploads/photos/'.$filename]);
+    }
+
+    #[Route('/justificatif-absence/{id}', methods: ['POST'])]
+    public function justificatifAbsence(int $id, Request $req, EntityManagerInterface $em, #[CurrentUser] User $user): JsonResponse
+    {
+        $absence = $em->getRepository(Absence::class)->find($id);
+        if (!$absence) return $this->json(['message' => 'Absence introuvable.'], 404);
+
+        $file = $req->files->get('fichier');
+        if (!$file) {
+            // Pas de fichier — juste mettre à jour le statut
+            $data = json_decode($req->getContent(), true);
+            $absence->setStatutJustification('en_attente');
+            $absence->setMotifJustification($data['motif'] ?? null);
+            $absence->setTypeJustification($data['type'] ?? null);
+            $em->flush();
+            return $this->json(['statut' => 'en_attente']);
+        }
+
+        $ext     = $file->getClientOriginalExtension();
+        $allowed = ['jpg','jpeg','png','pdf','webp'];
+        if (!in_array(strtolower($ext), $allowed)) {
+            return $this->json(['message' => 'Format non autorisé.'], 400);
+        }
+
+        if (!is_dir($this->uploadDir.'/justificatifs')) {
+            mkdir($this->uploadDir.'/justificatifs', 0775, true);
+        }
+
+        $filename = 'justif_absence_'.$id.'_'.time().'.'.$ext;
+        $file->move($this->uploadDir.'/justificatifs', $filename);
+
+        $absence->setStatutJustification('en_attente');
+        $em->flush();
+
+        return $this->json(['statut' => 'en_attente', 'fichier' => '/uploads/justificatifs/'.$filename]);
     }
 }

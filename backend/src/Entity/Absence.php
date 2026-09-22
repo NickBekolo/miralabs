@@ -72,4 +72,20 @@ class Absence
     public function getEtablissement(): ?Etablissement { return $this->etablissement; }
     public function setEtablissement(?Etablissement $e): static { $this->etablissement = $e; return $this; }
 
+
+    #[ORM\Column(length: 20, options: ['default' => 'non_soumise'])]
+    private string $statutJustification = 'non_soumise';
+
+    #[ORM\Column(type: 'text', nullable: true)]
+    private ?string $motifJustification = null;
+
+    #[ORM\Column(length: 50, nullable: true)]
+    private ?string $typeJustification = null;
+
+    public function getStatutJustification(): string { return $this->statutJustification; }
+    public function setStatutJustification(string $s): self { $this->statutJustification = $s; return $this; }
+    public function getMotifJustification(): ?string { return $this->motifJustification; }
+    public function setMotifJustification(?string $m): self { $this->motifJustification = $m; return $this; }
+    public function getTypeJustification(): ?string { return $this->typeJustification; }
+    public function setTypeJustification(?string $t): self { $this->typeJustification = $t; return $this; }
 }

@@ -81,7 +81,7 @@ class AbsenceController extends AbstractController
     }
 
     #[Route('/{id}/justifier', name: 'absences_justifier', methods: ['PATCH'])]
-    #[IsGranted('ROLE_TEACHER')]
+    #[IsGranted('ROLE_USER')]
     public function justifier(int $id, Request $request): JsonResponse
     {
         $absence = $this->absenceRepository->find($id);
@@ -90,8 +90,17 @@ class AbsenceController extends AbstractController
         }
 
         $data = json_decode($request->getContent(), true);
-        $absence->setJustifiee($data['justifiee'] ?? true);
-        if (isset($data['motif'])) $absence->setMotif($data['motif']);
+        
+        // Gestion statut justification (admin)
+        if (isset($data['statut'])) {
+            $absence->setStatutJustification($data['statut']);
+            if ($data['statut'] === 'acceptee') {
+                $absence->setJustifiee(true);
+            }
+        } else {
+            $absence->setJustifiee($data['justifiee'] ?? true);
+            if (isset($data['motif'])) $absence->setMotif($data['motif']);
+        }
 
         $this->absenceRepository->save($absence, true);
 
@@ -120,6 +129,9 @@ class AbsenceController extends AbstractController
             'heureFin' => $absence->getHeureFin()?->format('H:i'),
             'motif' => $absence->getMotif(),
             'justifiee' => $absence->isJustifiee(),
+                'statutJustification' => $absence->getStatutJustification(),
+                'motifJustification' => $absence->getMotifJustification(),
+                'typeJustification' => $absence->getTypeJustification(),
             'createdAt' => $absence->getCreatedAt()?->format('Y-m-d'),
             'eleve' => [
                 'id' => $absence->getEleve()->getId(),
@@ -137,5 +149,20 @@ class AbsenceController extends AbstractController
     private function formatAbsences(array $absences): array
     {
         return array_map(fn($a) => $this->formatAbsence($a), $absences);
+    }
+
+    #[Route('/{id}/justifier', name: 'absences_justifier_eleve', methods: ['POST'])]
+    public function justifierEleve(int $id, Request $request): JsonResponse
+    {
+        $absence = $this->em->getRepository(Absence::class)->find($id);
+        if (!$absence) return $this->json(['message' => 'Absence introuvable'], 404);
+
+        $data = json_decode($request->getContent(), true);
+        $absence->setStatutJustification('en_attente');
+        $absence->setMotifJustification($data['motif'] ?? null);
+        $absence->setTypeJustification($data['type'] ?? null);
+        $this->em->flush();
+
+        return $this->json(['statut' => 'en_attente']);
     }
 }

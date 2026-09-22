@@ -95,7 +95,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
       newPts.forEach(p => {
         const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
         c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', 3)
-        c.setAttribute('fill', PALETTE.curve); c.setAttribute('opacity', '0.45')
+        c.setAttribute('fill', PALETTE.curve); c.setAttribute('opacity', '0.1')
         dotsRef.current.appendChild(c)
       })
     }
@@ -205,7 +205,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
           <text x="0" y="61"  fontSize="10" fill="#AEAEB2">10</text>
           <text x="0" y="96"  fontSize="10" fill="#AEAEB2">0</text>
 
-          <path d={bezierPath(pts)} fill="none" stroke={PALETTE.curve} strokeWidth="5.5"
+          <path d={bezierPath(pts)} fill="none" stroke={PALETTE.curve} strokeWidth="2"
             strokeLinejoin="round" strokeLinecap="round" vectorEffect="non-scaling-stroke"/>
 
           <g ref={dotsRef}/>
@@ -215,7 +215,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
             opacity={active ? 1 : 0} style={{ transition:'opacity 0.15s' }}/>
 
           {/* Cercle parfaitement rond grâce à non-scaling-stroke */}
-          <circle ref={dragPointRef} r="7.5" fill={PALETTE.curve} stroke="#fff" strokeWidth="3.5"
+          <circle ref={dragPointRef} r="4" fill={PALETTE.curve} stroke="#fff" strokeWidth="2"
             vectorEffect="non-scaling-stroke"
             opacity={active ? 1 : 0} style={{ transition:'opacity 0.15s' }}/>
         </svg>

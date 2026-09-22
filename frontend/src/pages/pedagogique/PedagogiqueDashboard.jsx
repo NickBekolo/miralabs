@@ -392,9 +392,9 @@ function CarnetNotesSection({ C, user }) {
   const Chip = ({label, active, color, onClick}) => (
     <button onClick={onClick} style={{
       padding:'5px 12px',borderRadius:999,fontSize:12,fontWeight:500,cursor:'pointer',
-      background:active?(color||'#1d1d1f'):'#fff',
-      color:active?'#fff':'#6e6e73',
-      border:active?'none':'1.5px solid #e5e5ea',
+      background:active?(color||'#1d1d1f'):C.surface2,
+      color:active?'#fff':C.text,
+      border:active?'none':`1.5px solid ${C.surface2}`,
       transition:'all 0.15s'
     }}>{label}</button>
   )
@@ -723,9 +723,9 @@ function AppelSection({ C }) {
       {/* Stats rapides */}
       {eleves.length>0&&(
         <div style={{background:C.surface,borderRadius:14,padding:'14px 16px',border:`1px solid ${C.surface2}`}}>
-          <div style={{fontSize:14,color:C.text,fontFamily:"'Nunito',sans-serif"}}>
-            <span style={{fontWeight:700,color:GREEN}}>{nbPresents} présent{nbPresents>1?'s':''}</span>,{' '}
-            <span style={{fontWeight:700,color:RED}}>{nbAbsents} absent{nbAbsents>1?'s':''}</span>{nbRetards>0?<> et <span style={{fontWeight:700,color:ORANGE}}>{nbRetards} retard{nbRetards>1?'s':''}</span></>:''} sur {eleves.length} élèves.
+          <div style={{fontSize:14,color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>
+            <span style={{fontWeight:400,color:GREEN}}>{nbPresents} présent{nbPresents>1?'s':''}</span>,{' '}
+            <span style={{fontWeight:400,color:RED}}>{nbAbsents} absent{nbAbsents>1?'s':''}</span>{nbRetards>0?<> et <span style={{fontWeight:400,color:ORANGE}}>{nbRetards} retard{nbRetards>1?'s':''}</span></>:''} sur {eleves.length} élèves.
           </div>
         </div>
       )}

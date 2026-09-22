@@ -1,18 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { useThemeStore } from '../../store/ThemeStore'
 
 const ft        = '-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,"Helvetica Neue",sans-serif'
 const ftRounded = 'ui-rounded,"SF Pro Rounded","Nunito",sans-serif'
-
-const PALETTE = {
-  cardBg:    '#fff',
-  border:    '#E5E7EB',
-  shadow:    'rgba(0,0,0,0.05)',
-  textMain:  '#111111',
-  textMuted: '#8A8A8A',
-  green:     '#166534',
-  red:       '#ff0000',
-  curve:     '#E2451B',
-}
 
 const W = 600, H = 110, PAD_L = 22, PAD_R = 10
 const SEUIL = 10
@@ -37,6 +27,17 @@ function bezierPath(pts) {
 function ordinal(n) { return n === 1 ? 'er' : 'e' }
 
 export default function MoyenneChart({ datasets, defaultKey }) {
+  const darkMode = useThemeStore(s => s.darkMode)
+  const PALETTE = {
+    cardBg:    darkMode ? '#1c1c1e' : '#fff',
+    border:    darkMode ? '#3a3a3c' : '#E5E7EB',
+    shadow:    'rgba(0,0,0,0.05)',
+    textMain:  darkMode ? '#fff' : '#111111',
+    textMuted: darkMode ? '#8A8A8A' : '#8A8A8A',
+    green:     '#166534',
+    red:       '#ff0000',
+    curve:     '#E2451B',
+  }
   const keys = Object.keys(datasets)
   const initialKey = defaultKey && datasets[defaultKey] ? defaultKey : keys[0]
 

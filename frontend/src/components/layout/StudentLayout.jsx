@@ -283,10 +283,11 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
               {/* Avatar + nom */}
               <div onClick={()=>setMenuProfil(v=>!v)} style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,cursor:'pointer',position:'relative'}}>
                 <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={36}/>
-                <div>
+                <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:600,color:text}}>{userName}</div>
                   <div style={{fontSize:11,color:muted}}>Étudiant</div>
                 </div>
+                {menuProfil ? <ChevronDown size={14} color={muted} style={{transform:'rotate(180deg)'}}/> : <ChevronDown size={14} color={muted}/>}
                 {menuProfil && (
                   <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,right:0,background:bg,borderRadius:14,border:`1px solid ${darkMode?'rgba(255,255,255,0.1)':'#f0f0f0'}`,padding:8,marginBottom:6,boxShadow:'0 8px 32px rgba(0,0,0,0.15)',zIndex:300}}>
                     <div style={{padding:'10px 12px',marginBottom:4}}>
@@ -322,19 +323,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
                   </div>
                 )}
               </div>
-              {/* Thème */}
-              <div onClick={toggleDarkMode} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',cursor:'pointer',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`}}>
-                <div style={{display:'flex',alignItems:'center',gap:12,color:text,fontSize:14}}>
-                  {darkMode?<Sun size={18} strokeWidth={1.5}/>:<Moon size={18} strokeWidth={1.5}/>}
-                  Thème
-                </div>
-                <span style={{fontSize:11,color:muted,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',padding:'2px 8px',borderRadius:20}}>{darkMode?'Sombre':'Clair'}</span>
-              </div>
-              {/* Déconnexion */}
-              <div onClick={()=>{sessionStorage.clear();window.location.href='/'}}
-                style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',cursor:'pointer',color:'#FF3B30',fontSize:14,marginTop:4}}>
-                <LogOut size={18} strokeWidth={1.5}/>Déconnexion
-              </div>
+
             </div>
           </div>
         </div>

@@ -238,10 +238,10 @@ export default function HomeScreen() {
   return (
     <div style={{ fontFamily:ft, padding:'16px 0 40px', background:C.bg, minHeight:'100vh', color:C.text }}>
       <div style={{ marginBottom:20 }}>
-        <h1 style={{ fontSize:22, fontWeight:500, letterSpacing:'-0.4px', color:C.text, marginBottom:3 }}>
+        <h1 style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:C.text, marginBottom:3 }}>
           Bonjour, {user?.firstName ?? 'toi'} 
         </h1>
-        <p style={{ fontSize:12, color:C.hint }}>{today}</p>
+        
       </div>
 
       <div style={{ display:'grid', gridTemplateColumns:'1fr 200px', gap:8, marginBottom:8 }}>

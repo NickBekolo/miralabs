@@ -150,8 +150,8 @@ export default function MiraIA() {
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
               <div style={{ textAlign:'center' }}>
   
-                <div style={{ fontSize:22, fontWeight:700, color:text, letterSpacing:'-0.5px', marginBottom:6 }}>Comment puis-je t'aider ?</div>
-                <div style={{ fontSize:14, color:muted }}>Pose-moi une question sur tes cours</div>
+                <div style={{ fontSize:22, fontWeight:400, color:text, letterSpacing:'-0.8px', marginBottom:6, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Comment puis-je t'aider ?</div>
+                <div style={{ fontSize:14, color:muted, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Pose-moi une question sur tes cours</div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, width:'100%', maxWidth:520 }}>
                 {SUGGESTIONS.map((s, i) => (

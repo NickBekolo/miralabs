@@ -1,171 +1,130 @@
 import { useEffect, useState } from 'react'
+import { ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
 
-const ft = '-apple-system,"SF Pro Display",BlinkMacSystemFont,sans-serif'
+const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
+const RED = '#FF3B30'
 
-function moyenne(liste) {
+function avg(liste) {
   if (!liste.length) return 0
-  const total = liste.reduce((s, n) => s + (n.valeur / n.noteSur) * 20, 0)
-  return (total / liste.length).toFixed(1)
+  return Math.round(liste.reduce((s,n) => s+(n.valeur/n.noteSur)*20, 0)/liste.length*10)/10
 }
 
-function moyenneGlobale(notes) {
-  if (!notes.length) return 0
-  const total = notes.reduce((s, n) => s + (n.valeur / n.noteSur) * 20, 0)
-  return (total / notes.length).toFixed(1)
+function noteColor(v) { return v >= 10 ? '#1d1d1f' : '#FF3B30' }
+
+const MAT_COLORS = {
+  'Mathématiques':'#4F7CFF','Physique-Chimie':'#E85D5D','Français':'#8B5CF6',
+  'Anglais':'#14B8A6','Histoire-Géographie':'#F59E0B'
 }
 
-function couleur(moy) {
-  if (moy >= 14) return '#22c55e'
-  if (moy >= 10) return '#f59e0b'
-  return '#ef4444'
-}
-
-function BarreHorizontale({ label, moy, notes, C }) {
+function MatCard({ matiere, notes, C }) {
   const [open, setOpen] = useState(false)
-  const pct = Math.min((parseFloat(moy) / 20) * 100, 100)
-  const col = couleur(parseFloat(moy))
+  const moy = avg(notes)
+  const color = MAT_COLORS[matiere] || '#a29bfe'
 
   return (
-    <div style={{ background:C.surface, borderRadius:14, padding:'14px 18px', marginBottom:10 }}>
-      {/* Ligne matière */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:10 }}>
-        <div>
-          <div style={{ fontSize:14, fontWeight:500, color:C.text }}>{label}</div>
-          <div style={{ fontSize:11, color:C.hint }}>{notes.length} note(s)</div>
+    <div style={{background:C.surface,borderRadius:20,border:`1px solid ${C.surface2}`,overflow:'hidden',marginBottom:12}}>
+      {/* Header */}
+      <div onClick={()=>setOpen(v=>!v)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'14px 16px',cursor:'pointer'}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{width:10,height:10,borderRadius:'50%',background:color,flexShrink:0}}/>
+          <div>
+            <div style={{fontSize:14,fontWeight:600,color:C.text,fontFamily:ft}}>{matiere}</div>
+            <div style={{fontSize:11,color:C.muted}}>{notes.length} note(s)</div>
+          </div>
         </div>
-        <div style={{ fontSize:20, fontWeight:600, color:col, letterSpacing:'-0.5px' }}>
-          {moy}<span style={{ fontSize:12, color:C.muted, fontWeight:400 }}>/20</span>
+        <div style={{display:'flex',alignItems:'center',gap:10}}>
+          <div style={{padding:'4px 14px',borderRadius:999,background:color,color:'#fff',fontSize:13,fontWeight:600,fontFamily:ft}}>
+            {moy}/20
+          </div>
+          {open ? <ChevronUp size={16} color={C.muted}/> : <ChevronDown size={16} color={C.muted}/>}
         </div>
       </div>
 
-      {/* Barre horizontale */}
-      <div style={{ background:C.surface2, borderRadius:999, height:8, marginBottom:10, overflow:'hidden' }}>
-        <div style={{
-          height:'100%', width:`${pct}%`, borderRadius:999,
-          background:col, transition:'width 0.6s ease'
-        }}/>
-      </div>
-
-      {/* Bouton voir détails */}
-      <button onClick={() => setOpen(!open)} style={{
-        background:'none', border:'none', cursor:'pointer',
-        fontSize:11, color:C.muted, padding:0
-      }}>
-        {open ? '▲ Masquer' : '▼ Voir les notes'}
-      </button>
-
-      {/* Détail des notes */}
+      {/* Détails */}
       {open && (
-        <div style={{ marginTop:10 }}>
-          {notes.map((note, i) => {
-            const sur20 = Math.round((note.valeur / note.noteSur) * 200) / 10
-            const col2 = couleur(sur20)
+        <>
+          <div style={{height:1,background:C.surface2}}/>
+          {notes.map((n,i) => {
+            const sur20 = Math.round((n.valeur/n.noteSur)*200)/10
+            const nc = noteColor(sur20)
             return (
-              <div key={note.id} style={{
-                display:'flex', justifyContent:'space-between', alignItems:'center',
-                padding:'8px 0', borderTop:`1px solid ${C.surface2}`
-              }}>
-                <div>
-                  <div style={{ fontSize:12, color:C.muted }}>{note.createdAt}</div>
-                  {note.commentaire && <div style={{ fontSize:11, color:C.hint, marginTop:2 }}>{note.commentaire}</div>}
+              <div key={n.id} style={{display:'flex',alignItems:'center',gap:12,padding:'12px 16px',borderBottom:i<notes.length-1?`1px solid ${C.surface2}`:'none',background:C.surface}}>
+                <div style={{flex:1}}>
+                  <div style={{fontSize:12,color:C.muted}}>{n.createdAt}</div>
+                  {n.typeEvaluation&&<div style={{fontSize:10,color:C.muted,padding:'2px 6px',borderRadius:999,border:`1px solid ${C.surface2}`,display:'inline-block',marginTop:2}}>{n.typeEvaluation}</div>}
+                  {n.commentaire&&<div style={{fontSize:11,color:C.muted,marginTop:2}}>{n.commentaire}</div>}
                 </div>
-                <div style={{ fontSize:16, fontWeight:600, color:col2 }}>
-                  {sur20}<span style={{ fontSize:11, color:C.muted, fontWeight:400 }}>/20</span>
-                </div>
+                <div style={{fontSize:20,fontWeight:400,color:nc,fontFamily:ft,letterSpacing:'-0.5px'}}>{sur20}<span style={{fontSize:11,color:C.muted}}>/20</span></div>
               </div>
             )
           })}
-        </div>
+        </>
       )}
     </div>
   )
 }
 
 export default function Notes() {
-  const { user }  = useAuth()
-  const darkMode  = useThemeStore(s => s.darkMode)
-  const C         = darkMode ? DARK_THEME : LIGHT_THEME
-  const [notes,   setNotes]   = useState([])
+  const { user } = useAuth()
+  const navigate = useNavigate()
+  const darkMode = useThemeStore(s => s.darkMode)
+  const C = darkMode ? DARK_THEME : LIGHT_THEME
+  const [notes, setNotes] = useState([])
   const [loading, setLoading] = useState(true)
-  const [error,   setError]   = useState(null)
 
   useEffect(() => {
-    api.get('/api/notes')
-      .then(res => setNotes(res.data))
-      .catch(() => setError('Impossible de charger les notes.'))
-      .finally(() => setLoading(false))
+    api.get('/api/notes').then(r=>setNotes(r.data)).finally(()=>setLoading(false))
   }, [])
 
-  const grouped = notes.reduce((acc, note) => {
-    const mat = note.matiere.nom
-    if (!acc[mat]) acc[mat] = []
-    acc[mat].push(note)
+  const grouped = notes.reduce((acc,n) => {
+    const m = n.matiere.nom
+    if(!acc[m]) acc[m]=[]
+    acc[m].push(n)
     return acc
   }, {})
 
-  if (loading) return (
-    <div style={{ fontFamily:ft, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:C.bg }}>
-      <p style={{ color:C.hint, fontSize:13 }}>Chargement des notes...</p>
-    </div>
-  )
-
-  if (error) return (
-    <div style={{ fontFamily:ft, minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center', background:C.bg }}>
-      <p style={{ color:'#dc2626', fontSize:13 }}>{error}</p>
-    </div>
-  )
-
-  const moyGen = moyenneGlobale(notes)
-  const colGen = couleur(parseFloat(moyGen))
+  const moyGen = avg(notes)
 
   return (
-    <div style={{ background:C.bg, minHeight:'100vh', padding:'28px 20px', fontFamily:ft }}>
-      <div style={{ maxWidth:600, margin:'0 auto' }}>
+    <div style={{background:C.bg,minHeight:'100vh',padding:'20px 16px',fontFamily:ft}}>
+      <div style={{maxWidth:600,margin:'0 auto'}}>
 
-        <div style={{ marginBottom:24 }}>
-          <h1 style={{ fontSize:24, fontWeight:500, letterSpacing:'-0.5px', color:C.text, marginBottom:3 }}>Notes</h1>
-          <p style={{ fontSize:12, color:C.hint }}>{user?.firstName} {user?.lastName}</p>
+        {/* Header */}
+        <div style={{marginBottom:20}}>
+          <button onClick={()=>navigate(-1)} style={{background:'none',border:'none',cursor:'pointer',color:C.text,display:'flex',alignItems:'center',gap:4,fontSize:13,marginBottom:12,padding:0}}>
+            <ArrowLeft size={16}/> Retour
+          </button>
+          <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text}}>Mes notes</div>
+          <div style={{fontSize:12,color:C.muted,marginTop:2}}>{user?.firstName} {user?.lastName}</div>
         </div>
 
         {/* Moyenne générale */}
-        {notes.length > 0 && (
-          <div style={{ background:C.surface, borderRadius:14, padding:'20px', marginBottom:20 }}>
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:12 }}>
+        {notes.length>0&&(
+          <div style={{background:C.surface,borderRadius:20,padding:'16px',border:`1px solid ${C.surface2}`,marginBottom:20,position:'relative',overflow:'hidden'}}>
+            <div style={{position:'absolute',top:-20,right:-20,width:100,height:100,background:'radial-gradient(circle,rgba(162,155,254,0.15),transparent)',pointerEvents:'none'}}/>
+            <div style={{fontSize:11,color:C.muted,marginBottom:4,textTransform:'uppercase',letterSpacing:'0.5px'}}>Moyenne générale</div>
+            <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div>
-                <div style={{ fontSize:11, color:C.hint, marginBottom:3 }}>Moyenne générale</div>
-                <div style={{ fontSize:13, color:C.muted }}>{notes.length} note(s) · {Object.keys(grouped).length} matière(s)</div>
+                <div style={{fontSize:34,fontWeight:400,color:'#a29bfe',letterSpacing:'-1px',fontFamily:ft}}>{moyGen}<span style={{fontSize:14,color:C.muted}}>/20</span></div>
+                <div style={{fontSize:12,color:C.muted,marginTop:2}}>{notes.length} notes · {Object.keys(grouped).length} matières</div>
               </div>
-              <div style={{ fontSize:36, fontWeight:600, color:colGen, letterSpacing:'-1px' }}>
-                {moyGen}<span style={{ fontSize:14, color:C.muted, fontWeight:400 }}>/20</span>
-              </div>
-            </div>
-            <div style={{ background:C.surface2, borderRadius:999, height:10, overflow:'hidden' }}>
-              <div style={{
-                height:'100%', width:`${Math.min((parseFloat(moyGen)/20)*100,100)}%`,
-                borderRadius:999, background:colGen, transition:'width 0.8s ease'
-              }}/>
             </div>
           </div>
         )}
 
-        {/* Notes par matière */}
-        {notes.length === 0 ? (
-          <div style={{ background:C.surface, borderRadius:14, padding:32, textAlign:'center', color:C.hint, fontSize:13 }}>
-            Aucune note pour le moment.
-          </div>
-        ) : (
-          Object.entries(grouped).map(([matiere, liste]) => (
-            <BarreHorizontale
-              key={matiere}
-              label={matiere}
-              moy={moyenne(liste)}
-              notes={liste}
-              C={C}
-            />
-          ))
+        {loading&&<div style={{textAlign:'center',color:C.muted,padding:40,fontSize:13}}>Chargement...</div>}
+
+        {/* Par matière */}
+        {Object.entries(grouped).map(([mat,liste])=>(
+          <MatCard key={mat} matiere={mat} notes={liste} C={C}/>
+        ))}
+
+        {!loading&&notes.length===0&&(
+          <div style={{textAlign:'center',color:C.muted,padding:40,fontSize:13}}>Aucune note pour le moment.</div>
         )}
       </div>
     </div>

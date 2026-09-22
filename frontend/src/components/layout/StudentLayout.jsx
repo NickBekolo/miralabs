@@ -3,9 +3,10 @@ import { createPortal } from 'react-dom'
 import api from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
+import AvatarUser from '../shared/AvatarUser'
 import Signature from '../../pages/student/Signature'
 import ProfilMenu from '../../pages/student/ProfilMenu'
-import {ChevronDown, Menu, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut, CalendarDays } from 'lucide-react'
+import {ChevronDown, ChevronUp, Menu, Sun, Moon, Settings as SettingsIcon, Plus, Home, BarChart2, Calendar, Edit3, Settings, Bell, MessageSquare, LayoutGrid, School, BookOpen, Sparkles, Trophy, ScanFace, Pencil, StickyNoteCheck, LogOut, CalendarDays } from 'lucide-react'
 
 const ft = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
 
@@ -50,11 +51,13 @@ export function StudentLayout({ children, activePage, onNavChange, userName = 'R
 
 function DesktopLayout({ children, activePage, onNavChange, userName, collapsed, setCollapsed }) {
   const darkMode = useThemeStore(s => s.darkMode)
+  const toggleDarkMode = useThemeStore(s => s.toggleDarkMode)
   const C        = darkMode ? DARK_THEME : LIGHT_THEME
   const [hasAppel,  setHasAppel]  = useState(false)
   const [showSign,  setShowSign]  = useState(false)
   const [signed,    setSigned]    = useState(false)
   const [showProfil, setShowProfil] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
   const [unreadMsg, setUnreadMsg] = useState(0)
 
   useEffect(() => {
@@ -110,23 +113,62 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             )
           })}
         </nav>
-        <div style={{ padding:'8px 12px', borderTop:`1px solid ${C.border}` }}>
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-              <div onClick={() => setShowProfil(true)} style={{ width:28, cursor:'pointer', height:28, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:11, fontWeight:700, color:'#fff', flexShrink:0 }}>
-                {userName?.[0] ?? 'R'}
+        <div style={{borderTop:`1px solid ${C.surface2}`,paddingTop:12,position:'relative'}}>
+          <button onClick={()=>setProfileOpen(s=>!s)}
+            style={{display:'flex',alignItems:'center',justifyContent:collapsed?'center':'space-between',gap:8,padding:collapsed?'10px 0':'10px 12px',borderRadius:10,border:'none',background:profileOpen?C.surface2:'transparent',cursor:'pointer',fontFamily:ft,width:'100%'}}>
+            <div style={{display:'flex',alignItems:'center',gap:8}}>
+              <div style={{width:28,height:28,borderRadius:'50%',background:'#0a0a0a',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'#fff',flexShrink:0}}>
+                {userName?.[0]??'R'}
               </div>
-              {!collapsed && <div>
-                <div style={{ fontSize:12, fontWeight:500, color:C.text }}>{userName}</div>
-                <div style={{ fontSize:10, color:C.muted }}>Étudiant</div>
+              {!collapsed&&<div style={{textAlign:'left'}}>
+                <div style={{fontSize:13,fontWeight:600,color:C.text}}>{userName}</div>
+                <div style={{fontSize:11,color:C.muted}}>Étudiant</div>
               </div>}
             </div>
-            <button onClick={() => { sessionStorage.clear(); sessionStorage.clear(); window.location.reload() }}
-              style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:'#cc0000', fontSize:12, fontFamily:ft, padding:'4px 0', fontWeight:700 }}>
-              <LogOut size={18} strokeWidth={2}/>
-              {!collapsed && 'Déconnexion'}
-            </button>
-          </div>
+            {!collapsed&&(profileOpen?<ChevronUp size={14} color={C.muted}/>:<ChevronDown size={14} color={C.muted}/>)}
+          </button>
+          {profileOpen&&!collapsed&&(
+            <div style={{position:'absolute',bottom:'100%',left:0,right:0,background:C.bg,borderRadius:14,border:`1px solid ${C.surface2}`,padding:8,marginBottom:6,boxShadow:'0 8px 32px rgba(0,0,0,0.15)',zIndex:100}}>
+              <div style={{padding:'10px 12px',marginBottom:4}}>
+                <div style={{fontSize:13,fontWeight:700,color:C.text}}>{userName}</div>
+                <div style={{fontSize:11,color:C.muted}}>Étudiant</div>
+              </div>
+              <div style={{height:1,background:C.surface2,margin:'4px 0'}}/>
+              <button onClick={()=>{setShowProfil(true);setProfileOpen(false)}}
+                style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:C.text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                Mon profil
+              </button>
+              <div style={{height:1,background:C.surface2,margin:'4px 0'}}/>
+              <button onClick={()=>onNavChange('personnalisation')}
+                style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:C.text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                <Settings size={15} color={C.muted}/>
+                Paramètres
+              </button>
+              <div style={{height:1,background:C.surface2,margin:'4px 0'}}/>
+              <button onClick={toggleDarkMode}
+                style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:C.text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                <div style={{display:'flex',alignItems:'center',gap:10}}>
+                  {darkMode?<Sun size={15} color={C.muted}/>:<Moon size={15} color={C.muted}/>}
+                  Thème
+                </div>
+                <span style={{fontSize:11,color:C.muted}}>{darkMode?'Clair':'Sombre'}</span>
+              </button>
+              <div style={{height:1,background:C.surface2,margin:'4px 0'}}/>
+              <button onClick={()=>{sessionStorage.clear();window.location.reload()}}
+                style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:'#FF3B30',fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface}
+                onMouseLeave={e=>e.currentTarget.style.background='none'}>
+                <LogOut size={15}/>
+                Se déconnecter
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div style={{ flex:1, display:'flex', flexDirection:'column', overflow:'hidden' }}>
@@ -159,6 +201,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
 
 function MobileLayout({ children, activePage, onNavChange, userName }) {
   const darkMode     = useThemeStore(s => s.darkMode)
+  const toggleDarkMode = useThemeStore(s => s.toggleDarkMode)
   const C            = darkMode ? DARK_THEME : LIGHT_THEME
   const { user }     = useAuth()
   const [menu, setMenu] = useState(false)
@@ -167,6 +210,7 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
   const [hasAppel, setHasAppel] = useState(false)
   const [showProfil, setShowProfil] = useState(false)
   const [signed, setSigned] = useState(false)
+  const [menuProfil, setMenuProfil] = useState(false)
 
   useEffect(() => {
     const check = () => api.get('/api/appels/en-cours').then(r => setHasAppel(r.data.length > 0)).catch(()=>{})
@@ -193,60 +237,20 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
             <Menu size={22}/>
           </button>
 
-          <div style={{ position:'relative' }}>
-            <button onClick={() => setDropdown(d => !d)} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', fontSize:22, fontWeight:400, letterSpacing:'-0.8px', cursor:'pointer', color:text, fontFamily:ft }}>
-              Miralabs.
-              <ChevronDown size={18} color={muted} style={{ transform: dropdown ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
-            </button>
-            {dropdown && (
-              <div onClick={() => setDropdown(false)} style={{ position:'absolute', top:36, left:'50%', transform:'translateX(-50%)', background: darkMode ? '#1a1a1a' : '#fff', borderRadius:36, padding:8, minWidth:200, boxShadow:'0 8px 32px rgba(0,0,0,0.15)', zIndex:300 }}>
-                {[{label:'Mira School',Icon:School,desc:'Gestion scolaire'},{label:'Mira Learn',Icon:BookOpen,desc:'Réseau collaboratif'},{label:'Mira IA',Icon:Sparkles,desc:'Assistant intelligent'},{label:'Mira Challenge',Icon:Trophy,desc:'Compétitions'}].map(({ label, Icon: PIcon, desc }) => (
-                  <div key={label} style={{ display:'flex', alignItems:'center', gap:12, padding:'10px 14px', borderRadius:14, cursor:'pointer' }}
-                    onMouseEnter={e => e.currentTarget.style.background = darkMode ? '#242424' : '#f5f5f5'}
-                    onMouseLeave={e => e.currentTarget.style.background = 'transparent'}>
-                    <PIcon size={18} strokeWidth={1.5} color={text}/>
-                    <div>
-                      <div style={{ fontSize:14, fontWeight:600, color:text }}>{label}</div>
-                      <div style={{ fontSize:11, color:muted }}>{desc}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <div style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:text, fontFamily:ft }}>Miralabs.</div>
 
-          {/* Droite : Signer + Profil */}
-          <div style={{ display:'flex', alignItems:'center', gap:8, width:40, justifyContent:'flex-end' }}>
-          {!signed && hasAppel && <button onClick={() => setShowSign(true)}
-            style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', fontFamily:ft, transition:'all 0.2s' }}>
-            Signer
-          </button>}
-          {/* Avatar */}
-          <div onClick={() => setShowProfil(true)} style={{ width:32, height:32, borderRadius:'50%', background:'#0a0a0a', display:'flex', alignItems:'center', justifyContent:'center', fontSize:13, fontWeight:700, color:'#fff', flexShrink:0, cursor:'pointer' }}>
-            {user?.firstName?.[0] ?? userName?.[0] ?? 'R'}
-          </div>
+          {/* Droite : Signer + Avatar */}
+          <div style={{ display:'flex', alignItems:'center', gap:8, justifyContent:'flex-end' }}>
+            {!signed && hasAppel && <button onClick={() => setShowSign(true)}
+              style={{ background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 12px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', fontFamily:ft, transition:'all 0.2s' }}>
+              Signer
+            </button>}
+
           </div>
         </div>
 
         {/* Tabs */}
-        <div style={{ display:'flex', gap:24, overflowX:'auto', paddingBottom:2, background:bg }}>
-          {TAB_ITEMS.map(tab => {
-            const active = activePage === tab.id
-            return (
-              <button key={tab.id} onClick={() => onNavChange(tab.id)}
-                style={{
-                  border:'none', background:'none', fontSize: active ? 22 : 17,
-                  color: active ? text : muted,
-                  fontWeight: active ? 700 : 400,
-                  whiteSpace:'nowrap', cursor:'pointer', fontFamily:ft,
-                  padding:'0 0 8px',
-                  
-                }}>
-                {tab.label}
-              </button>
-            )
-          })}
-        </div>
+        
       </div>
 
       {/* Contenu scrollable */}
@@ -275,9 +279,62 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
                 <Icon size={18} strokeWidth={1.5} color={activePage===id ? (iColor||text) : muted}/>{label}
               </div>
             ))}
-            <div onClick={() => { sessionStorage.clear(); sessionStorage.clear(); window.location.href='/' }}
-              style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 0', cursor:'pointer', color:'#FF3B30', fontSize:16, marginTop:8 }}>
-              <LogOut size={18} strokeWidth={1.5}/>Déconnexion
+            <div style={{marginTop:'auto',paddingTop:16,borderTop:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`}}>
+              {/* Avatar + nom */}
+              <div onClick={()=>setMenuProfil(v=>!v)} style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,cursor:'pointer',position:'relative'}}>
+                <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={36}/>
+                <div>
+                  <div style={{fontSize:13,fontWeight:600,color:text}}>{userName}</div>
+                  <div style={{fontSize:11,color:muted}}>Étudiant</div>
+                </div>
+                {menuProfil && (
+                  <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,right:0,background:bg,borderRadius:14,border:`1px solid ${darkMode?'rgba(255,255,255,0.1)':'#f0f0f0'}`,padding:8,marginBottom:6,boxShadow:'0 8px 32px rgba(0,0,0,0.15)',zIndex:300}}>
+                    <div style={{padding:'10px 12px',marginBottom:4}}>
+                      <div style={{fontSize:13,fontWeight:700,color:text}}>{userName}</div>
+                      <div style={{fontSize:11,color:muted}}>Étudiant</div>
+                    </div>
+                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
+                    <button onClick={()=>{setShowProfil(true);setMenuProfil(false);setMenu(false)}}
+                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                      <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={16}/>
+                      Mon profil
+                    </button>
+                    <button onClick={()=>{onNavChange('personnalisation');setMenu(false)}}
+                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                      <Settings size={15} color={muted}/>
+                      Paramètres
+                    </button>
+                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
+                    <button onClick={toggleDarkMode}
+                      style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                      <div style={{display:'flex',alignItems:'center',gap:10}}>
+                        {darkMode?<Sun size={15} color={muted}/>:<Moon size={15} color={muted}/>}
+                        Thème
+                      </div>
+                      <span style={{fontSize:11,color:muted,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',padding:'2px 8px',borderRadius:20}}>{darkMode?'Sombre':'Clair'}</span>
+                    </button>
+                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
+                    <button onClick={()=>{sessionStorage.clear();window.location.href='/'}}
+                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:'#FF3B30',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                      <LogOut size={15}/>
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+              {/* Thème */}
+              <div onClick={toggleDarkMode} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'10px 0',cursor:'pointer',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`}}>
+                <div style={{display:'flex',alignItems:'center',gap:12,color:text,fontSize:14}}>
+                  {darkMode?<Sun size={18} strokeWidth={1.5}/>:<Moon size={18} strokeWidth={1.5}/>}
+                  Thème
+                </div>
+                <span style={{fontSize:11,color:muted,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',padding:'2px 8px',borderRadius:20}}>{darkMode?'Sombre':'Clair'}</span>
+              </div>
+              {/* Déconnexion */}
+              <div onClick={()=>{sessionStorage.clear();window.location.href='/'}}
+                style={{display:'flex',alignItems:'center',gap:12,padding:'10px 0',cursor:'pointer',color:'#FF3B30',fontSize:14,marginTop:4}}>
+                <LogOut size={18} strokeWidth={1.5}/>Déconnexion
+              </div>
             </div>
           </div>
         </div>

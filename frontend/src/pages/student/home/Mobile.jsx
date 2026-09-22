@@ -85,7 +85,7 @@ export default function Mobile({ onSign }) {
           <button onClick={()=>setShowChart(v=>!v)} style={{fontSize:11,color:'#FF3B30',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>{showChart?'Réduire':'Afficher'}</button>
         </div>
       </div>
-      {showChart && <div style={{ margin:'0 16px 16px', background:C.surface, borderRadius:20, padding:'10px 14px' }}>
+      {showChart && <div style={{ margin:'0 16px 16px', background:'transparent', padding:'0' }}>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:12 }}>
           <div>
             <div onClick={()=>setShowChart(v=>!v)} style={{ fontSize:12, color:C.hint, marginBottom:2, cursor:'pointer', display:'flex', alignItems:'center', gap:4 }}>

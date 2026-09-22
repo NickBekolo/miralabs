@@ -222,7 +222,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
 
         {/* Infobulle flottante */}
         <div ref={tooltipRef} style={{
-          position:'absolute', background:'#fff', border:`1px solid ${PALETTE.border}`,
+          position:'absolute', background:PALETTE.cardBg, border:`1px solid ${PALETTE.border}`,
           borderRadius:12, padding:'12px 16px', fontSize:13,
           pointerEvents:'none', whiteSpace:'nowrap',
           transform:'translate(-50%,-100%)',
@@ -230,10 +230,10 @@ export default function MoyenneChart({ datasets, defaultKey }) {
           opacity: active ? 1 : 0, transition:'opacity 0.15s',
         }}>
           <div style={{ fontSize:11, color:PALETTE.textMuted, fontWeight:500, marginBottom:6 }}>{current.label}</div>
-          <div style={{ fontSize:18, fontWeight:800, color: current.val >= SEUIL ? PALETTE.green : PALETTE.red, marginBottom:8 }}>
+          <div style={{ fontSize:18, fontWeight:400, color: current.val >= SEUIL ? PALETTE.green : PALETTE.red, marginBottom:8 }}>
             {current.val.toFixed(1)}/20
           </div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:'1px solid #F0F0F0' }}>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:`1px solid ${PALETTE.border}` }}>
             <span>Moyenne de classe</span>
             <b style={{ color:PALETTE.textMain, fontWeight:400 }}>{current.classe.toFixed(1)}/20</b>
           </div>

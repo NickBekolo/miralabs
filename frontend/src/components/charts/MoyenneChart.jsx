@@ -1,8 +1,8 @@
 import { useRef, useState, useEffect, useCallback } from 'react'
 import { useThemeStore } from '../../store/ThemeStore'
 
-const ft        = '-apple-system,"SF Pro Text","SF Pro Display",BlinkMacSystemFont,"Helvetica Neue",sans-serif'
-const ftRounded = 'ui-rounded,"SF Pro Rounded","Nunito",sans-serif'
+const ft        = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
+const ftRounded = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
 
 const W = 600, H = 110, PAD_L = 22, PAD_R = 10
 const SEUIL = 10
@@ -95,7 +95,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
       newPts.forEach(p => {
         const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle')
         c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', 3)
-        c.setAttribute('fill', PALETTE.curve); c.setAttribute('opacity', '0.1')
+        c.setAttribute('fill', PALETTE.curve); c.setAttribute('opacity', '0')
         dotsRef.current.appendChild(c)
       })
     }
@@ -134,7 +134,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
 
   return (
     <div style={{
-      fontFamily: ft, width: '100%', borderRadius: 40,
+      fontFamily: ft, width: '100%', borderRadius: 20,
       background: PALETTE.cardBg, padding: '24px 26px',
       border: `1px solid ${PALETTE.border}`,
       boxShadow: `0 1px 3px ${PALETTE.shadow}`,
@@ -145,7 +145,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
       <div style={{ display:'flex', alignItems:'flex-start', justifyContent:'space-between', marginBottom:28 }}>
         <button onClick={() => setMenuOpen(o => !o)}
           style={{ display:'inline-flex', alignItems:'center', gap:7, background:'none', border:'none', cursor:'pointer', padding:0, fontFamily:ft }}>
-          <span style={{ fontSize:22, fontWeight:600, color:PALETTE.textMain, letterSpacing:'-0.4px' }}>
+          <span style={{ fontSize:22, fontWeight:400, color:PALETTE.textMain, letterSpacing:'-0.4px' }}>
             {datasets[activeKey].label}
           </span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={PALETTE.textMuted}
@@ -158,7 +158,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
         {/* Score + rang empilés */}
         <div style={{ textAlign:'right' }}>
           <div style={{ display:'flex', alignItems:'baseline', gap:3, justifyContent:'flex-end' }}>
-            <span style={{ fontFamily:ftRounded, fontSize:34, fontWeight:800, letterSpacing:'-1.2px', color, lineHeight:1 }}>
+            <span style={{ fontFamily:ftRounded, fontSize:34, fontWeight:400, letterSpacing:'-1.2px', color, lineHeight:1 }}>
               {displayPoint.val.toFixed(1)}
             </span>
             <span style={{ fontSize:15, fontWeight:500, color:PALETTE.textMuted }}>/20</span>
@@ -174,12 +174,12 @@ export default function MoyenneChart({ datasets, defaultKey }) {
       {menuOpen && (
         <div style={{
           position:'absolute', top:58, left:26, zIndex:10,
-          background:'#fff', border:`1px solid ${PALETTE.border}`, borderRadius:20,
+          background:'#fff', border:`1px solid ${PALETTE.border}`, borderRadius:16,
           boxShadow:'0 10px 28px rgba(0,0,0,0.1)', padding:8, minWidth:200,
         }}>
           {keys.map(k => (
             <div key={k} onClick={() => { setActiveKey(k); setMenuOpen(false) }}
-              style={{ padding:'10px 14px', borderRadius:13, fontSize:13, fontWeight:600, cursor:'pointer',
+              style={{ padding:'10px 14px', borderRadius:10, fontSize:13, fontWeight:400, cursor:'pointer',
                 background: k === activeKey ? PALETTE.textMain : 'transparent',
                 color: k === activeKey ? '#fff' : PALETTE.textMain }}
               onMouseEnter={e => { if (k !== activeKey) e.currentTarget.style.background = '#F8F8F8' }}
@@ -223,7 +223,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
         {/* Infobulle flottante */}
         <div ref={tooltipRef} style={{
           position:'absolute', background:'#fff', border:`1px solid ${PALETTE.border}`,
-          borderRadius:18, padding:'12px 16px', fontSize:13,
+          borderRadius:12, padding:'12px 16px', fontSize:13,
           pointerEvents:'none', whiteSpace:'nowrap',
           transform:'translate(-50%,-100%)',
           boxShadow:'0 8px 20px rgba(0,0,0,0.09)', minWidth:170, zIndex:5,
@@ -235,11 +235,11 @@ export default function MoyenneChart({ datasets, defaultKey }) {
           </div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:'1px solid #F0F0F0' }}>
             <span>Moyenne de classe</span>
-            <b style={{ color:PALETTE.textMain, fontWeight:700 }}>{current.classe.toFixed(1)}/20</b>
+            <b style={{ color:PALETTE.textMain, fontWeight:400 }}>{current.classe.toFixed(1)}/20</b>
           </div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:'1px solid #F0F0F0' }}>
             <span>Rang</span>
-            <b style={{ color:PALETTE.textMain, fontWeight:700 }}>
+            <b style={{ color:PALETTE.textMain, fontWeight:400 }}>
               {current.rang}<sup>{ordinal(current.rang)}</sup> / {current.total ?? 28}
             </b>
           </div>

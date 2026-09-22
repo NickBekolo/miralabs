@@ -103,13 +103,13 @@ function AbsenceRow({ absence, C, onJustify }) {
   const dateStr = date.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' })
   return (
     <div style={{ display:'flex', alignItems:'center', gap:10, padding:'10px 0', borderBottom:`1px solid ${C.surface2}` }}>
-      <div style={{ width:3, height:36, borderRadius:2, background:absence.justifiee?'#fbbf24':'#ff5555', flexShrink:0 }}/>
+      <div style={{ width:3, height:36, borderRadius:2, background:absence.statutJustification==='acceptee'||absence.justifiee?'#166534':absence.statutJustification==='en_attente'?'#FF9500':absence.statutJustification==='refusee'?'#FF3B30':'#ff5555', flexShrink:0 }}/>
       <div style={{ flex:1 }}>
         <div style={{ fontSize:13, fontWeight:500, color:C.text, marginBottom:1 }}>{absence.matiere?.nom ?? 'Cours'}</div>
         <div style={{ fontSize:11, color:C.muted }}>{dateStr}</div>
       </div>
-      {absence.justifiee
-        ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(251,191,36,0.15)', color:'#fbbf24' }}>Justifiée</span>
+      {absence.statutJustification==='acceptee' || absence.justifiee
+        ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(22,101,52,0.15)', color:'#166534' }}>Acceptée</span>
         : absence.statutJustification==='en_attente'
           ? <span style={{ fontSize:11, fontWeight:500, padding:'3px 10px', borderRadius:980, background:'rgba(255,149,0,0.15)', color:'#FF9500' }}>En attente</span>
           : absence.statutJustification==='refusee'

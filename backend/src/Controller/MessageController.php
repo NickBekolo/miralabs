@@ -33,7 +33,7 @@ class MessageController extends AbstractController
             $unread  = $msgs->filter(fn($m) => !$m->isRead() && $m->getSender()?->getId() !== $user->getId())->count();
             return [
                 'id'          => $c->getId(),
-                'other'       => ['id'=>$other?->getId(),'firstName'=>$other?->getFirstName(),'lastName'=>$other?->getLastName(),'roles'=>$other?->getRoles()],
+                'other'       => ['id'=>$other?->getId(),'firstName'=>$other?->getFirstName(),'lastName'=>$other?->getLastName(),'roles'=>$other?->getRoles(),'lastSeenAt'=>$other?->getLastSeenAt()?->format('c'),'online'=>$other?->isOnline()],
                 'lastMessage' => $last ? ['content'=>$last->getContent(),'createdAt'=>$last->getCreatedAt()->format('H:i'),'isMe'=>$last->getSender()?->getId()===$user->getId()] : null,
                 'unreadCount' => $unread,
             ];

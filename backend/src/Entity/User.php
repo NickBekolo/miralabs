@@ -281,4 +281,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
         return $this;
     }
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTime $lastSeenAt = null;
+
+    public function getLastSeenAt(): ?\DateTime { return $this->lastSeenAt; }
+    public function setLastSeenAt(?\DateTime $d): self { $this->lastSeenAt = $d; return $this; }
+    public function isOnline(): bool { return $this->lastSeenAt && $this->lastSeenAt > new \DateTime('-5 minutes'); }
 }

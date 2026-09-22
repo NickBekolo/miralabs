@@ -6,7 +6,7 @@ import { ft } from '../../constants/theme'
 import MessageInputBar from '../../components/MessageInputBar'
 import {
   Paperclip, Image, Camera, Mic, ChevronLeft,
-  Send, Plus, X, Search, CornerUpLeft
+  Send, Plus, X, Search, CornerUpLeft, Clock
 } from 'lucide-react'
 
 const IMSG_BLUE   = '#007AFF'
@@ -14,17 +14,34 @@ const IMSG_GRAY   = '#E9E9EB'
 const IMSG_GRAY_D = '#2C2C2E'
 const TAPBACKS    = ['❤️','👍','👎','😂','😮','🙏']
 
-function Avatar({ name='?', color='#007AFF', size=44, online=false }) {
+function Avatar({ name='?', color='#007AFF', size=44, online=false, lastSeen=null }) {
   const initials = (name||'?').split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()||'?'
-  // Generate stable color from name
   const hue = Array.from(name||'').reduce((acc, c) => acc + c.charCodeAt(0), 0) % 360
   const bg = color !== '#007AFF' ? color : `hsl(${hue}, 65%, 52%)`
+
+  const dotSize = Math.max(8, size*0.22)
+
+  // Statut : en ligne = vert, absent <3h = jaune, déconnecté >3h = rouge
+  let statusColor = null
+  let statusIcon = null
+  if (online) {
+    statusColor = '#34C759'; statusIcon = null
+  } else if (lastSeen) {
+    const diff = (Date.now() - new Date(lastSeen).getTime()) / 60000 // en minutes
+    if (diff < 180) { statusColor = '#FF9500'; statusIcon = <Clock size={dotSize*0.6} color='#fff' strokeWidth={2.5}/> } // <3h = jaune
+    else { statusColor = '#FF3B30'; statusIcon = <X size={dotSize*0.6} color='#fff' strokeWidth={2.5}/> } // >3h = rouge
+  }
+
   return (
     <div style={{ position:'relative', flexShrink:0 }}>
       <div style={{ width:size, height:size, borderRadius:'50%', background:bg, display:'flex', alignItems:'center', justifyContent:'center', fontSize:size*0.36, fontWeight:700, color:'#fff', letterSpacing:'-0.5px', flexShrink:0 }}>
         {initials}
       </div>
-      {online && <div style={{ position:'absolute', bottom:1, right:1, width:Math.max(8,size*0.2), height:Math.max(8,size*0.2), borderRadius:'50%', background:'#34C759', border:'2px solid #fff' }}/>}
+      {statusColor && (
+        <div style={{ position:'absolute', bottom:1, right:1, width:dotSize, height:dotSize, borderRadius:'50%', background:statusColor, border:'none', display:'flex', alignItems:'center', justifyContent:'center' }}>
+          {statusIcon}
+        </div>
+      )}
     </div>
   )
 }
@@ -65,14 +82,14 @@ function Bubble({ msg, dark, myColor, onTapback, sameAsPrev=false, sameAsNext=fa
   const recvColor = dark ? '#fff' : '#000'
 
   const radius = msg.me
-    ? (sameAsPrev && sameAsNext ? '22px 6px 6px 22px'
-      : sameAsPrev ? '22px 6px 22px 22px'
-      : sameAsNext ? '22px 22px 6px 22px'
-      : '22px 22px 6px 22px')
-    : (sameAsPrev && sameAsNext ? '6px 22px 22px 6px'
-      : sameAsPrev ? '6px 22px 22px 22px'
-      : sameAsNext ? '22px 22px 22px 6px'
-      : '22px 22px 22px 6px')
+    ? (sameAsPrev && sameAsNext ? '36px 8px 8px 36px'
+      : sameAsPrev ? '36px 8px 36px 36px'
+      : sameAsNext ? '36px 36px 8px 36px'
+      : '36px 36px 8px 36px')
+    : (sameAsPrev && sameAsNext ? '8px 36px 36px 8px'
+      : sameAsPrev ? '8px 36px 36px 36px'
+      : sameAsNext ? '36px 36px 36px 8px'
+      : '36px 36px 36px 8px')
 
   return (
     <div style={{ display:'flex', flexDirection:'column', alignItems:msg.me?'flex-end':'flex-start', position:'relative' }}>
@@ -322,9 +339,9 @@ function ChatView({ contact, onBack, dark, myColor, onSent }) {
         <button onClick={onBack} style={{ position:'absolute', left:12, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:'#007AFF', display:'flex', alignItems:'center', gap:2 }}>
           <ChevronLeft size={22} strokeWidth={2} color={dark?"#fff":"#0a0a0a"}/>
         </button>
-        <Avatar name={contact.name??'?'} color={contact.color??'#007AFF'} size={36} online={contact.online}/>
+        <Avatar name={contact.name??'?'} color={contact.color??'#007AFF'} size={36} online={contact.online} lastSeen={contact.lastSeenAt}/>
         <div style={{ fontSize:13, fontWeight:600, color:text, marginTop:4 }}>{contact.name}</div>
-        <div style={{ fontSize:11, color:sub }}>{contact.role}</div>
+        <div style={{ fontSize:11, color:contact.online?'#34C759':contact.lastSeenAt?'#FF9500':sub, fontWeight:contact.online||contact.lastSeenAt?600:400 }}>{contact.online?'En ligne':contact.lastSeenAt?'Récemment en ligne':contact.role}</div>
       </div>
 
       {/* Messages */}
@@ -472,7 +489,7 @@ function ContactList({ contacts, onSelect, dark, myColor }) {
           onMouseEnter={e => e.currentTarget.style.background=dark?'#0A0A0A':'#F9F9F9'}
           onMouseLeave={e => e.currentTarget.style.background='transparent'}>
           <div style={{ position:'relative', flexShrink:0 }}>
-            <Avatar name={c.name??'?'} color={c.color??'#007AFF'} size={48} online={c.online}/>
+            <Avatar name={c.name??'?'} color={c.color??'#007AFF'} size={48} online={c.online} lastSeen={c.lastSeenAt}/>
             {c.unread>0 && <div style={{ position:'absolute', top:-2, right:-2, width:18, height:18, borderRadius:'50%', background:'#FF3B30', display:'flex', alignItems:'center', justifyContent:'center', fontSize:10, fontWeight:700, color:'#fff' }}>{c.unread}</div>}
           </div>
           <div style={{ flex:1, minWidth:0 }}>
@@ -669,7 +686,7 @@ function GroupChatView({ groupe, onBack, dark, myColor }) {
                   onMouseEnter={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='1'}}
                   onMouseLeave={e=>{const b=e.currentTarget.querySelector('.grp-reply');if(b)b.style.opacity='0'}}>
                   <button className="grp-reply" onClick={() => setReplyTo({ id:m.id, text:m.content, from:nom, senderName:nom })}
-                    style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', ...(m.isMe?{left:'-28px'}:{right:'-28px'}), background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
+                    style={{ opacity:0, transition:'opacity 0.15s', position:'absolute', top:'50%', transform:'translateY(-50%)', ...(m.isMe?{left:'-36px'}:{right:'-36px'}), background:'none', border:'none', cursor:'pointer', color:sub, padding:2 }}>
                     <CornerUpLeft size={14} strokeWidth={2}/>
                   </button>
                 <div style={{ padding:'12px 16px', borderRadius:12, background:m.isMe?sentBg:recvBg, color:m.isMe?'#fff':(dark?'#fff':'#000'), fontSize:15, lineHeight:1.4, wordBreak:'break-word', width:'fit-content' }}>
@@ -865,7 +882,7 @@ export default function Conversations() {
                 avatar:(cv.other?.firstName?.[0]??'')+(cv.other?.lastName?.[0]??''),
                 color:cv.other?.roles?.includes('ROLE_TEACHER')?'#FF6B35':cv.other?.roles?.includes('ROLE_ADMIN')?'#2ECC71':'#007AFF',
                 last:cv.lastMessage?(cv.lastMessage.isMe?'Vous : ':'')+cv.lastMessage.content:'Nouvelle conversation',
-                time:cv.lastMessage?.createdAt??'', unread:cv.unreadCount??0, online:false,
+                time:cv.lastMessage?.createdAt??'', unread:cv.unreadCount??0, online:cv.other?.online??false, lastSeenAt:cv.other?.lastSeenAt??null,
               }))}
               onSelect={contact => setSelected({ ...contact, convId:contact.id })}
               dark={darkMode}

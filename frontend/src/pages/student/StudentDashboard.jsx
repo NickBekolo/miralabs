@@ -1,3 +1,4 @@
+import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import { useState } from 'react'
 import { StudentLayout }  from '../../components/layout/StudentLayout'
 import ForYou             from './ForYou'
@@ -46,7 +47,7 @@ export default function StudentDashboard({ isParent, onSign }) {
   const renderPage = () => {
     switch (active) {
       case 'calendrier':    return <Calendrier/>
-      case 'accueil':       return <HomeScreen onSign={onSign}/>
+      case 'accueil':       return <HomeScreen onSign={onSign} onNav={setActive}/>
       case 'conversations': return <Conversations />
       case 'espaces':       return <Espaces />
       case 'notes':         return <Notes />

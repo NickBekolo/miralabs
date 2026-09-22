@@ -29,7 +29,7 @@ function buildDatasets(notes) {
   }
 }
 
-export default function Mobile({ onSign }) {
+export default function Mobile({ onSign, onNav }) {
   const navigate = useNavigate()
   const { user } = useAuth()
   const [showChart, setShowChart] = useState(true)
@@ -67,8 +67,8 @@ export default function Mobile({ onSign }) {
         <div style={{ fontSize:22, fontWeight:400, color:C.text, letterSpacing:'-0.8px' }}>
           Bonjour, {user?.firstName ?? 'toi !'}
         </div>
-        <div style={{fontSize:14,color:C.text,marginTop:10,marginBottom:8}}>
-          Vous avez actuellement <span style={{fontWeight:400,color:'#a29bfe',fontSize:18,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif",letterSpacing:'-0.8px'}}>{moyenne}/20</span> de moyenne
+        <div style={{fontSize:14,color:C.text,marginTop:20,marginBottom:8}}>
+          Tu sais que tu as actuellement <span style={{fontWeight:400,color:'#a29bfe',fontSize:18,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif",letterSpacing:'-0.8px'}}>{moyenne}/20</span> de moyenne, <span style={{color:'#a29bfe'}}>{parseFloat(moyenne)>=16?"mention très bien":parseFloat(moyenne)>=14?"mention bien":parseFloat(moyenne)>=12?"mention assez bien":parseFloat(moyenne)>=10?"continue tes efforts":"il faut bosser"}</span>
         </div>
 
       </div>
@@ -78,7 +78,7 @@ export default function Mobile({ onSign }) {
         <div style={{fontSize:16,fontWeight:400,letterSpacing:'-0.6px',color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>Planning de la semaine</div>
         <button onClick={()=>setShowEdt(v=>!v)} style={{fontSize:11,color:'#FF3B30',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>{showEdt?'Réduire':'Afficher'}</button>
       </div>
-      {showEdt && <div style={{padding:'0 16px'}}><StudentPlanningWidget C={C} onNav={()=>{}}/></div>}
+      {showEdt && <div style={{padding:'0 16px',marginTop:8}}><StudentPlanningWidget C={C} onNav={()=>{}}/></div>}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 16px',marginBottom:4}}>
         <div style={{display:'flex',alignItems:'center',gap:10}}>
           <div style={{fontSize:16,fontWeight:400,letterSpacing:'-0.6px',color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>Moyenne générale</div>
@@ -142,13 +142,19 @@ export default function Mobile({ onSign }) {
             <button onClick={()=>setShowAlertes(v=>!v)} style={{fontSize:11,color:'#FF3B30',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>{showAlertes?'Réduire':'Afficher'}</button>
           </div>
           </div>
-          {showAlertes && <div style={{display:'flex',flexDirection:'column',gap:8}}>
+          {showAlertes && <div style={{background:C.surface,borderRadius:16,border:`1px solid ${C.surface2}`,overflow:'hidden'}}>
             {notifs.slice(0,3).map((n,i)=>(
-              <div key={n.id} onClick={()=>n.type==='appel'&&onSign&&onSign()}
-                style={{background:C.surface,borderRadius:16,padding:'12px 14px',border:`1px solid ${C.surface2}`,cursor:n.type==='appel'?'pointer':'default',display:'flex',alignItems:'center',gap:12}}>
-                <div style={{width:36,height:36,borderRadius:12,background:'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0}}>
-                  {n.type==='appel' ? <PenLine size={16} color='#a29bfe'/> : <Bell size={16} color='#a29bfe'/>}
-                </div>
+              <div key={n.id} onClick={()=>{ if(n.type==='appel'){onSign&&onSign()} else{onNav&&onNav('conversations')} }}
+                onMouseEnter={e=>e.currentTarget.style.background=C.surface2}
+                onMouseLeave={e=>e.currentTarget.style.background='transparent'}
+                style={{padding:'12px 14px',borderBottom:i<Math.min(notifs.length,3)-1?`1px solid ${C.surface2}`:'none',cursor:'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',gap:12}}>
+                {(()=>{
+                  const name = n.sender ? n.sender.firstName+' '+n.sender.lastName : n.title??'?'
+                  const hue = Array.from(name).reduce((a,ch)=>a+ch.charCodeAt(0),0)%360
+                  const bg = `hsl(${hue},65%,52%)`
+                  const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').slice(0,2).toUpperCase()
+                  return <div style={{width:36,height:36,borderRadius:'50%',background:bg,display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,fontSize:13,fontWeight:600,color:'#fff'}}>{initials}</div>
+                })()}
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:500,color:C.text}}>{n.title}</div>
                   <div style={{fontSize:11,color:C.muted,marginTop:2}}>{n.message}</div>

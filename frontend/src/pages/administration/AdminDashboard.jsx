@@ -1,3 +1,4 @@
+import Conversations from '../student/Conversations'
 import { useState, useEffect } from 'react'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import { useRole } from '../../hooks/useRole'
@@ -8,7 +9,7 @@ import CalendarWidget from './CalendarWidget'
 import ChartCard from '../../components/shared/ChartCard'
 import {
   Home, Users, BookOpen, ClipboardList, Calendar,
-  BarChart2, Settings, Search, UserRoundCheck, UserRoundX,
+  BarChart2, Settings, Search, UserRoundCheck, UserRoundX, MessageSquare,
   ChevronDown, ChevronUp
 } from 'lucide-react'
 
@@ -21,6 +22,7 @@ const NAV_ALL = [
   { id:'classes',     label:'Classes',           icon:ClipboardList,roles:['ROLE_ADMIN'] },
   { id:'edt',         label:'Emploi du temps',   icon:Calendar,     roles:['ROLE_ADMIN'] },
   { id:'stats',       label:'Statistiques',      icon:BarChart2,    roles:['ROLE_ADMIN','ROLE_COMPTABILITE'] },
+  { id:'messages',    label:'Messages',          icon:MessageSquare,roles:['ROLE_ADMIN','ROLE_SECRETARIAT','ROLE_COMPTABILITE'] },
 ]
 
 const ROLE_LABEL = {
@@ -1091,9 +1093,10 @@ export default function AdminDashboard() {
           {active === 'apprenants'  && <ApprenantSection C={C}/>}
           {active === 'enseignants' && <EnseignantSection C={C}/>}
           {active === 'classes'     && <ClasseSection C={C}/>}
+          {active === 'messages'    && <Conversations/>}
           {active === 'stats'       && <StatsSection C={C} onNavigate={(id) => { /* naviguer via layout */ document.querySelector(`[data-nav='${id}']`)?.click() }}/> }
           {active === 'edt' && <EdtSection C={C}/>}
-          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && active !== 'edt' && (
+          {active !== 'accueil' && active !== 'apprenants' && active !== 'enseignants' && active !== 'classes' && active !== 'stats' && active !== 'edt' && active !== 'messages' && (
             <div style={{ background:C.surface, borderRadius:14, padding:24, border:`1px solid ${C.surface2}` }}>
               <div style={{ fontSize:14, fontWeight:600, color:C.text, marginBottom:8 }}>En cours de développement</div>
               <div style={{ fontSize:13, color:C.muted }}>Cette section sera disponible prochainement.</div>

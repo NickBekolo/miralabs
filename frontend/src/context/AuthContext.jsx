@@ -7,6 +7,24 @@ export function AuthProvider({ children }) {
   const [user, setUser]       = useState(null)
   const [loading, setLoading] = useState(true)
 
+  // Ping toutes les 5 minutes si connecté
+  useEffect(() => {
+    if (!user) return
+    const ping = () => api.post('/api/me/ping').catch(()=>{})
+    ping()
+    const interval = setInterval(ping, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [user])
+
+  // Ping toutes les 5 minutes si connecté
+  useEffect(() => {
+    if (!user) return
+    const ping = () => api.post('/api/me/ping').catch(()=>{})
+    ping()
+    const interval = setInterval(ping, 5 * 60 * 1000)
+    return () => clearInterval(interval)
+  }, [user])
+
   // Au démarrage — charger le user depuis /api/me ou sessionStorage
   useEffect(() => {
     const stored = sessionStorage.getItem('user')

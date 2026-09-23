@@ -781,17 +781,16 @@ export default function Conversations() {
           <>
             {/* Header */}
             <div style={{ padding:'16px 16px 10px', flexShrink:0, background:bg }}>
-              <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-                <h1 style={{ fontSize:28, fontWeight:400, color:text, letterSpacing:'-0.8px', margin:0, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>{tab==='msgs'?'Messages':'Groupes'}</h1>
+              {/* Recherche + bouton + */}
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <div style={{ display:'flex', alignItems:'center', gap:8, background:darkMode?'#2C2C2E':'#fff', borderRadius:12, padding:'8px 12px', flex:1, border:`1px solid ${darkMode?'#3a3a3c':'#e5e5ea'}` }}>
+                  <Search size={14} color="#8E8E93" strokeWidth={2}/>
+                  <input placeholder="Rechercher" style={{ border:'none', background:'transparent', fontSize:14, color:text, outline:'none', fontFamily:ft, flex:1 }}/>
+                </div>
                 <button onClick={() => tab==='msgs'?setShowNewConv(s=>!s):setShowNewGroupe(s=>!s)}
-                  style={{ width:32, height:32, borderRadius:'50%', border:'none', background:darkMode?'#1C1C1E':'#F2F2F7', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  style={{ width:36, height:36, borderRadius:'50%', border:`1px solid ${darkMode?'#3a3a3c':'#e5e5ea'}`, background:darkMode?'#2C2C2E':'#fff', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
                   {(showNewConv||showNewGroupe) ? <X size={16} color={text} strokeWidth={2}/> : <Plus size={18} color={text} strokeWidth={2}/>}
                 </button>
-              </div>
-              {/* Recherche */}
-              <div style={{ display:'flex', alignItems:'center', gap:8, background:darkMode?'#1C1C1E':'#F2F2F7', borderRadius:12, padding:'8px 12px' }}>
-                <Search size={14} color="#8E8E93" strokeWidth={2}/>
-                <input placeholder="Rechercher" style={{ border:'none', background:'transparent', fontSize:14, color:text, outline:'none', fontFamily:ft, flex:1 }}/>
               </div>
             </div>
 

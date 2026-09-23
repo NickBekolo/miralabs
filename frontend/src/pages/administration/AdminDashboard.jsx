@@ -442,6 +442,21 @@ function ClasseSection({ C }) {
   const [showAbsences, setShowAbsences]     = useState(false)
 
   const perPage = 10
+  const [showCreate, setShowCreate] = useState(false)
+  const [newClasse, setNewClasse] = useState({name:'',niveau:''})
+  const [creating, setCreating] = useState(false)
+
+  const createClasse = async () => {
+    if(!newClasse.name) return
+    setCreating(true)
+    try {
+      await api.post('/api/classes', newClasse)
+      api.get('/api/admin/classes').then(r=>setClasses(r.data))
+      setNewClasse({name:'',niveau:''})
+      setShowCreate(false)
+    } catch(e) { console.error(e) }
+    setCreating(false)
+  }
 
   useEffect(() => {
     api.get('/api/admin/classes')
@@ -524,12 +539,26 @@ function ClasseSection({ C }) {
                 {niveaux.map(n => <option key={n} value={n}>{n}</option>)}
               </select>
             </div>
-            {hasRole('ROLE_SUPER_ADMIN') && (
-              <button style={{ padding:'8px 16px', borderRadius:10, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:ft }}>
-                + Nouvelle classe
-              </button>
-            )}
+            <button onClick={()=>setShowCreate(s=>!s)} style={{ padding:'8px 16px', borderRadius:10, border:'none', background:C.text, color:C.bg, fontSize:13, fontWeight:600, cursor:'pointer', fontFamily:ft }}>
+              + Nouvelle classe
+            </button>
           </div>
+          {showCreate && (
+            <div style={{background:C.surface,borderRadius:16,padding:'14px 16px',border:`1px solid ${C.surface2}`,marginBottom:16,display:'flex',gap:10,alignItems:'center'}}>
+              <input value={newClasse.name} onChange={e=>setNewClasse(n=>({...n,name:e.target.value}))} placeholder="Nom de la classe *"
+                style={{flex:1,padding:'8px 12px',borderRadius:10,border:`1px solid ${C.surface2}`,background:C.bg,color:C.text,fontSize:13,outline:'none'}}/>
+              <input value={newClasse.niveau} onChange={e=>setNewClasse(n=>({...n,niveau:e.target.value}))} placeholder="Niveau (ex: 2nde)"
+                style={{width:120,padding:'8px 12px',borderRadius:10,border:`1px solid ${C.surface2}`,background:C.bg,color:C.text,fontSize:13,outline:'none'}}/>
+              <button onClick={createClasse} disabled={creating||!newClasse.name}
+                style={{padding:'8px 14px',borderRadius:10,background:'#a29bfe',color:'#fff',border:'none',fontSize:13,cursor:'pointer',opacity:creating?0.5:1}}>
+                {creating?'...':'Créer'}
+              </button>
+              <button onClick={()=>setShowCreate(false)}
+                style={{padding:'8px 14px',borderRadius:10,background:C.surface2,color:C.text,border:'none',fontSize:13,cursor:'pointer'}}>
+                ✕
+              </button>
+            </div>
+          )}
           <div style={{ display:'flex', gap:12, marginBottom:14 }}>
             {[{label:'Total',value:classes.length},{label:'Apprenants',value:classes.reduce((s,c)=>s+c.nbApprenants,0)},...niveaux.map(n=>({label:n,value:classes.filter(c=>c.niveau===n).length}))].map(({label,value})=>(
               <div key={label} style={{ background:C.surface, border:`1px solid ${C.surface2}`, borderRadius:10, padding:'10px 14px' }}>
@@ -1039,25 +1068,23 @@ function AccueilSection({ C }) {
   const classeData  = classes.map(c => ({ name:c.nom, apprenants:c.nbApprenants, cours:c.nbCours, moyenne:c.moyenneClasse||0 }))
 
   const kpis = [
-    { label:'Apprenants', value:apprenants.length, color:'#007AFF' },
-    { label:'Enseignants', value:enseignants.length, color:'#34C759' },
+    { label:'Apprenants', value:apprenants.length, color:'#a29bfe' },
+    { label:'Enseignants', value:enseignants.length, color:'#166534' },
     { label:'Classes', value:classes.length, color:'#FF9500' },
-    { label:'Actifs', value:nbActifs, color:'#22C55E' },
+    { label:'Actifs', value:nbActifs, color:'#166534' },
   ]
 
   if (loading) return <div style={{ textAlign:'center', color:C.muted, padding:40 }}>Chargement...</div>
 
   return (
-    <div style={{ display:'flex', flexDirection:'column', gap:20 }}>
-
-      <CalendarWidget C={C}/>
+    <div style={{ display:'flex', flexDirection:'column', gap:20, paddingTop:8 }}>
 
       {/* KPIs */}
       <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(140px,1fr))', gap:14 }}>
         {kpis.map(({ label, value, color }) => (
-          <div key={label} style={{ background:C.surface, borderRadius:14, padding:'18px 20px', border:`1px solid ${C.surface2}` }}>
-            <div style={{ fontSize:11, color:C.muted, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
-            <div style={{ fontSize:30, fontWeight:700, color, letterSpacing:'-1px' }}>{value}</div>
+          <div key={label} style={{ background:C.surface, borderRadius:20, padding:'16px 18px', border:`1px solid ${C.surface2}` }}>
+            <div style={{ fontSize:30, fontWeight:400, color, letterSpacing:'-1px', fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>{value}</div>
+            <div style={{ fontSize:12, color:C.muted, marginTop:4 }}>{label}</div>
           </div>
         ))}
       </div>
@@ -1098,13 +1125,12 @@ function AbsencesAdmin({ C }) {
     } catch(e) { console.error(e) }
   }
 
-  const STATUT_C = { en_attente:'#FF9500', acceptee:'#34C759', refusee:'#FF3B30', non_soumise:'#8e8e93' }
+  const STATUT_C = { en_attente:'#FF9500', acceptee:'#166534', refusee:'#FF3B30', non_soumise:'#8e8e93' }
   const STATUT_L = { en_attente:'En attente', acceptee:'Acceptée', refusee:'Refusée', non_soumise:'Non soumise' }
 
   return (
     <div style={{fontFamily:ft}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
-        <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text}}>Absences</div>
         <div style={{display:'flex',gap:8}}>
           {['en_attente','toutes'].map(f=>(
             <button key={f} onClick={()=>setFiltre(f)}
@@ -1137,7 +1163,7 @@ function AbsencesAdmin({ C }) {
             {a.statutJustification==='en_attente'&&(
               <div style={{display:'flex',gap:8,marginTop:8}}>
                 <button onClick={()=>valider(a.id,'acceptee')}
-                  style={{flex:1,padding:'8px',borderRadius:10,border:'none',background:'#34C75920',color:'#34C759',fontSize:12,fontWeight:600,cursor:'pointer'}}>
+                  style={{flex:1,padding:'8px',borderRadius:10,border:'none',background:'rgba(22,101,52,0.15)',color:'#166534',fontSize:12,fontWeight:600,cursor:'pointer'}}>
                   Accepter
                 </button>
                 <button onClick={()=>valider(a.id,'refusee')}

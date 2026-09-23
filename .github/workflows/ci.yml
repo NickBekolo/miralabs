@@ -1,0 +1,77 @@
+name: CI — Miralabs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    name: Build Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+
+  backend:
+    name: Tests Backend
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_DB: miralabs_test
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: pdo, pdo_pgsql, intl
+          coverage: none
+
+      - name: Install Composer dependencies
+        working-directory: backend
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Create .env.test
+        working-directory: backend
+        run: |
+          cp .env .env.test
+          echo "DATABASE_URL=postgresql://test:test@127.0.0.1:5432/miralabs_test" >> .env.test
+          echo "APP_ENV=test" >> .env.test
+
+      - name: Create database schema
+        working-directory: backend
+        run: |
+          php bin/console doctrine:schema:create --env=test --no-interaction
+
+      - name: Run PHPUnit tests
+        working-directory: backend
+        run: php bin/phpunit --no-coverage

@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/api/classes')]
-#[IsGranted('ROLE_TEACHER')]
+#[IsGranted('ROLE_USER')]
 class ClasseController extends AbstractController
 {
     use EtablissementTrait;
@@ -48,5 +48,42 @@ class ClasseController extends AbstractController
             'lastName'  => $e->getLastName(),
             'email'     => $e->getEmail(),
         ], $eleves));
+    }
+
+    #[Route('', methods: ['POST'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
+    public function create(\Symfony\Component\HttpFoundation\Request $request, EntityManagerInterface $em): JsonResponse
+    {
+        $data = json_decode($request->getContent(), true);
+        if (empty($data['name'])) return $this->json(['message' => 'Nom requis'], 400);
+
+        $classe = new \App\Entity\Classe();
+        $classe->setName($data['name']);
+        if (!empty($data['niveau'])) $classe->setNiveau($data['niveau']);
+
+        $etabId = $data['etablissementId'] ?? null;
+        if (!$etabId) {
+            // Utiliser le premier établissement
+            $etab = $em->getRepository(\App\Entity\Etablissement::class)->findOneBy([]);
+        } else {
+            $etab = $em->getRepository(\App\Entity\Etablissement::class)->find($etabId);
+        }
+        if ($etab) $classe->setEtablissement($etab);
+
+        $em->persist($classe);
+        $em->flush();
+
+        return $this->json(['id' => $classe->getId(), 'name' => $classe->getName(), 'niveau' => $classe->getNiveau()], 201);
+    }
+
+    #[Route('/{id}', methods: ['DELETE'])]
+    #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
+    public function delete(int $id, EntityManagerInterface $em): JsonResponse
+    {
+        $classe = $em->getRepository(\App\Entity\Classe::class)->find($id);
+        if (!$classe) return $this->json(['message' => 'Classe introuvable'], 404);
+        $em->remove($classe);
+        $em->flush();
+        return $this->json(['message' => 'Supprimée'], 200);
     }
 }

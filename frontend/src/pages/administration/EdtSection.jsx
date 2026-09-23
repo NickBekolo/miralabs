@@ -224,7 +224,6 @@ export default function EdtSection({ C }) {
       <div style={{ marginBottom: 16, flexShrink: 0 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
-            <div style={{ fontSize: 22, fontWeight: 500, letterSpacing: '-0.4px', color: text, marginBottom: 6 }}>Emploi du temps</div>
             <div style={{ display:'flex', alignItems:'center', gap:6, fontSize:13, color:muted }}>
               <span style={{ color:RED, fontWeight:600 }}>
                 {new Date().toLocaleDateString('fr-FR',{weekday:'short',day:'numeric',month:'long',year:'numeric'})}

@@ -60,6 +60,10 @@ jobs:
         working-directory: backend
         run: composer install --no-interaction --prefer-dist
 
+      - name: Install http-client
+        working-directory: backend
+        run: composer require symfony/http-client --no-interaction || true
+
       - name: Create .env.test
         working-directory: backend
         run: |

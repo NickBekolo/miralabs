@@ -94,18 +94,17 @@ export default function MiraIA() {
 
     try {
       const history = newMsgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
+      const token = sessionStorage.getItem('token')
+      const res = await fetch('/api/mira', {
         method:'POST',
-        headers:{ 'Content-Type':'application/json' },
+        headers:{ 'Content-Type':'application/json', 'Authorization':'Bearer '+token },
         body: JSON.stringify({
-          model:'claude-sonnet-4-6',
-          max_tokens:1000,
           system: SYSTEM_PROMPT,
           messages: history,
         })
       })
       const data = await res.json()
-      const reply = data.content?.[0]?.text || "Désolé, je n'ai pas pu répondre."
+      const reply = data.text || "Désolé, je n'ai pas pu répondre."
       setMsgs(m => [...m, { role:'assistant', text:reply }])
     } catch {
       setMsgs(m => [...m, { role:'assistant', text:"Erreur de connexion. Vérifie ta connexion internet." }])

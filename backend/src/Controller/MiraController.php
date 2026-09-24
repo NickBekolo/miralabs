@@ -1,0 +1,58 @@
+<?php
+namespace App\Controller;
+
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
+
+#[Route('/api/mira')]
+#[IsGranted('ROLE_USER')]
+class MiraController extends AbstractController
+{
+    #[Route('', methods: ['POST'])]
+    public function chat(Request $request): JsonResponse
+    {
+        $data     = json_decode($request->getContent(), true);
+        $messages = $data['messages'] ?? [];
+        $system   = $data['system'] ?? '';
+
+        $apiKey = $_ENV['ANTHROPIC_API_KEY'] ?? null;
+        if (!$apiKey) {
+            return $this->json(['error' => 'Clé API manquante'], 500);
+        }
+
+        $payload = [
+            'model'      => 'claude-sonnet-4-6',
+            'max_tokens' => 1000,
+            'system'     => $system,
+            'messages'   => $messages,
+        ];
+
+        $ch = curl_init('https://api.anthropic.com/v1/messages');
+        curl_setopt_array($ch, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => json_encode($payload),
+            CURLOPT_HTTPHEADER     => [
+                'Content-Type: application/json',
+                'x-api-key: ' . $apiKey,
+                'anthropic-version: 2023-06-01',
+            ],
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($httpCode !== 200) {
+            return $this->json(['error' => 'Erreur API Anthropic', 'details' => $response], $httpCode);
+        }
+
+        $result = json_decode($response, true);
+        $text   = $result['content'][0]['text'] ?? 'Désolé, je n\'ai pas pu répondre.';
+
+        return $this->json(['text' => $text]);
+    }
+}

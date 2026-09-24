@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useThemeStore } from '../../store/ThemeStore'
-import { ArrowUp, RotateCcw, Sparkles, Plus, Mic, Globe, Pencil } from 'lucide-react'
+import { ArrowUp, RotateCcw, Sparkles, Plus, Mic, Globe, Pencil, ChevronDown, Cpu } from 'lucide-react'
 
 const ft = "-apple-system, 'SF Pro Display', BlinkMacSystemFont, sans-serif"
 
@@ -101,6 +101,7 @@ export default function MiraIA() {
         body: JSON.stringify({
           system: SYSTEM_PROMPT,
           messages: history,
+          model: selectedModel,
         })
       })
       const data = await res.json()

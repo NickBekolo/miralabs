@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import DashboardLayout from '../../components/layout/DashboardLayout'
+import MiraIA from '../student/MiraIA'
 import { useAuth } from '../../context/AuthContext'
 import { useThemeStore, LIGHT_THEME, DARK_THEME } from '../../store/ThemeStore'
 import api from '../../services/api'
 import AvatarUser from '../../components/shared/AvatarUser'
-import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays, ChevronDown, ChevronRight, MessageSquare } from 'lucide-react'
+import { Home, Calendar, Settings, LogOut, Users, BookOpen, ClipboardList, FileText, CheckSquare, CalendarDays, ChevronDown, ChevronRight, MessageSquare, ScanFace } from 'lucide-react'
 import CalendrierEnseignant from './CalendrierEnseignant'
 import Conversations from '../student/Conversations'
 import PlanningWidget from './PlanningWidget'
@@ -22,6 +23,7 @@ const NAV = [
   { id:'lecons',   label:'Cahier de texte', icon:FileText },
   { id:'appel',    label:"Faire l'appel",   icon:CheckSquare },
   { id:'messages', label:'Messages',         icon:MessageSquare },
+  { id:'mira',     label:'Mira IA',          icon:ScanFace },
   { id:'params',   label:'Paramètres',      icon:Settings },
 ]
 function Card({ children, C, style={} }) { return <div style={{ background:C.surface, borderRadius:16, padding:18, ...style }}>{children}</div> }
@@ -943,6 +945,7 @@ export default function EnseignantDashboard() {
           lecons: <LeconsSection C={C}/>,
           appel: <AppelSection C={C}/>,
           messages: <Conversations/>,
+    mira: <MiraIA hideTitle={true}/>,
           params: <ParamsSection C={C}/>,
         }
         return pgs[active] || <div style={{color:C.text}}>Page introuvable</div>

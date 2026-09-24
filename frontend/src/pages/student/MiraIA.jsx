@@ -13,7 +13,7 @@ function UserMsg({ text, dark }) {
   const col  = dark ? '#0a0a0a'  : '#fff'
   return (
     <div style={{ display:'flex', justifyContent:'flex-end', marginBottom:28 }}>
-      <div style={{ maxWidth:'72%', padding:'12px 18px', background:bg, color:col, borderRadius:18, fontSize:15, lineHeight:1.6, fontFamily:ft, fontWeight:400 }}>
+      <div style={{ maxWidth:'72%', padding:'14px 20px', background:bg, color:col, borderRadius:18, fontSize:17, lineHeight:1.6, fontFamily:ft, fontWeight:400 }}>
         {text}
       </div>
     </div>
@@ -58,7 +58,7 @@ function AssistantMsg({ text, loading, dark }) {
   )
 }
 
-export default function MiraIA() {
+export default function MiraIA({ hideTitle = false }) {
   const dark = useThemeStore(s => s.darkMode)
   const [msgs,    setMsgs]    = useState([])
   const [input,   setInput]   = useState('')
@@ -90,11 +90,24 @@ export default function MiraIA() {
     bottomRef.current?.scrollIntoView({ behavior:'smooth' })
   }, [msgs, loading])
 
-  // Charger la liste des conversations
+  // Charger la liste et la dernière conversation au démarrage
   useEffect(() => {
     const token = sessionStorage.getItem('token')
     fetch('/api/mira/conversations', { headers: { 'Authorization': 'Bearer ' + token } })
-      .then(r => r.json()).then(setConvList).catch(() => {})
+      .then(r => r.json())
+      .then(list => {
+        setConvList(list)
+        // Charger la dernière conversation automatiquement
+        if (list.length > 0) {
+          fetch('/api/mira/conversations/' + list[0].id, { headers: { 'Authorization': 'Bearer ' + token } })
+            .then(r => r.json())
+            .then(data => {
+              setMsgs(data.messages || [])
+              setSelectedModel(data.model || 'claude-haiku')
+              setConvId(list[0].id)
+            }).catch(() => {})
+        }
+      }).catch(() => {})
   }, [])
 
   // Sauvegarder/mettre à jour la conversation après chaque réponse
@@ -150,10 +163,11 @@ export default function MiraIA() {
     setInput('')
     const newMsgs = [...msgs, { role:'user', text:userText }]
     setMsgs(newMsgs)
+    saveConv(newMsgs, selectedModel)
     setLoading(true)
 
     try {
-      const history = newMsgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text }))
+      const history = newMsgs.map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.text || m.content || '' }))
       const token = sessionStorage.getItem('token')
       const res = await fetch('/api/mira', {
         method:'POST',
@@ -170,21 +184,21 @@ export default function MiraIA() {
         try {
           const details = data.details ? JSON.parse(data.details) : null
           const apiMsg = details?.error?.message || ''
-          if (apiMsg.includes('credit') || apiMsg.includes('balance')) {
-            errMsg = "Crédits insuffisants sur le compte IA. Contacte l'administrateur."
+          if (apiMsg.includes('credit') || apiMsg.includes('balance') || apiMsg.includes('quota')) {
+            errMsg = "Crédits insuffisants sur le compte IA. Recharge le compte pour continuer."
           } else if (apiMsg.includes('key') || apiMsg.includes('auth')) {
             errMsg = "Clé API invalide. Contacte l'administrateur."
           } else if (data.error) {
             errMsg = data.error
           }
-        } catch {}
+        } catch(e) { console.error(e) }
         setMsgs(m => [...m, { role:'assistant', text: errMsg }])
         return
       }
       const reply = data.text || "Désolé, je n'ai pas pu répondre."
       const finalMsgs = [...newMsgs, { role:'assistant', text:reply }]
       setMsgs(finalMsgs)
-      saveConv(finalMsgs, selectedModel)
+      saveConv(finalMsgs, selectedModel) // mise à jour avec la réponse
     } catch(e) {
       setMsgs(m => [...m, { role:'assistant', text:"Erreur de connexion. Vérifie ta connexion internet." }])
     } finally {
@@ -211,18 +225,20 @@ export default function MiraIA() {
       <div style={{ display:'flex', flexDirection:'column', height:'100%', background:bg, fontFamily:ft }}>
 
         {/* Header */}
-        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px',  flexShrink:0 }}>
-          <div style={{ fontSize:18, fontWeight:500, color:text, letterSpacing:'-0.5px', fontFamily:ft }}>Mira IA.</div>
-          <button onClick={() => setShowConvList(s=>!s)}
-            style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:10, border:`1px solid ${dark?'#333':'#e5e5ea'}`, background:'transparent', cursor:'pointer', fontSize:12, color:muted, fontFamily:ft }}>
-            <RotateCcw size={13}/> Historique ({convList.length})
-          </button>
-          {!isEmpty && (
-            <button onClick={() => { setMsgs([]); setConvId(null) }}
-              style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:`1px solid ${border}`, borderRadius:8, padding:'6px 12px', color:muted, cursor:'pointer', fontSize:13, fontFamily:ft }}>
-              <RotateCcw size={13} strokeWidth={2}/> Nouveau
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'14px 20px', flexShrink:0 }}>
+          {!hideTitle && <div style={{ fontSize:26, fontWeight:400, color:text, letterSpacing:'-0.8px', fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Mira IA.</div>}
+          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+            <button onClick={() => setShowConvList(s=>!s)}
+              style={{ display:'flex', alignItems:'center', gap:5, padding:'6px 12px', borderRadius:10, border:`1px solid ${dark?'#333':'#e5e5ea'}`, background:'transparent', cursor:'pointer', fontSize:12, color:muted, fontFamily:ft }}>
+              <RotateCcw size={13}/> Historique ({convList.length})
             </button>
-          )}
+            {!isEmpty && (
+              <button onClick={() => { setMsgs([]); setConvId(null) }}
+                style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:`1px solid ${border}`, borderRadius:8, padding:'6px 12px', color:muted, cursor:'pointer', fontSize:13, fontFamily:ft }}>
+                Nouveau
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Panneau historique */}
@@ -249,8 +265,8 @@ export default function MiraIA() {
             <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', height:'100%', gap:32 }}>
               <div style={{ textAlign:'center' }}>
   
-                <div style={{ fontSize:22, fontWeight:400, color:text, letterSpacing:'-0.8px', marginBottom:6, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Comment puis-je t'aider ?</div>
-                <div style={{ fontSize:14, color:muted, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Pose-moi une question sur tes cours</div>
+                <div style={{ fontSize:30, fontWeight:400, color:text, letterSpacing:'-1px', marginBottom:8, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Comment puis-je t'aider ?</div>
+                <div style={{ fontSize:16, color:muted, fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif" }}>Pose-moi une question sur tes cours</div>
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, width:'100%', maxWidth:520 }}>
                 {SUGGESTIONS.map((s, i) => (

@@ -15,7 +15,7 @@ const NAV_ITEMS = [
   { id:'emploi',        label:'Emploi du temps', icon:Calendar },
   { id:'notes',         label:'Notes',           icon:BarChart2 },
   { id:'conversations', label:'Messages',        icon:MessageSquare },
-  { id:'espaces',       label:'Espaces',         icon:LayoutGrid },
+  // { id:'espaces',       label:'Espaces',         icon:LayoutGrid }, // caché pour soutenance
   { id:'assiduite',     label:'Assiduité',       icon:Edit3 },
   { id:'revision',      label:'Mira IA',         icon:ScanFace },
   { id:'params',        label:'Paramètres',      icon:Settings },
@@ -24,7 +24,7 @@ const NAV_ITEMS = [
 const TAB_ITEMS = [
   { id:'accueil',       label:'Pour vous' },
   { id:'conversations', label:'Messages' },
-  { id:'espaces', label:'Espaces' },
+  // { id:'espaces', label:'Espaces' }, // caché pour soutenance
   { id:'notes',   label:'Vos notes' },
   { id:'emploi',  label:'Emploi du temps' },
   { id:'revision',label:'Mira' },
@@ -58,6 +58,8 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
   const [showProfil, setShowProfil] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [unreadMsg, setUnreadMsg] = useState(0)
+  const [notifs, setNotifs] = useState([])
+  const [showNotifs, setShowNotifs] = useState(false)
 
   useEffect(() => {
     const checkUnread = () => {
@@ -68,6 +70,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
         const convUnread = convR.data.reduce((acc, cv) => acc + (cv.unreadCount??0), 0)
         const groupUnread = notifR.data.filter(n => n.type==='groupe' && !n.isRead).length
         setUnreadMsg(convUnread + groupUnread)
+        setNotifs(notifR.data.filter(n => !n.isRead))
       }).catch(()=>{})
     }
     checkUnread()
@@ -106,7 +109,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
               </div>
               {!collapsed && <span style={{transition:'opacity 0.2s'}}>{label}</span>}
               {id==='conversations' && unreadMsg>0 && (
-                <span style={{marginLeft:'auto',fontSize:10,fontWeight:700,color:'#FF3B30'}}>{unreadMsg}</span>
+                <span style={{marginLeft:'auto',background:'#ff5555',color:'#fff',borderRadius:999,fontSize:9,fontWeight:700,minWidth:16,height:16,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 4px'}}>{unreadMsg}</span>
               )}
               </div>
             )
@@ -187,7 +190,31 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
       {showProfil && <ProfilMenu onClose={() => setShowProfil(false)} onNavigate={(p) => { setShowProfil(false); onNavChange(p) }}/>}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
             <ScanFace size={20} strokeWidth={1.5} color={C.text}/>
-            <Bell size={17} strokeWidth={1.5} color={C.text}/>
+            <div style={{position:'relative'}}>
+              <button onClick={()=>setShowNotifs(s=>!s)} style={{background:'none',border:'none',cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',padding:4}}>
+                <Bell size={17} strokeWidth={1.5} color={C.text}/>
+                {notifs.length > 0 && <div style={{position:'absolute',top:-4,right:-4,background:'#ff5555',color:'#fff',borderRadius:999,fontSize:9,fontWeight:700,minWidth:14,height:14,display:'flex',alignItems:'center',justifyContent:'center',padding:'0 3px'}}>{notifs.length}</div>}
+              </button>
+              {showNotifs && (
+                <div style={{position:'absolute',right:0,top:'120%',background:C.surface,border:`1px solid ${C.surface2}`,borderRadius:16,width:280,zIndex:9999,boxShadow:'0 8px 30px rgba(0,0,0,0.12)',overflow:'hidden'}}>
+                  <div style={{padding:'12px 16px',borderBottom:`1px solid ${C.surface2}`,display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <span style={{fontSize:13,fontWeight:500,color:C.text}}>Notifications</span>
+                    <button onClick={()=>{ notifs.forEach(n=>api.patch('/api/notifications/'+n.id+'/read').catch(()=>{})); setNotifs([]); setShowNotifs(false) }} style={{fontSize:11,color:'#ff5555',background:'none',border:'none',cursor:'pointer'}}>Tout marquer lu</button>
+                  </div>
+                  {notifs.length === 0 ? (
+                    <div style={{padding:'20px 16px',textAlign:'center',color:C.muted,fontSize:12}}>Aucune notification</div>
+                  ) : notifs.slice(0,5).map((n,i,arr)=>(
+                    <div key={n.id} onClick={()=>{ api.patch('/api/notifications/'+n.id+'/read').catch(()=>{}); setNotifs(p=>p.filter(x=>x.id!==n.id)); setShowNotifs(false) }}
+                      style={{padding:'10px 16px',borderBottom:i<arr.length-1?`1px solid ${C.surface2}`:'none',cursor:'pointer',display:'flex',alignItems:'center',gap:10,borderLeft:'3px solid #ff5555'}}>
+                      <div style={{flex:1}}>
+                        <div style={{fontSize:12,fontWeight:500,color:C.text}}>{n.title}</div>
+                        <div style={{fontSize:11,color:C.muted,marginTop:2}}>{n.message}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
         <div style={{ flex:1, overflowY:'auto', background:C.bg, padding:'20px' }}>{children}</div>

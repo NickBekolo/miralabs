@@ -131,8 +131,9 @@ function EtablissementsSection({ etabs, onRefresh }) {
   const [err,       setErr]       = useState(null)
   const [ok,        setOk]        = useState(null)
   const [search,    setSearch]    = useState('')
+  const [detail,    setDetail]    = useState(null)
   const [form,      setForm]      = useState({
-    name:'', code:'', type:'lycee', adresse:'',
+    name:'', code:'', type:'lycee', ville:'', adresse:'',
     adminFirstName:'', adminLastName:'', adminEmail:''
   })
 
@@ -146,7 +147,7 @@ function EtablissementsSection({ etabs, onRefresh }) {
     try {
       await api.post('/api/platform/etablissements', form)
       setOk('Établissement créé.')
-      setForm({ name:'', code:'', type:'lycee', adresse:'', adminFirstName:'', adminLastName:'', adminEmail:'' })
+      setForm({ name:'', code:'', type:'lycee', ville:'', adresse:'', adminFirstName:'', adminLastName:'', adminEmail:'' })
       onRefresh()
     } catch (e) { setErr(e.response?.data?.message ?? 'Erreur.') }
     finally { setCreating(false) }
@@ -211,6 +212,9 @@ function EtablissementsSection({ etabs, onRefresh }) {
                   <td style={{ padding:'12px 14px', fontSize:11, color:T.muted }}>{e.isActive ? 'Actif' : 'Inactif'}</td>
                   <td style={{ padding:'12px 14px' }}>
                     <div style={{ display:'flex', gap:4 }}>
+                      <button onClick={() => setDetail(e)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:'#0a0a0a', color:'#fff', fontSize:10, cursor:'pointer', fontFamily:ft }}>
+                        Détails
+                      </button>
                       <button onClick={() => handleToggle(e)} style={{ padding:'4px 10px', borderRadius:6, border:'none', background:T.surface3, color:T.muted, fontSize:10, cursor:'pointer', fontFamily:ft }}>
                         {e.isActive ? 'Désactiver' : 'Activer'}
                       </button>
@@ -226,6 +230,42 @@ function EtablissementsSection({ etabs, onRefresh }) {
         </table>
       </div>
 
+      {detail && (
+        <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(12px)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
+          <div style={{ background:T.surface, borderRadius:24, padding:28, width:480 }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
+              <div style={{ fontSize:18, fontWeight:500, color:T.text }}>{detail.name}</div>
+              <button onClick={() => setDetail(null)} style={{ background:'none', border:'none', cursor:'pointer', color:T.muted, fontSize:20 }}>×</button>
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
+              {[
+                { label:'Code', value: detail.code },
+                { label:'Type', value: detail.type },
+                { label:'Ville', value: detail.ville || '—' },
+                { label:'Statut', value: detail.isActive ? 'Actif' : 'Inactif' },
+                { label:'Utilisateurs', value: detail.users + ' comptes' },
+              ].map(({label, value}) => (
+                <div key={label} style={{ background:T.surface2, borderRadius:12, padding:'12px 16px' }}>
+                  <div style={{ fontSize:10, color:T.hint, marginBottom:4, textTransform:'uppercase', letterSpacing:'0.5px' }}>{label}</div>
+                  <div style={{ fontSize:14, fontWeight:500, color:T.text }}>{value}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ display:'flex', gap:8, marginTop:20 }}>
+              <button onClick={() => { handleToggle(detail); setDetail(null) }} style={{ flex:1, padding:10, borderRadius:10, border:'none', background:T.surface2, color:T.text, fontSize:12, cursor:'pointer', fontFamily:ft }}>
+                {detail.isActive ? 'Désactiver' : 'Activer'}
+              </button>
+              <button onClick={() => { handleDelete(detail); setDetail(null) }} style={{ flex:1, padding:10, borderRadius:10, border:'none', background:'#ff5555', color:'#fff', fontSize:12, cursor:'pointer', fontFamily:ft }}>
+                Supprimer
+              </button>
+              <button onClick={() => setDetail(null)} style={{ flex:1, padding:10, borderRadius:10, border:'none', background:'#0a0a0a', color:'#fff', fontSize:12, fontWeight:500, cursor:'pointer', fontFamily:ft }}>
+                Fermer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {showModal && (
         <div style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(12px)', zIndex:100, display:'flex', alignItems:'center', justifyContent:'center' }}>
           <div style={{ background:T.surface, borderRadius:radius.lg, padding:24, width:460 }}>
@@ -234,7 +274,8 @@ function EtablissementsSection({ etabs, onRefresh }) {
               <div style={{ gridColumn:'1/-1' }}><FieldInput label="Nom *" value={form.name} onChange={e=>setForm(f=>({...f,name:e.target.value}))} placeholder="Lycée Jean Hyppolite"/></div>
               <FieldInput label="Code *" value={form.code} onChange={e=>setForm(f=>({...f,code:e.target.value.toUpperCase()}))} placeholder="LJH-JONZAC"/>
               <FieldSelect label="Type *" value={form.type} onChange={e=>setForm(f=>({...f,type:e.target.value}))} options={ETAB_TYPES}/>
-              <div style={{ gridColumn:'1/-1' }}><FieldInput label="Adresse" value={form.adresse} onChange={e=>setForm(f=>({...f,adresse:e.target.value}))} placeholder="Jonzac..."/></div>
+              <FieldInput label="Ville *" value={form.ville} onChange={e=>setForm(f=>({...f,ville:e.target.value}))} placeholder="Paris"/>
+              <div style={{ gridColumn:'1/-1' }}><FieldInput label="Adresse" value={form.adresse} onChange={e=>setForm(f=>({...f,adresse:e.target.value}))} placeholder="1 rue de la Paix..."/></div>
               <FieldInput label="Prénom admin *" value={form.adminFirstName} onChange={e=>setForm(f=>({...f,adminFirstName:e.target.value}))} placeholder="Jean"/>
               <FieldInput label="Nom admin *" value={form.adminLastName} onChange={e=>setForm(f=>({...f,adminLastName:e.target.value}))} placeholder="Martin"/>
               <div style={{ gridColumn:'1/-1' }}><FieldInput label="Email admin *" type="email" value={form.adminEmail} onChange={e=>setForm(f=>({...f,adminEmail:e.target.value}))} placeholder="admin@lycee.fr"/></div>

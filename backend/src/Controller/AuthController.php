@@ -44,6 +44,11 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Compte désactivé.'], 403);
         }
 
+        // Vérifier que l'utilisateur appartient bien à l'établissement sélectionné
+        if ($etablissementId && $user->getEtablissement()?->getId() !== (int)$etablissementId) {
+            return $this->json(['message' => 'Ce compte n appartient pas a cet etablissement.'], 401);
+        }
+
         $token = $this->jwtManager->create($user);
 
         return $this->json([

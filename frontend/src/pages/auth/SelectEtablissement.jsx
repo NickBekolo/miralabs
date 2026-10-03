@@ -99,7 +99,7 @@ export default function SelectEtablissement() {
             {fv.map(v => (
               <button key={v} onClick={() => selectVille(v)}
                 style={{ display:'flex', alignItems:'center', justifyContent:'space-between', padding:'18px 20px', background:bg, border:`1.5px solid ${border}`, borderRadius:16, cursor:'pointer', fontFamily:sf, width:'100%', textAlign:'left', boxSizing:'border-box', transition:'border 0.2s' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor='#2F2F2F'; e.currentTarget.style.background='#2F2F2F'; e.currentTarget.querySelector('span').style.color='#fff' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor='#0a0a0a'; e.currentTarget.style.background='#0a0a0a'; e.currentTarget.querySelector('span').style.color='#fff' }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor=border; e.currentTarget.style.background=dark?'#1a1a1a':'#fff'; e.currentTarget.querySelector('span').style.color=text }}>
                 <span style={{ fontSize:16, fontWeight:400, color:text }}>{v}</span>
               </button>

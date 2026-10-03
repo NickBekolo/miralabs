@@ -59,6 +59,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
 
   const pts  = toPts(datasets[activeKey].points)
   const last = pts[pts.length - 1]
+  const avgVal = Math.round(pts.reduce((s, p) => s + p.val, 0) / pts.length * 10) / 10
 
   const applyPoint = useCallback((p) => {
     setCurrent(p)
@@ -128,8 +129,8 @@ export default function MoyenneChart({ datasets, defaultKey }) {
     }
   }, [updateFromClientX])
 
-  const displayPoint = active ? current : last
-  const color = displayPoint.val >= SEUIL ? PALETTE.green : PALETTE.red
+  const displayPoint = active ? current : { ...last, val: avgVal }
+  const color = (active ? current.val : avgVal) >= SEUIL ? PALETTE.green : PALETTE.red
   const total = displayPoint.total ?? 28
 
   return (
@@ -164,8 +165,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
             <span style={{ fontSize:15, fontWeight:500, color:PALETTE.textMuted }}>/20</span>
           </div>
           <div style={{ fontSize:12, color:PALETTE.textMuted, marginTop:3 }}>
-            {displayPoint.rang}<sup style={{ fontSize:9 }}>{ordinal(displayPoint.rang)}</sup> / {total}
-            {active && <span style={{ marginLeft:6, color:PALETTE.textMuted }}>· {current.label}</span>}
+            {active && <span style={{ color:PALETTE.textMuted }}>{current.label}</span>}
           </div>
         </div>
       </div>
@@ -174,15 +174,15 @@ export default function MoyenneChart({ datasets, defaultKey }) {
       {menuOpen && (
         <div style={{
           position:'absolute', top:58, left:26, zIndex:10,
-          background:'#fff', border:`1px solid ${PALETTE.border}`, borderRadius:16,
-          boxShadow:'0 10px 28px rgba(0,0,0,0.1)', padding:8, minWidth:200,
+          background:PALETTE.cardBg, border:`1px solid ${PALETTE.border}`, borderRadius:16,
+          boxShadow: darkMode ? '0 10px 28px rgba(0,0,0,0.4)' : '0 10px 28px rgba(0,0,0,0.1)', padding:8, minWidth:200,
         }}>
           {keys.map(k => (
             <div key={k} onClick={() => { setActiveKey(k); setMenuOpen(false) }}
               style={{ padding:'10px 14px', borderRadius:10, fontSize:13, fontWeight:400, cursor:'pointer',
-                background: k === activeKey ? PALETTE.textMain : 'transparent',
-                color: k === activeKey ? '#fff' : PALETTE.textMain }}
-              onMouseEnter={e => { if (k !== activeKey) e.currentTarget.style.background = '#F8F8F8' }}
+                background: k === activeKey ? (darkMode ? '#3a3a3c' : PALETTE.textMain) : 'transparent',
+                color: k === activeKey ? (darkMode ? '#fff' : '#fff') : PALETTE.textMain }}
+              onMouseEnter={e => { if (k !== activeKey) e.currentTarget.style.background = darkMode ? '#2c2c2e' : '#F8F8F8' }}
               onMouseLeave={e => { if (k !== activeKey) e.currentTarget.style.background = 'transparent' }}>
               {datasets[k].label}
             </div>
@@ -233,16 +233,7 @@ export default function MoyenneChart({ datasets, defaultKey }) {
           <div style={{ fontSize:18, fontWeight:400, color: current.val >= SEUIL ? PALETTE.green : PALETTE.red, marginBottom:8 }}>
             {current.val.toFixed(1)}/20
           </div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:`1px solid ${PALETTE.border}` }}>
-            <span>Moyenne de classe</span>
-            <b style={{ color:PALETTE.textMain, fontWeight:400 }}>{current.classe.toFixed(1)}/20</b>
-          </div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', fontSize:11, color:PALETTE.textMuted, padding:'4px 0', borderTop:'1px solid #F0F0F0' }}>
-            <span>Rang</span>
-            <b style={{ color:PALETTE.textMain, fontWeight:400 }}>
-              {current.rang}<sup>{ordinal(current.rang)}</sup> / {current.total ?? 28}
-            </b>
-          </div>
+          
         </div>
       </div>
 

@@ -316,8 +316,8 @@ export default function MiraIA({ hideTitle = false }) {
             {/* Contexte actif */}
             {contextMode !== 'none' && (
               <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6, padding:'4px 10px', borderRadius:20, background:dark?'#1a1a1a':'#f0f0f0', width:'fit-content' }}>
-                {contextMode==='web' ? <Globe size={12} color='#007AFF'/> : <Pencil size={12} color='#a29bfe'/>}
-                <span style={{ fontSize:11, color:contextMode==='web'?'#007AFF':'#a29bfe', fontFamily:ft }}>
+                {contextMode==='web' ? <Globe size={12} color='#007AFF'/> : <Pencil size={12} color='#166534'/>}
+                <span style={{ fontSize:11, color:contextMode==='web'?'#007AFF':'#166534', fontFamily:ft }}>
                   {contextMode==='web' ? 'Internet activé' : 'Mes documents activés'}
                 </span>
                 <button onClick={()=>setContextMode('none')} style={{ background:'none', border:'none', cursor:'pointer', color:'#8e8e93', fontSize:14, lineHeight:1, padding:0 }}>×</button>

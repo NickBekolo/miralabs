@@ -68,7 +68,7 @@ export default function Mobile({ onSign, onNav }) {
           Bonjour, {user?.firstName ?? 'toi !'}
         </div>
         <div style={{fontSize:14,color:C.text,marginTop:20,marginBottom:8}}>
-          Tu sais que tu as actuellement <span style={{fontWeight:400,color:'#a29bfe',fontSize:18,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif",letterSpacing:'-0.8px'}}>{moyenne}/20</span> de moyenne, <span style={{color:'#a29bfe'}}>{parseFloat(moyenne)>=16?"mention très bien":parseFloat(moyenne)>=14?"mention bien":parseFloat(moyenne)>=12?"mention assez bien":parseFloat(moyenne)>=10?"continue tes efforts":"il faut bosser"}</span>
+          Tu sais que tu as actuellement <span style={{fontWeight:400,color:'#166534',fontSize:18,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif",letterSpacing:'-0.8px'}}>{moyenne}/20</span> de moyenne, <span style={{color:'#166534'}}>{parseFloat(moyenne)>=16?"mention très bien":parseFloat(moyenne)>=14?"mention bien":parseFloat(moyenne)>=12?"mention assez bien":parseFloat(moyenne)>=10?"continue tes efforts":"il faut bosser"}</span>
         </div>
 
       </div>
@@ -117,7 +117,7 @@ export default function Mobile({ onSign, onNav }) {
               {notes.slice(0,6).map((n,i)=>{
                 const sur20 = Math.round((n.valeur/n.noteSur)*200)/10
                 const low = sur20 < 10
-                const color = low ? '#FF3B30' : '#a29bfe'
+                const color = low ? '#FF3B30' : '#166534'
                 return (
                   <div key={n.id} style={{flexShrink:0,width:200,background:C.surface,borderRadius:16,padding:'16px 18px',border:`1px solid ${C.surface2}`}}>
                     <div style={{fontSize:34,fontWeight:400,color,letterSpacing:'-0.8px',fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>{sur20}<span style={{fontSize:12,color:C.muted}}>/20</span></div>
@@ -133,21 +133,21 @@ export default function Mobile({ onSign, onNav }) {
       </div>
 
       {/* Notifications */}
-      {notifs.length > 0 && (
+      {notifs.filter(n=>!n.isRead).length > 0 && (
         <div style={{padding:'0 16px',marginBottom:20,marginTop:16}}>
           <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:10}}>
             <div style={{display:'flex',alignItems:'center',gap:8}}>
             <div style={{fontSize:16,fontWeight:400,letterSpacing:'-0.6px',color:C.text,fontFamily:ft}}>Alertes</div>
-            <div style={{fontSize:11,background:'#a29bfe',color:'#fff',borderRadius:999,padding:'2px 8px',fontWeight:600}}>{notifs.length}</div>
+            <div style={{fontSize:11,background:'#ff5555',color:'#fff',borderRadius:999,padding:'2px 8px',fontWeight:600}}>{notifs.filter(n=>!n.isRead).length}</div>
             <button onClick={()=>setShowAlertes(v=>!v)} style={{fontSize:11,color:'#FF3B30',background:'none',border:'none',cursor:'pointer',fontWeight:500}}>{showAlertes?'Réduire':'Afficher'}</button>
           </div>
           </div>
           {showAlertes && <div style={{background:C.surface,borderRadius:16,border:`1px solid ${C.surface2}`,overflow:'hidden'}}>
-            {notifs.slice(0,3).map((n,i)=>(
-              <div key={n.id} onClick={()=>{ if(n.type==='appel'){onSign&&onSign()} else{onNav&&onNav('conversations')} }}
+            {notifs.filter(n=>!n.isRead).slice(0,3).map((n,i,arr)=>(
+              <div key={n.id} onClick={()=>{ if(n.type==='appel'){onSign&&onSign()} else{onNav&&onNav('conversations')} api.patch('/api/notifications/'+n.id+'/read').then(()=>{ api.get('/api/notifications').then(r=>setNotifs(r.data)).catch(()=>{}) }).catch(()=>{}) }}
                 onMouseEnter={e=>e.currentTarget.style.background=C.surface2}
                 onMouseLeave={e=>e.currentTarget.style.background='transparent'}
-                style={{padding:'12px 14px',borderBottom:i<Math.min(notifs.length,3)-1?`1px solid ${C.surface2}`:'none',cursor:'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',gap:12}}>
+                style={{padding:'12px 14px',borderBottom:i<arr.length-1?`1px solid ${C.surface2}`:'none',cursor:'pointer',transition:'background 0.15s',display:'flex',alignItems:'center',gap:12,borderLeft:'3px solid #ff5555',background:C.surface}}>
                 {(()=>{
                   const name = n.sender ? n.sender.firstName+' '+n.sender.lastName : n.title??'?'
                   const hue = Array.from(name).reduce((a,ch)=>a+ch.charCodeAt(0),0)%360

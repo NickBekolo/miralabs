@@ -30,7 +30,7 @@ function ParamsEtudiant() {
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>Changer l'apparence</div>
           </div>
           <button onClick={toggleDarkMode}
-            style={{width:44,height:26,borderRadius:13,background:darkMode?'#a29bfe':'#e5e5ea',border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+            style={{width:44,height:26,borderRadius:13,background:darkMode?'#166534':'#e5e5ea',border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
             <div style={{width:22,height:22,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:darkMode?20:2,transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.2)'}}/>
           </button>
         </div>

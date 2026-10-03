@@ -44,7 +44,7 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
         <div style={{fontSize:22,fontWeight:400,letterSpacing:'-0.8px',color:C.text,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>Bonjour, {user?.firstName??'toi'}</div>
 
         <div style={{fontSize:14,color:C.muted,marginTop:6,fontFamily:"-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"}}>
-          Vous avez <span style={{color:'#a29bfe',fontWeight:600}}>{cours.length} cours aujourd'hui</span>, <span style={{color:'#a29bfe',fontWeight:600}}>{notes.length} notes</span> et <span style={{color:'#a29bfe',fontWeight:600}}>{devoirs.length} devoirs</span>
+          Vous avez <span style={{color:'#166534',fontWeight:600}}>{cours.length} cours aujourd'hui</span>, <span style={{color:'#166534',fontWeight:600}}>{notes.length} notes</span> et <span style={{color:'#166534',fontWeight:600}}>{devoirs.length} devoirs</span>
         </div>
       </div>
 
@@ -58,10 +58,10 @@ function AccueilSection({ cours, notes, devoirs, C, user, onNav }) {
         <div style={{fontSize:12,fontWeight:600,color:C.muted,marginBottom:10,textTransform:'uppercase',letterSpacing:'0.5px'}}>Actions rapides</div>
         <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:8}}>
           {[
-            {label:'Saisir des notes',nav:'notes',Icon:ClipboardList,color:'#a29bfe'},
-            {label:'Saisir absences',nav:'absences',Icon:Users,color:'#a29bfe'},
-            {label:'Créer un devoir',nav:'devoirs',Icon:BookOpen,color:'#a29bfe'},
-            {label:"Emploi du temps",nav:'calendrier',Icon:CalendarDays,color:'#a29bfe'},
+            {label:'Saisir des notes',nav:'notes',Icon:ClipboardList,color:'#166534'},
+            {label:'Saisir absences',nav:'absences',Icon:Users,color:'#166534'},
+            {label:'Créer un devoir',nav:'devoirs',Icon:BookOpen,color:'#166534'},
+            {label:"Emploi du temps",nav:'calendrier',Icon:CalendarDays,color:'#166534'},
           ].map(a=>(
             <button key={a.nav} onClick={()=>window.dispatchEvent(new CustomEvent('navigate',{detail:a.nav}))}
               style={{display:'flex',alignItems:'center',gap:8,padding:'10px 12px',borderRadius:12,background:C.bg,border:`1px solid ${C.surface2}`,cursor:'pointer',fontSize:12,fontWeight:500,color:C.text,textAlign:'left',background:C.surface,border:`1px solid ${C.surface2}`}}>
@@ -91,7 +91,7 @@ function NotesSection({ C, user }) {
   const [detailNotes, setDetailNotes] = useState([])
   const ft2 = "-apple-system,'SF Pro Display',BlinkMacSystemFont,sans-serif"
   const NOTE_C = v => v>=10?'#1d1d1f':'#FF3B30'
-  const STATUT_C = {en_cours:'#FF9500',soumise:'#a29bfe',cloturee:'#8e8e93'}
+  const STATUT_C = {en_cours:'#FF9500',soumise:'#166534',cloturee:'#8e8e93'}
   const STATUT_L = {en_cours:'En cours',soumise:'Soumise',cloturee:'Clôturée'}
 
   useEffect(()=>{
@@ -346,7 +346,7 @@ function NotesSection({ C, user }) {
         })}
       </div>
       <button onClick={soumettreSession}
-        style={{padding:13,borderRadius:14,background:'#a29bfe',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2}}>
+        style={{padding:13,borderRadius:14,background:'#166534',color:'#fff',border:'none',fontSize:14,fontWeight:500,cursor:'pointer',fontFamily:ft2}}>
         Soumettre à l'administrateur
       </button>
     </div>
@@ -429,7 +429,7 @@ function CarnetNotesSection({ C, user }) {
             </div>}
           </div>
           <button onClick={()=>{setFiltreMatiere('');setFiltreType('')}}
-            style={{display:'flex',alignItems:'center',gap:4,padding:'6px 14px',borderRadius:10,border:'none',background:'transparent',color:'#a29bfe',fontSize:12,cursor:'pointer',fontWeight:600}}>
+            style={{display:'flex',alignItems:'center',gap:4,padding:'6px 14px',borderRadius:10,border:'none',background:'transparent',color:'#166534',fontSize:12,cursor:'pointer',fontWeight:600}}>
             ↺ Reset
           </button>
         </div>
@@ -692,7 +692,7 @@ function AppelSection({ C }) {
 
       {/* Message */}
       {msg&&(
-        <div style={{fontSize:13,color:'#a29bfe',fontWeight:500,padding:'4px 0'}}>
+        <div style={{fontSize:13,color:'#166534',fontWeight:500,padding:'4px 0'}}>
           {msg.text}
         </div>
       )}
@@ -714,7 +714,7 @@ function AppelSection({ C }) {
             {classes.map(cl=>(
               <button key={cl.id} onClick={()=>setClasseId(String(cl.id))}
                 style={{padding:'8px 16px',borderRadius:999,fontSize:13,fontWeight:500,cursor:'pointer',border:'none',
-                  background:classeId===String(cl.id)?'#a29bfe':C.surface2,
+                  background:classeId===String(cl.id)?'#166534':C.surface2,
                   color:classeId===String(cl.id)?'#fff':C.text,
                   transition:'all 0.15s'}}>
                 {cl.name}
@@ -815,7 +815,7 @@ function AppelSection({ C }) {
         <div style={{display:'flex',gap:10}}>
           {!appel?(
             <button onClick={lancer} disabled={saving||!classeId}
-              style={{flex:1,padding:'14px',borderRadius:14,background:'#a29bfe',color:'#fff',border:'none',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:ft,opacity:saving?0.6:1}}>
+              style={{flex:1,padding:'14px',borderRadius:14,background:'#166534',color:'#fff',border:'none',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:ft,opacity:saving?0.6:1}}>
               {saving?'Lancement...':'Lancer appel'}
             </button>
           ):(
@@ -883,7 +883,7 @@ function ParamsSection({ C }) {
             <div style={{fontSize:11,color:C.muted,marginTop:2}}>Changer l'apparence de l'application</div>
           </div>
           <button onClick={toggleDarkMode}
-            style={{width:44,height:26,borderRadius:13,background:darkMode?'#a29bfe':'#e5e5ea',border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
+            style={{width:44,height:26,borderRadius:13,background:darkMode?'#166534':'#e5e5ea',border:'none',cursor:'pointer',position:'relative',transition:'background 0.2s',flexShrink:0}}>
             <div style={{width:22,height:22,borderRadius:'50%',background:'#fff',position:'absolute',top:2,left:darkMode?20:2,transition:'left 0.2s',boxShadow:'0 1px 4px rgba(0,0,0,0.2)'}}/>
           </button>
         </div>

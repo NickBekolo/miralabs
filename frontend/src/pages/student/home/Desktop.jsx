@@ -21,12 +21,16 @@ function buildDatasets(notes) {
   notes.forEach(n => {
     const key = n.matiere.nom.toLowerCase().replace(/\s/g, '_')
     if (!byMatiere[key]) byMatiere[key] = { label: n.matiere.nom, points: [] }
-    byMatiere[key].points.push({ label: n.createdAt, val: Math.round((n.valeur / n.noteSur) * 200) / 10, classe: 12, rang: 1 })
+    byMatiere[key].points.push({ label: n.createdAt ? n.createdAt.split('T')[0] : n.createdAt, val: Math.round((n.valeur / n.noteSur) * 200) / 10 })
   })
   return {
     general: {
       label: 'Moyenne générale',
-      points: notes.map(n => ({ label: n.createdAt, val: Math.round((n.valeur / n.noteSur) * 200) / 10, classe: 12, rang: 1 })),
+      points: notes.map((n, i, arr) => {
+      const slice = arr.slice(0, i + 1)
+      const moy = Math.round(slice.reduce((s, x) => s + (x.valeur / x.noteSur) * 20, 0) / slice.length * 10) / 10
+      return { label: n.createdAt ? n.createdAt.split('T')[0] : n.createdAt, val: moy }
+    }),
     },
     ...byMatiere
   }

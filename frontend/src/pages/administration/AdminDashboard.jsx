@@ -550,7 +550,7 @@ function ClasseSection({ C }) {
               <input value={newClasse.niveau} onChange={e=>setNewClasse(n=>({...n,niveau:e.target.value}))} placeholder="Niveau (ex: 2nde)"
                 style={{width:120,padding:'8px 12px',borderRadius:10,border:`1px solid ${C.surface2}`,background:C.bg,color:C.text,fontSize:13,outline:'none'}}/>
               <button onClick={createClasse} disabled={creating||!newClasse.name}
-                style={{padding:'8px 14px',borderRadius:10,background:'#a29bfe',color:'#fff',border:'none',fontSize:13,cursor:'pointer',opacity:creating?0.5:1}}>
+                style={{padding:'8px 14px',borderRadius:10,background:'#166534',color:'#fff',border:'none',fontSize:13,cursor:'pointer',opacity:creating?0.5:1}}>
                 {creating?'...':'Créer'}
               </button>
               <button onClick={()=>setShowCreate(false)}
@@ -1068,7 +1068,7 @@ function AccueilSection({ C }) {
   const classeData  = classes.map(c => ({ name:c.nom, apprenants:c.nbApprenants, cours:c.nbCours, moyenne:c.moyenneClasse||0 }))
 
   const kpis = [
-    { label:'Apprenants', value:apprenants.length, color:'#a29bfe' },
+    { label:'Apprenants', value:apprenants.length, color:'#166534' },
     { label:'Enseignants', value:enseignants.length, color:'#166534' },
     { label:'Classes', value:classes.length, color:'#FF9500' },
     { label:'Actifs', value:nbActifs, color:'#166534' },

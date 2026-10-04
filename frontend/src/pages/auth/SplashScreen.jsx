@@ -21,7 +21,7 @@ export default function SplashScreen({ onFinish }) {
   return (
     <div style={{ fontFamily:sf, background:'#fff', minHeight:'100vh', display:'flex', alignItems:'center', justifyContent:'center' }}>
       <span style={{
-        fontSize:64, fontWeight:500, letterSpacing:'-3px', color:'#0a0a0a',
+        fontSize:44, fontWeight:400, letterSpacing:'-2px', color:'#0a0a0a',
         opacity: phase==='in'?1:0,
         transform: phase==='in'?'translateY(0)':'translateY(-16px)',
         transition:'opacity 0.3s ease, transform 0.3s ease',

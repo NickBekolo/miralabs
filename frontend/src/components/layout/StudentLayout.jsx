@@ -295,9 +295,8 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
         document.body
       )}
       {/* Menu latéral */}
-      {menu && (
-        <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background:'rgba(0,0,0,0.4)', zIndex:200, display:'flex' }}>
-          <div onClick={e => e.stopPropagation()} style={{ width:260, background:bg, height:'100%', padding:'48px 20px 32px', display:'flex', flexDirection:'column' }}>
+      <div onClick={() => setMenu(false)} style={{ position:'fixed', inset:0, background: menu ? 'rgba(0,0,0,0.4)' : 'rgba(0,0,0,0)', zIndex:200, display:'flex', pointerEvents: menu ? 'all' : 'none', transition:'background 0.3s' }}>
+          <div onClick={e => e.stopPropagation()} style={{ width:280, background:bg, height:'100%', padding:'56px 20px 32px', display:'flex', flexDirection:'column', transform: menu ? 'translateX(0)' : 'translateX(-100%)', transition:'transform 0.3s cubic-bezier(0.32,0.72,0,1)', boxShadow: menu ? '4px 0 40px rgba(0,0,0,0.15)' : 'none' }}>
             <div style={{ fontSize:22, fontWeight:400, letterSpacing:'-0.8px', color:text, marginBottom:32, fontFamily:ft }}>Miralabs.</div>
             {NAV_ITEMS.map(({ id, label, icon:Icon, color:iColor }) => (
               <div key={id} onClick={() => { onNavChange(id); setMenu(false) }}
@@ -307,53 +306,34 @@ function MobileLayout({ children, activePage, onNavChange, userName }) {
             ))}
             <div style={{marginTop:'auto',paddingTop:16,borderTop:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`}}>
               {/* Avatar + nom */}
-              <div onClick={()=>setMenuProfil(v=>!v)} style={{display:'flex',alignItems:'center',gap:10,marginBottom:16,cursor:'pointer',position:'relative'}}>
+              <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}>
                 <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={36}/>
                 <div style={{flex:1}}>
                   <div style={{fontSize:13,fontWeight:600,color:text}}>{userName}</div>
                   <div style={{fontSize:11,color:muted}}>Étudiant</div>
                 </div>
-                {menuProfil ? <ChevronDown size={14} color={muted} style={{transform:'rotate(180deg)'}}/> : <ChevronDown size={14} color={muted}/>}
-                {menuProfil && (
-                  <div onClick={e=>e.stopPropagation()} style={{position:'absolute',bottom:'100%',left:0,right:0,background:bg,borderRadius:14,border:`1px solid ${darkMode?'rgba(255,255,255,0.1)':'#f0f0f0'}`,padding:8,marginBottom:6,boxShadow:'0 8px 32px rgba(0,0,0,0.15)',zIndex:300}}>
-                    <div style={{padding:'10px 12px',marginBottom:4}}>
-                      <div style={{fontSize:13,fontWeight:700,color:text}}>{userName}</div>
-                      <div style={{fontSize:11,color:muted}}>Étudiant</div>
-                    </div>
-                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
-                    <button onClick={()=>{setShowProfil(true);setMenuProfil(false);setMenu(false)}}
-                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
-                      <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={16}/>
-                      Mon profil
-                    </button>
-                    <button onClick={()=>{onNavChange('personnalisation');setMenu(false)}}
-                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
-                      <Settings size={15} color={muted}/>
-                      Paramètres
-                    </button>
-                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
-                    <button onClick={toggleDarkMode}
-                      style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}>
-                      <div style={{display:'flex',alignItems:'center',gap:10}}>
-                        {darkMode?<Sun size={15} color={muted}/>:<Moon size={15} color={muted}/>}
-                        Thème
-                      </div>
-                      <span style={{fontSize:11,color:muted,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',padding:'2px 8px',borderRadius:20}}>{darkMode?'Sombre':'Clair'}</span>
-                    </button>
-                    <div style={{height:1,background:darkMode?'rgba(255,255,255,0.1)':'#f0f0f0',margin:'4px 0'}}/>
-                    <button onClick={()=>{sessionStorage.clear();window.location.href='/'}}
-                      style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:'#FF3B30',fontSize:13,fontWeight:600,cursor:'pointer',fontFamily:ft,width:'100%'}}>
-                      <LogOut size={15}/>
-                      Se déconnecter
-                    </button>
-                  </div>
-                )}
-              </div>
 
+              </div>
+              <button onClick={()=>{setShowProfil(true);setMenu(false)}}
+                style={{display:'flex',alignItems:'center',gap:12,padding:'12px 0',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`,border:'none',background:'none',color:text,fontSize:14,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                <AvatarUser genre={user?.genre} isActive={user?.isActive!==false} size={18}/>
+                Mon profil
+              </button>
+              <button onClick={toggleDarkMode}
+                style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 0',borderBottom:`1px solid ${darkMode?'rgba(255,255,255,0.06)':'#f0f0f0'}`,border:'none',background:'none',color:text,fontSize:14,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                <div style={{display:'flex',alignItems:'center',gap:12}}>
+                  {darkMode?<Sun size={18} color={muted}/>:<Moon size={18} color={muted}/>}
+                  Thème {darkMode?'sombre':'clair'}
+                </div>
+              </button>
+              <button onClick={()=>{sessionStorage.clear();window.location.href='/'}}
+                style={{display:'flex',alignItems:'center',gap:12,marginTop:16,padding:'12px 16px',borderRadius:12,border:'none',background:'#ff555520',color:'#ff5555',fontSize:14,fontWeight:600,cursor:'pointer',fontFamily:ft,width:'100%'}}>
+                <LogOut size={18}/>
+                Se déconnecter
+              </button>
             </div>
           </div>
         </div>
-      )}
     </div>
   )
 }

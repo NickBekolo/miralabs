@@ -10,6 +10,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/classes')]
 #[IsGranted('ROLE_USER')]
@@ -52,10 +54,23 @@ class ClasseController extends AbstractController
 
     #[Route('', methods: ['POST'])]
     #[\Symfony\Component\Security\Http\Attribute\IsGranted('ROLE_ADMIN')]
-    public function create(\Symfony\Component\HttpFoundation\Request $request, EntityManagerInterface $em): JsonResponse
+    public function create(\Symfony\Component\HttpFoundation\Request $request, EntityManagerInterface $em, ValidatorInterface $validator): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
         if (empty($data['name'])) return $this->json(['message' => 'Nom requis'], 400);
+
+        // Validation longueur et format du nom de classe (OWASP A03)
+        $errors = $validator->validate($data['name'], [
+            new Assert\NotBlank(),
+            new Assert\Length(min: 2, max: 100,
+                minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.',
+                maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.'),
+            new Assert\Regex(pattern: '/^[\p{L}0-9\s\-\.]+$/u',
+                message: 'Le nom contient des caractères non autorisés.'),
+        ]);
+        if (count($errors) > 0) {
+            return $this->json(['message' => $errors[0]->getMessage()], 400);
+        }
 
         $classe = new \App\Entity\Classe();
         $classe->setName($data['name']);

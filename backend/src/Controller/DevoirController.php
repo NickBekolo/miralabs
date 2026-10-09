@@ -14,16 +14,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 use App\Entity\User;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/devoirs')]
 class DevoirController extends AbstractController
 {
     use EtablissementTrait;
     public function __construct(
-        private DevoirRepository   $devoirRepo,
-        private ClasseRepository   $classeRepo,
-        private MatiereRepository  $matiereRepo,
+        private DevoirRepository       $devoirRepo,
+        private ClasseRepository       $classeRepo,
+        private MatiereRepository      $matiereRepo,
         private EntityManagerInterface $em,
+        private ValidatorInterface     $validator,
     ) {}
 
     private function serialize(Devoir $d): array
@@ -72,6 +75,33 @@ class DevoirController extends AbstractController
 
         if (empty($data['titre']) || empty($data['dateRendu'])) {
             return $this->json(['message' => 'Titre et date de rendu requis.'], 400);
+        }
+
+        // Validation des entrées (OWASP A03)
+        $titreErrors = $this->validator->validate($data['titre'], [
+            new Assert\NotBlank(),
+            new Assert\Length(max: 255, maxMessage: 'Le titre ne peut pas dépasser {{ limit }} caractères.'),
+        ]);
+        if (count($titreErrors) > 0) {
+            return $this->json(['message' => $titreErrors[0]->getMessage()], 400);
+        }
+
+        $dateErrors = $this->validator->validate($data['dateRendu'], [
+            new Assert\NotBlank(),
+            new Assert\Regex(pattern: '/^\d{4}-\d{2}-\d{2}$/',
+                message: 'La date de rendu doit être au format YYYY-MM-DD.'),
+        ]);
+        if (count($dateErrors) > 0) {
+            return $this->json(['message' => $dateErrors[0]->getMessage()], 400);
+        }
+
+        if (!empty($data['description'])) {
+            $descErrors = $this->validator->validate($data['description'], [
+                new Assert\Length(max: 2000, maxMessage: 'La description ne peut pas dépasser {{ limit }} caractères.'),
+            ]);
+            if (count($descErrors) > 0) {
+                return $this->json(['message' => $descErrors[0]->getMessage()], 400);
+            }
         }
 
         $devoir = new Devoir();

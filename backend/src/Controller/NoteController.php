@@ -13,15 +13,19 @@ use Symfony\Component\HttpFoundation\Request;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Http\Attribute\IsGranted;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/notes')]
 class NoteController extends AbstractController
 {
     use EtablissementTrait;
-    public function __construct(private EntityManagerInterface $em,
+    public function __construct(
+        private EntityManagerInterface $em,
         private NoteRepository $noteRepository,
         private UserRepository $userRepository,
         private MatiereRepository $matiereRepository,
+        private ValidatorInterface $validator,
     ) {}
 
     #[Route('', name: 'notes_list', methods: ['GET'])]
@@ -58,8 +62,27 @@ class NoteController extends AbstractController
             return $this->json(['message' => 'Données manquantes.'], 400);
         }
 
-        if ($data['valeur'] < 0 || $data['valeur'] > ($data['noteSur'] ?? 20)) {
-            return $this->json(['message' => 'Note invalide.'], 400);
+        // Validation de la valeur numérique (OWASP A03)
+        $noteSur = (float) ($data['noteSur'] ?? 20);
+        $errors = $this->validator->validate($data['valeur'], [
+            new Assert\NotNull(),
+            new Assert\Type(type: 'numeric', message: 'La note doit être un nombre.'),
+            new Assert\Range(min: 0, max: $noteSur,
+                notInRangeMessage: 'La note doit être entre 0 et {{ max }}.'),
+        ]);
+        if (count($errors) > 0) {
+            return $this->json(['message' => $errors[0]->getMessage()], 400);
+        }
+
+        // Validation eleveId / matiereId entiers positifs
+        foreach (['eleveId', 'matiereId'] as $field) {
+            $errs = $this->validator->validate($data[$field], [
+                new Assert\NotNull(),
+                new Assert\Positive(message: "Le champ $field doit être un entier positif."),
+            ]);
+            if (count($errs) > 0) {
+                return $this->json(['message' => $errs[0]->getMessage()], 400);
+            }
         }
 
         $eleve = $this->userRepository->find($data['eleveId']);

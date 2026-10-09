@@ -136,7 +136,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
                 <div style={{fontSize:11,color:C.muted}}>Étudiant</div>
               </div>
               <div style={{height:1,background:C.surface2,margin:'4px 0'}}/>
-              <button onClick={()=>{setShowProfil(true);setProfileOpen(false)}}
+              <button onClick={()=>{ setProfileOpen(false); setTimeout(()=>onNavChange('profil'), 50) }}
                 style={{display:'flex',alignItems:'center',gap:10,padding:'9px 12px',borderRadius:8,border:'none',background:'none',color:C.text,fontSize:13,cursor:'pointer',fontFamily:ft,width:'100%'}}
                 onMouseEnter={e=>e.currentTarget.style.background=C.surface}
                 onMouseLeave={e=>e.currentTarget.style.background='none'}>
@@ -179,7 +179,7 @@ function DesktopLayout({ children, activePage, onNavChange, userName, collapsed,
             style={{ display:'flex', alignItems:'center', gap:6, background:'#FF3B30', border:'none', borderRadius:980, padding:'6px 14px', fontSize:12, fontWeight:700, color:'#fff', cursor:'pointer', marginRight:12, transition:'all 0.2s' }}>
             Signer
           </button>}
-          {showSign && createPortal(
+      {showSign && createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:9999, background:'rgba(0,0,0,0.4)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}>
       <div style={{ background:'#fff', borderRadius:36, width:'100%', maxWidth:440, overflowY:'auto', boxShadow:'0 20px 60px rgba(0,0,0,0.2)' }}>
         <Signature onClose={() => { setShowSign(false); setSigned(true) }}/>

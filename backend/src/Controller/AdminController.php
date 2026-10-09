@@ -13,6 +13,8 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 use Symfony\Component\Security\Http\Attribute\CurrentUser;
 
 #[Route('/api/admin')]
@@ -59,6 +61,7 @@ class AdminController extends AbstractController
         private UserPasswordHasherInterface $passwordHasher,
         private MailerInterface $mailer,
         private NotificationService $notifService,
+        private ValidatorInterface $validator,
     ) {}
 
     private function generatePassword(): string
@@ -116,6 +119,30 @@ class AdminController extends AbstractController
         foreach (['email', 'firstName', 'lastName', 'role'] as $field) {
             if (empty($data[$field])) {
                 return $this->json(['message' => "Le champ '$field' est requis."], 400);
+            }
+        }
+
+        // Validation des formats
+        $emailErrors = $this->validator->validate($data['email'], [
+            new Assert\Email(message: 'Format d\'email invalide.'),
+            new Assert\Length(max: 180),
+        ]);
+        if (count($emailErrors) > 0) {
+            return $this->json(['message' => 'Format d\'email invalide.'], 400);
+        }
+
+        $nameConstraints = [
+            new Assert\NotBlank(),
+            new Assert\Length(min: 2, max: 255),
+            new Assert\Regex(
+                pattern: '/^[\p{L}\s\'\-]+$/u',
+                message: 'Ce champ ne doit contenir que des lettres, espaces, apostrophes ou tirets.'
+            ),
+        ];
+        foreach (['firstName', 'lastName'] as $field) {
+            $fieldErrors = $this->validator->validate($data[$field], $nameConstraints);
+            if (count($fieldErrors) > 0) {
+                return $this->json(['message' => "Valeur invalide pour le champ '$field'."], 400);
             }
         }
 

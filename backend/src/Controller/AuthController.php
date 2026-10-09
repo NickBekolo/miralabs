@@ -4,6 +4,7 @@ namespace App\Controller;
 use App\Entity\EventLog;
 use App\Repository\UserRepository;
 use App\Service\EventLogService;
+use App\Service\LoginAttemptService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -11,6 +12,8 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 #[Route('/api/auth')]
 class AuthController extends AbstractController
@@ -21,33 +24,74 @@ class AuthController extends AbstractController
         private JWTTokenManagerInterface $jwtManager,
         private MailerInterface $mailer,
         private EventLogService $eventLog,
+        private LoginAttemptService $loginAttemptService,
+        private ValidatorInterface $validator,
     ) {}
 
     #[Route('/login', name: 'api_login', methods: ['POST'])]
     public function login(Request $request): JsonResponse
     {
+        $ip = $request->getClientIp() ?? '0.0.0.0';
+
+        // ── Protection brute force ──────────────────────────────────────────
+        if ($this->loginAttemptService->isBlocked($ip)) {
+            $seconds = $this->loginAttemptService->getSecondsUntilUnlock($ip);
+            $minutes = (int) ceil($seconds / 60);
+
+            return $this->json([
+                'message' => sprintf(
+                    'Trop de tentatives échouées. Réessayez dans %d minute(s).',
+                    $minutes
+                ),
+                'retry_after' => $seconds,
+            ], 429);
+        }
+
+        // ── Validation du format des entrées ────────────────────────────────
         $data     = json_decode($request->getContent(), true);
-        $email    = $data['email'] ?? null;
-        $password = $data['password'] ?? null;
+        $email    = trim($data['email'] ?? '');
+        $password = $data['password'] ?? '';
         $etablissementId = $data['etablissementId'] ?? null;
 
         if (!$email || !$password) {
             return $this->json(['message' => 'Email et mot de passe requis.'], 400);
         }
 
+        // Validation format email avant requête en base
+        $emailConstraint = new Assert\Email(message: 'Format d\'email invalide.');
+        $errors = $this->validator->validate($email, $emailConstraint);
+        if (count($errors) > 0) {
+            return $this->json(['message' => 'Format d\'email invalide.'], 400);
+        }
+
+        // ── Authentification ────────────────────────────────────────────────
         $user = $this->userRepository->findOneBy(['email' => $email]);
         if (!$user || !$this->passwordHasher->isPasswordValid($user, $password)) {
-            return $this->json(['message' => 'Identifiants invalides.'], 401);
+            // Enregistre l'échec et informe sur les tentatives restantes
+            $this->loginAttemptService->recordFailure($ip);
+            $remaining = $this->loginAttemptService->getRemainingAttempts($ip);
+
+            $message = 'Identifiants invalides.';
+            if ($remaining <= 2 && $remaining > 0) {
+                $message .= sprintf(' (%d tentative(s) restante(s) avant blocage temporaire)', $remaining);
+            }
+
+            return $this->json(['message' => $message], 401);
         }
 
         if (!$user->isActive()) {
-            return $this->json(['message' => 'Compte désactivé.'], 403);
+            return $this->json(['message' => 'Compte désactivé. Contactez votre administrateur.'], 403);
         }
 
         // Vérifier que l'utilisateur appartient bien à l'établissement sélectionné
         if ($etablissementId && $user->getEtablissement()?->getId() !== (int)$etablissementId) {
-            return $this->json(['message' => 'Ce compte n appartient pas a cet etablissement.'], 401);
+            $this->loginAttemptService->recordFailure($ip);
+
+            return $this->json(['message' => 'Ce compte n\'appartient pas à cet établissement.'], 401);
         }
+
+        // ── Login réussi : réinitialise le compteur de tentatives ────────────
+        $this->loginAttemptService->resetAttempts($ip);
 
         $token = $this->jwtManager->create($user);
 
@@ -71,20 +115,62 @@ class AuthController extends AbstractController
     public function forgotPassword(Request $request): JsonResponse
     {
         $data  = json_decode($request->getContent(), true);
-        $email = $data['email'] ?? null;
+        $email = trim($data['email'] ?? '');
+
         if (!$email) {
             return $this->json(['message' => 'Email requis.'], 400);
         }
-        $user = $this->userRepository->findOneBy(['email' => $email]);
-        if (!$user) {
-            return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+
+        // Validation format email
+        $errors = $this->validator->validate($email, new Assert\Email());
+        if (count($errors) > 0) {
+            return $this->json(['message' => 'Format d\'email invalide.'], 400);
         }
-        return $this->json(['message' => 'Si cet email existe, un lien a été envoyé.']);
+
+        // Réponse identique que l'email existe ou non (anti-énumération)
+        $this->userRepository->findOneBy(['email' => $email]);
+
+        return $this->json(['message' => 'Si cet email existe, un lien de réinitialisation a été envoyé.']);
     }
 
     #[Route('/reset-password', name: 'api_reset_password', methods: ['POST'])]
     public function resetPassword(Request $request): JsonResponse
     {
-        return $this->json(['message' => 'Fonctionnalité temporairement indisponible.'], 503);
+        $data     = json_decode($request->getContent(), true);
+        $token    = $data['token'] ?? null;
+        $password = $data['password'] ?? null;
+
+        if (!$token || !$password) {
+            return $this->json(['message' => 'Token et nouveau mot de passe requis.'], 400);
+        }
+
+        // Validation de la complexité du mot de passe
+        $passwordErrors = $this->validator->validate($password, [
+            new Assert\NotBlank(),
+            new Assert\Length(
+                min: 8,
+                minMessage: 'Le mot de passe doit contenir au moins {{ limit }} caractères.'
+            ),
+            new Assert\Regex(
+                pattern: '/[A-Z]/',
+                message: 'Le mot de passe doit contenir au moins une lettre majuscule.'
+            ),
+            new Assert\Regex(
+                pattern: '/[0-9]/',
+                message: 'Le mot de passe doit contenir au moins un chiffre.'
+            ),
+        ]);
+
+        if (count($passwordErrors) > 0) {
+            $messages = [];
+            foreach ($passwordErrors as $error) {
+                $messages[] = $error->getMessage();
+            }
+            return $this->json(['message' => implode(' ', $messages)], 400);
+        }
+
+        // TODO: implémenter la vérification du token en base de données
+        // et mettre à jour le mot de passe de l'utilisateur correspondant
+        return $this->json(['message' => 'Fonctionnalité de réinitialisation en cours de déploiement.'], 503);
     }
 }

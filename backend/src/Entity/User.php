@@ -6,6 +6,7 @@ use App\Repository\UserRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -17,30 +18,57 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180, unique: true)]
+    #[Assert\NotBlank(message: 'L\'email est obligatoire.')]
+    #[Assert\Email(message: 'L\'adresse email "{{ value }}" n\'est pas valide.')]
+    #[Assert\Length(max: 180, maxMessage: 'L\'email ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $email = null;
 
     #[ORM\Column]
     private array $roles = [];
 
     #[ORM\Column]
+    #[Assert\NotBlank(message: 'Le mot de passe est obligatoire.')]
     private ?string $password = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le prénom est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le prénom doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le prénom ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 255)]
+    #[Assert\NotBlank(message: 'Le nom est obligatoire.')]
+    #[Assert\Length(
+        min: 2,
+        max: 255,
+        minMessage: 'Le nom doit contenir au moins {{ limit }} caractères.',
+        maxMessage: 'Le nom ne peut pas dépasser {{ limit }} caractères.'
+    )]
     private ?string $lastName = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Choice(
+        choices: ['M', 'F', 'Autre'],
+        message: 'Le genre doit être M, F ou Autre.'
+    )]
     private ?string $genre = null;
 
     #[ORM\Column(type: 'date', nullable: true)]
     private ?\DateTimeInterface $dateNaissance = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Regex(
+        pattern: '/^\+?[0-9\s\-\.]{7,20}$/',
+        message: 'Le numéro de téléphone "{{ value }}" n\'est pas valide.'
+    )]
     private ?string $telephone = null;
 
     #[ORM\Column(nullable: true)]
+    #[Assert\Length(max: 500, maxMessage: 'L\'adresse ne peut pas dépasser {{ limit }} caractères.')]
     private ?string $adresse = null;
 
     #[ORM\Column(nullable: true)]

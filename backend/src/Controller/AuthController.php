@@ -1,10 +1,10 @@
 <?php
 namespace App\Controller;
 
-use App\Entity\EventLog;
 use App\Repository\UserRepository;
 use App\Service\EventLogService;
 use App\Service\LoginAttemptService;
+use App\Service\PasswordResetService;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -26,6 +26,7 @@ class AuthController extends AbstractController
         private EventLogService $eventLog,
         private LoginAttemptService $loginAttemptService,
         private ValidatorInterface $validator,
+        private PasswordResetService $passwordResetService,
     ) {}
 
     #[Route('/login', name: 'api_login', methods: ['POST'])]
@@ -39,18 +40,15 @@ class AuthController extends AbstractController
             $minutes = (int) ceil($seconds / 60);
 
             return $this->json([
-                'message' => sprintf(
-                    'Trop de tentatives échouées. Réessayez dans %d minute(s).',
-                    $minutes
-                ),
+                'message'     => sprintf('Trop de tentatives échouées. Réessayez dans %d minute(s).', $minutes),
                 'retry_after' => $seconds,
             ], 429);
         }
 
         // ── Validation du format des entrées ────────────────────────────────
-        $data     = json_decode($request->getContent(), true);
-        $email    = trim($data['email'] ?? '');
-        $password = $data['password'] ?? '';
+        $data            = json_decode($request->getContent(), true);
+        $email           = trim($data['email'] ?? '');
+        $password        = $data['password'] ?? '';
         $etablissementId = $data['etablissementId'] ?? null;
 
         if (!$email || !$password) {
@@ -58,8 +56,7 @@ class AuthController extends AbstractController
         }
 
         // Validation format email avant requête en base
-        $emailConstraint = new Assert\Email(message: 'Format d\'email invalide.');
-        $errors = $this->validator->validate($email, $emailConstraint);
+        $errors = $this->validator->validate($email, new Assert\Email(message: 'Format d\'email invalide.'));
         if (count($errors) > 0) {
             return $this->json(['message' => 'Format d\'email invalide.'], 400);
         }
@@ -67,7 +64,6 @@ class AuthController extends AbstractController
         // ── Authentification ────────────────────────────────────────────────
         $user = $this->userRepository->findOneBy(['email' => $email]);
         if (!$user || !$this->passwordHasher->isPasswordValid($user, $password)) {
-            // Enregistre l'échec et informe sur les tentatives restantes
             $this->loginAttemptService->recordFailure($ip);
             $remaining = $this->loginAttemptService->getRemainingAttempts($ip);
 
@@ -83,14 +79,12 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Compte désactivé. Contactez votre administrateur.'], 403);
         }
 
-        // Vérifier que l'utilisateur appartient bien à l'établissement sélectionné
         if ($etablissementId && $user->getEtablissement()?->getId() !== (int)$etablissementId) {
             $this->loginAttemptService->recordFailure($ip);
-
             return $this->json(['message' => 'Ce compte n\'appartient pas à cet établissement.'], 401);
         }
 
-        // ── Login réussi : réinitialise le compteur de tentatives ────────────
+        // ── Login réussi : réinitialise le compteur de tentatives ───────────
         $this->loginAttemptService->resetAttempts($ip);
 
         $token = $this->jwtManager->create($user);
@@ -127,25 +121,34 @@ class AuthController extends AbstractController
             return $this->json(['message' => 'Format d\'email invalide.'], 400);
         }
 
-        // Réponse identique que l'email existe ou non (anti-énumération)
-        $this->userRepository->findOneBy(['email' => $email]);
+        // Réponse identique que l'utilisateur existe ou non (anti-énumération)
+        $user = $this->userRepository->findOneBy(['email' => $email]);
+        if ($user && $user->isActive()) {
+            try {
+                $this->passwordResetService->generateAndSend($user);
+            } catch (\Exception) {
+                // Silencieux — on ne révèle pas les erreurs d'envoi
+            }
+        }
 
-        return $this->json(['message' => 'Si cet email existe, un lien de réinitialisation a été envoyé.']);
+        return $this->json([
+            'message' => 'Si cet email existe, un lien de réinitialisation valable 1 heure a été envoyé.',
+        ]);
     }
 
     #[Route('/reset-password', name: 'api_reset_password', methods: ['POST'])]
     public function resetPassword(Request $request): JsonResponse
     {
-        $data     = json_decode($request->getContent(), true);
-        $token    = $data['token'] ?? null;
-        $password = $data['password'] ?? null;
+        $data        = json_decode($request->getContent(), true);
+        $rawToken    = trim($data['token'] ?? '');
+        $newPassword = $data['password'] ?? '';
 
-        if (!$token || !$password) {
+        if (!$rawToken || !$newPassword) {
             return $this->json(['message' => 'Token et nouveau mot de passe requis.'], 400);
         }
 
         // Validation de la complexité du mot de passe
-        $passwordErrors = $this->validator->validate($password, [
+        $passwordErrors = $this->validator->validate($newPassword, [
             new Assert\NotBlank(),
             new Assert\Length(
                 min: 8,
@@ -169,8 +172,17 @@ class AuthController extends AbstractController
             return $this->json(['message' => implode(' ', $messages)], 400);
         }
 
-        // TODO: implémenter la vérification du token en base de données
-        // et mettre à jour le mot de passe de l'utilisateur correspondant
-        return $this->json(['message' => 'Fonctionnalité de réinitialisation en cours de déploiement.'], 503);
+        // Validation du token (hash SHA-256 comparé en base)
+        $tokenEntity = $this->passwordResetService->validateToken($rawToken);
+        if (!$tokenEntity) {
+            return $this->json([
+                'message' => 'Lien invalide ou expiré. Veuillez faire une nouvelle demande.',
+            ], 400);
+        }
+
+        // Consomme le token (usage unique) et met à jour le mot de passe
+        $this->passwordResetService->consumeAndReset($tokenEntity, $newPassword);
+
+        return $this->json(['message' => 'Mot de passe mis à jour avec succès.']);
     }
 }

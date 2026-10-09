@@ -1,4 +1,5 @@
 parameters:
+    app.frontend_url: '%env(default:http\://localhost\:5173:FRONTEND_URL)%'
 
 services:
     _defaults:
@@ -11,3 +12,7 @@ services:
             - '../src/DependencyInjection/'
             - '../src/Entity/'
             - '../src/Kernel.php'
+
+    App\Service\PasswordResetService:
+        arguments:
+            $frontendUrl: '%app.frontend_url%'
